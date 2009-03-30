@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="source"/>
+	<classpathentry kind="src" path="testsource"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/util"/>
+	<classpathentry kind="lib" path="/lib-java/junit/4.4/junit.jar"/>
+	<classpathentry kind="lib" path="/lib-java/picocolo/1.04/piccolo.jar"/>
+	<classpathentry kind="lib" path="/lib-java/log4j/1.2.15/log4j-1.2.15.jar"/>
+	<classpathentry kind="lib" path="/org.ddialliance.ddi_3_0.xml.xmlbeans/xmllib/org.ddialliance.ddi_3_0_20080428.xml.xmlbeans.jar"/>
+	<classpathentry kind="lib" path="/ddieditor-xmlbeans/xmllib/org.ddialliance.ddieditor.model.xmlbeans.jar"/>
+	<classpathentry kind="lib" path="/lib-java/vtd-xml/2.4/vtd-xml.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="file:/home/ddajvj/app/vtd-xml/vtd-xml-javadoc/vtd-xml_2.4_doc/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/lib-java/bdbxml/2.4.16/db.jar"/>
+	<classpathentry kind="lib" path="/lib-java/bdbxml/2.4.16/dbxml.jar"/>
+	<classpathentry kind="lib" path="/lib-java/xsom/20060901/xsom.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="https://xsom.dev.java.net/nonav/javadoc/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/lib-java/xsom/20060901/xsom14.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="https://xsom.dev.java.net/nonav/javadoc/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/lib-java/xmlbeans/2.4.0/jsr173_1.0_api.jar"/>
+	<classpathentry kind="lib" path="/lib-java/xmlbeans/2.4.0/resolver.jar"/>
+	<classpathentry kind="lib" path="/lib-java/xmlbeans/2.4.0/xbean_xpath.jar"/>
+	<classpathentry kind="lib" path="/lib-java/xmlbeans/2.4.0/xbean.jar"/>
+	<classpathentry kind="lib" path="/lib-java/xmlbeans/2.4.0/xmlbeans-qname.jar"/>
+	<classpathentry kind="lib" path="/lib-java/xmlbeans/2.4.0/xmlpublic.jar"/>
+	<classpathentry kind="lib" path="/lib-java/aspectj/1.6.1/aspectjrt.jar"/>
+	<classpathentry kind="lib" path="/lib-java/aspectj/1.6.1/aspectjweaver.jar"/>
+	<classpathentry kind="lib" path="/lib-java/commons/jexl/1.1/commons-jexl.jar"/>
+	<classpathentry kind="lib" path="/lib-java/ant-contrib/1.0-b3/lib/commons-logging-1.0.4.jar"/>
+	<classpathentry kind="lib" path="/lib-java/perf4j/0.9.10-SNAPSHOT/perf4j-0.9.10-SNAPSHOT.jar"/>
+	<classpathentry kind="lib" path="/lib-java/relaxngDatatype/20020414/relaxngDatatype.jar"/>
+	<classpathentry kind="output" path="build"/>
+</classpath>

@@ -1,0 +1,233 @@
+# list from ddi-3.0-20080428::Data Documentation Initiative (DDI) Technical Specification Part I::Appendix 1: URL Paths for all identified objects
+#OBJECT PARENT(level1) PARENT(level2) PARENT(level 3) 
+group__Abstract(I) Group(M) 
+studyunit__Abstract(I) studyunit__StudyUnit(M) 
+Access(I) Archive(M)
+# typo 'ActionToMinimizeLoss' should be 'ActionToMinimizeLosses' 
+ActionToMinimizeLosses(I) CollectionEvent(I) datacollection__DataCollection(M) 
+physicaldataproduct_ncube_inline__Attribute(I) NCube(V) NCubeScheme(M) 
+physicaldataproduct_ncube_normal__Attribute(I) NCube(V) NCubeScheme(M)
+physicaldataproduct_ncube_tabular__Attribute(I) NCube(V) NCubeScheme(M)
+Category(V) CategoryGroup(V) CategoryScheme(M) 
+Category(V) CategoryScheme(M) 
+CategoryGroup(V) CategoryScheme(M) 
+# typo 'Comparative' should be 'Comparison'
+CategoryMap(V) Comparison(M)
+# typo 'Comparative' should be 'Comparison'
+CodeMap(V) Comparison(M) 
+Coding(I) ProcessingEvent(I) datacollection__DataCollection(M) 
+CollectionEvent(I) datacollection__DataCollection(M)
+#typo 'CollectionSitutation' should be 'CollectionSituation'
+CollectionSituation(I) CollectionEvent(I) datacollection__DataCollection(M) 
+ComputationItem(V) ControlConstructScheme(M) 
+Concept(V) ConceptScheme(M) 
+ConceptGroup(V) ConceptScheme(M) 
+# typo 'Comparative' should be 'Comparison'
+ConceptMap(V) Comparison(M) 
+CoordinateGroup(I) NCube(V) NCubeScheme(M) 
+DataCollectionMethodology(I) Methodology(V) datacollection__DataCollection(M) 
+DataElementConcept(V) ConceptScheme(M) 
+#typo 'DataFileIdentifiation' should be 'DataFileIdentification'
+DataFileIdentification(I) PhysicalInstance(M) 
+DataRelationship(I) logicalproduct__LogicalProduct(M) 
+DefaultAccess(I) Archive(M) 
+DeviationFromSampleDesign(I) Methodology(V) datacollection__DataCollection(M) 
+Embargo(I) studyunit__StudyUnit(M)
+# change from type 'GeographicCoverage' to element 'SpatialCoverage' 
+SpatialCoverage(I) ConceptualComponent(M)
+# change from type 'GeographicCoverage' to element 'SpatialCoverage' 
+SpatialCoverage(I) DDIInstance(M)
+# change from type 'GeographicCoverage' to element 'SpatialCoverage'
+SpatialCoverage(I) datacollection__DataCollection(M) 
+# change from type 'GeographicCoverage' to element 'SpatialCoverage'
+SpatialCoverage(I) Group(M) 
+# change from type 'GeographicCoverage' to element 'SpatialCoverage'
+SpatialCoverage(I) logicalproduct__LogicalProduct(M) 
+# change from type 'GeographicCoverage' to element 'SpatialCoverage'
+SpatialCoverage(I) PhysicalInstance(M) 
+# change from type 'GeographicCoverage' to element 'SpatialCoverage'
+SpatialCoverage(I) ResourcePackage(M) 
+# change from type 'GeographicCoverage' to element 'SpatialCoverage'
+SpatialCoverage(I) studyunit__StudyUnit(M) 
+# change from type 'GeographicCoverage' to element 'SpatialCoverage'
+SpatialCoverage(I) SubGroup(V) Group(M) 
+# typo 'GeograpicStructure' should be 'GeographicStructure'
+Geography(I) GeographicStructure(V) GeographicStructureScheme(M)
+# typo 'GeograpicLocation' should be 'GeographicLocation' 
+reusable__GeographicLocation(V) GeographicLocationScheme(M)
+# typo 'GeograpicStructure' should be 'GeographicStructure'
+GeographicStructure(V) GeographicStructureScheme(M) 
+GrossFileStructure(I) PhysicalInstance(M) 
+GrossRecordStructure(I) PhysicalStructure(V) PhysicalStructureScheme(M) 
+IfThenElse(V) ControlConstructScheme(M)
+Individual(V) OrganizationScheme(M)
+Instruction(V) InterviewerInstructionScheme(M) 
+# typo 'LifeCycleEvent' should be LifecycleEvent
+LifecycleEvent(I) Archive(M)
+Location(I) Individual(V) OrganizationScheme(M) 
+Location(I) Organization(V) OrganizationScheme(M)
+# typo 'LogicalRecordtype' should be LogicalRecord
+LogicalRecord(I) DataRelationship(I) logicalproduct__LogicalProduct(M) 
+Loop(V) ControlConstructScheme(M) 
+physicaldataproduct_ncube_inline__Measure(I) NCube(V) NCubeScheme(M) 
+physicaldataproduct_ncube_tabular__Measure(I) NCube(V) NCubeScheme(M)
+physicaldataproduct_ncube_normal__Measure(I) NCube(V) NCubeScheme(M)
+Methodology(V) datacollection__DataCollection(M) 
+ModeOfCollection(I) CollectionEvent(I) datacollection__DataCollection(M)
+MultipleQuestionItem(V) QuestionScheme(M) MultipleQuestionItem(V)
+# typo 'NCubeSchme' should be 'NCubeScheme' 
+NCube(V) NCubeScheme(M) 
+# typo 'NCubeSchme' should be 'NCubeScheme'
+NCubeGroup(V) NCubeScheme(M) 
+physicaldataproduct_ncube_normal__NCubeInstance(V) physicaldataproduct_ncube_normal__RecordLayout(I) RecordLayoutScheme(M)  
+physicaldataproduct_ncube_tabular__NCubeInstance(V) physicaldataproduct_ncube_tabular__RecordLayout(I) RecordLayoutScheme(M)
+physicaldataproduct_ncube_inline__NCubeInstance(V) physicaldataproduct_ncube_inline__RecordLayout(I) RecordLayoutScheme(M)
+Organization(V) OrganizationScheme(M) 
+PhysicalRecordSegment(I) GrossRecordStructure(I) PhysicalStructure(V) PhysicalStructureScheme(M) 
+PhysicalStructure(V) PhysicalStructureScheme(M) 
+ProcessingEvent(I) datacollection__DataCollection(M) 
+# not found!
+# ProprietaryRecordLayout(I) RecordLayoutScheme(M)  
+group__Purpose(I) Group(M) 
+studyunit__Purpose(I) studyunit__StudyUnit(M) 
+QuestionConstruct(V) ControlConstructScheme(M)
+# removed 'MulitpleQuestionItem' not in schema 
+QuestionItem(V) QuestionScheme(M) 
+# typo 'Comparative' should be 'Comparison'
+QuestionMap(V) Comparison(M) 
+physicaldataproduct__RecordLayout(I) RecordLayoutScheme(M) 
+RecordRelationship(I) DataRelationship(I) logicalproduct__LogicalProduct(M) 
+RepeatUntil(V) ControlConstructScheme(M) 
+RepeatWhile(V) ControlConstructScheme(M) 
+Role(I) OrganizationScheme(M) 
+SamplingProcedure(I) Methodology(V) datacollection__DataCollection(M) 
+Sequence(V) ControlConstructScheme(M) 
+StatementItem(V) ControlConstructScheme(M) 
+SubGroup(V) Group(M) 
+TemporalCoverage(I) ConceptualComponent(M) 
+TemporalCoverage(I) DDIInstance(M) 
+TemporalCoverage(I) datacollection__DataCollection(M) 
+TemporalCoverage(I) Group(M) 
+TemporalCoverage(I) logicalproduct__LogicalProduct(M) 
+TemporalCoverage(I) PhysicalInstance(M) 
+TemporalCoverage(I) ResourcePackage(M) 
+TemporalCoverage(I) studyunit__StudyUnit(M) 
+TemporalCoverage(I) SubGroup(V) Group(M) 
+TimeMethod(I) Methodology(V) datacollection__DataCollection(M) 
+TopicalCoverage(I) ConceptualComponent(M) 
+TopicalCoverage(I) DDIInstance(M) 
+TopicalCoverage(I) datacollection__DataCollection(M) 
+TopicalCoverage(I) Group(M) 
+TopicalCoverage(I) PhysicalInstance(M) 
+TopicalCoverage(I) ResourcePackage(M) 
+TopicalCoverage(I) studyunit__StudyUnit(M) 
+TopicalCoverage(I) SubGroup(V) Group(M) 
+Universe(V) UniverseScheme(M)
+# typo 'VariableSchme' should be 'VariableScheme'
+Variable(V) VariableScheme(M) 
+# typo 'VariableSchme' should be 'VariableScheme'
+VariableGroup(V) VariableScheme(M)
+# typo 'Comparative' should be 'Comparison'
+VariableMap(V) Comparison(M) 
+datacollection__VariableSet(I) Coding(I) ProcessingEvent(I) datacollection__DataCollection(M) 
+Weighting(I) ProcessingEvent(I) datacollection__DataCollection(M) 
+
+# additional added elements add date 20090302
+DDIInstance(M) DDIInstance(M)
+DDIProfile(M) studyunit__StudyUnit(M)
+DDIProfile(M) ResourcePackage(M)
+DDIProfile(M) SubGroup(V)
+DDIProfile(M) Group(M)
+
+# relation not resolved
+# DataSet(M) ddi:dataset:3_0
+
+# archive
+Archive(M) studyunit__StudyUnit(M)
+Archive(M) ResourcePackage(M)
+Archive(M) SubGroup(V)
+Archive(M) Group(M)
+ 
+OrganizationScheme(M) ResourcePackage(M)
+OrganizationScheme(M) Archive(M)
+
+#comparison
+Comparison(M) ResourcePackage(M)
+Comparison(M) SubGroup(V)
+Comparison(M) Group(M)
+
+UniverseMap(M) Comparison(M)
+
+# group
+Group(M) DDIInstance(M)
+ResourcePackage(M) DDIInstance(M)
+
+#studyunit
+studyunit__StudyUnit(M) DDIInstance(M)
+studyunit__StudyUnit(M) Group(M)
+studyunit__StudyUnit(M) SubGroup(M)
+
+# conceptual component
+ConceptualComponent(M) studyunit__StudyUnit(M)
+ConceptualComponent(M) Group(M)
+ConceptualComponent(M) SubGroup(M)
+GeographicStructureScheme(M) ConceptualComponent(M)
+UniverseScheme(M) ConceptualComponent(M)
+UniverseScheme(M) Group(M)
+ConceptScheme(M) ConceptualComponent(M)
+ConceptScheme(M) ResourcePackage(M)
+GeographicLocationScheme(M) ConceptualComponent(M)
+SubUniverse(M) Universe(M)
+
+# data collection
+QuestionScheme(M) ResourcePackage(M)
+QuestionScheme(M) datacollection__DataCollection(M)
+Instrument(M) datacollection__DataCollection(M)
+ControlConstructScheme(M) datacollection__DataCollection(M)
+ControlConstructScheme(M) ResourcePackage(M)
+ControlConstruct(M) datacollection__DataCollection(M)
+InterviewerInstructionScheme(M) Group(M)
+InterviewerInstructionScheme(M) datacollection__DataCollection(M)
+datacollection__DataCollection(M) studyunit__StudyUnit(M)
+datacollection__DataCollection(M) ResourcePackage(M)
+datacollection__DataCollection(M) SubGroup(V)
+datacollection__DataCollection(M) Group(V)
+
+# logical data product
+VariableScheme(M) Group(M)
+VariableScheme(M) logicalproduct__LogicalProduct(M)
+CodeScheme(M) ResourcePackage(M)
+CodeScheme(M) logicalproduct__LogicalProduct(M)
+NCubeLogicalProduct(M) studyunit__StudyUnit(M)
+NCubeScheme(M) NCubeLogicalProduct(M)
+logicalproduct__Measure(M) NCube(M)
+BaseLogicalProduct(M) studyunit__StudyUnit(M)
+logicalproduct__Attribute(M) NCube(M)
+logicalproduct__LogicalProduct(M) studyunit__StudyUnit(M)
+logicalproduct__LogicalProduct(M) ResourcePackage(M)
+logicalproduct__LogicalProduct(M) SubGroup(V)
+logicalproduct__LogicalProduct(M) Group(V)
+CategoryScheme(M) ResourcePackage(M)
+CategoryScheme(M) logicalproduct__LogicalProduct(M)
+CategoryScheme(M) NCubeLogicalProduct(M)
+
+# physical data product
+PhysicalStructureScheme(M) PhysicalStructureScheme(M)
+PhysicalStructureScheme(M) physicaldataproduct__PhysicalDataProduct(M)
+RecordLayoutScheme(M) ResourcePackage(M)
+RecordLayoutScheme(M) physicaldataproduct__PhysicalDataProduct(M)
+physicaldataproduct__PhysicalDataProduct(M) studyunit__StudyUnit(M)
+physicaldataproduct__PhysicalDataProduct(M) ResourcePackage(M)
+physicaldataproduct__PhysicalDataProduct(M) SubGroup(V)
+physicaldataproduct__PhysicalDataProduct(M) Group(V)
+BaseRecordLayout(M) physicaldataproduct__PhysicalDataProduct(M)
+
+# physical instance
+PhysicalInstance(M) studyunit__StudyUnit(M)
+
+# ncube
+physicaldataproduct_ncube_inline__RecordLayout(M) studyunit__StudyUnit(M)
+physicaldataproduct_ncube_tabular__RecordLayout(M) studyunit__StudyUnit(M)
+physicaldataproduct_ncube_normal__RecordLayout(M) studyunit__StudyUnit(M)
+
+DataSet(M) DataSet(M)

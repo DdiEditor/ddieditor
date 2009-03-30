@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:rl="ddieditor-resoure-list"
+  targetNamespace="ddieditor-resoure-list" elementFormDefault="qualified">
+  <xs:element name="ResourceList" type="rl:ResourceListType"/>
+  <xs:complexType name="ResourceListType">
+    <xs:sequence>
+      <xs:element ref="rl:Storage" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+    <xs:attribute name="version" use="required" type="xs:decimal"/>
+  </xs:complexType>
+
+  <xs:element name="Storage" type="rl:StorageType"/>
+  <xs:complexType name="StorageType">
+    <xs:sequence>
+      <xs:element maxOccurs="unbounded" ref="rl:DDIResource"/>
+    </xs:sequence>
+    <xs:attribute name="connection" use="optional" type="xs:string"/>
+    <xs:attribute name="id" use="required" type="xs:string"/>
+    <xs:attribute name="manager" use="required" type="xs:string"/>
+    <xs:attribute name="passwd" use="optional"  type="xs:string"/>
+    <xs:attribute name="propertyfile" use="optional"  type="xs:string"/>
+    <xs:attribute name="usr" use="optional"  type="xs:string"/>
+  </xs:complexType>
+
+  <xs:element name="DDIResource" type="rl:DDIResourceType"/>
+  <xs:complexType name="DDIResourceType">
+    <xs:sequence>
+      <xs:element maxOccurs="unbounded" minOccurs="0" ref="rl:TopURN"/>
+    </xs:sequence>
+    <xs:attribute name="orgName" use="required"  type="xs:string"/>
+  </xs:complexType>
+  
+  <xs:element name="TopURN" type="rl:TopURNType"/>
+  <xs:complexType name="TopURNType">
+    <xs:attribute name="agency" use="required"  type="xs:string"/>
+    <xs:attribute name="ddi" use="required" type="xs:decimal"/>
+    <xs:attribute name="element" use="required"  type="xs:string"/>
+    <xs:attribute name="id" use="required"  type="xs:string"/>    
+    <xs:attribute name="urn" use="required"  type="xs:string"/>
+    <xs:attribute name="version" use="required"  type="xs:string"/>
+  </xs:complexType>
+</xs:schema>

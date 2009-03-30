@@ -1,0 +1,127 @@
+# list from ddi-3.0-20080428::Data Documentation Initiative (DDI) Technical Specification Part I::Appendix 1: URL Paths for all identified objects
+#OBJECT PARENT(level1) PARENT(level2) PARENT(level 3) 
+Abstract(I) Group(M) 
+Abstract(I) StudyUnit(M) 
+Access(I) Archive(M)
+# typo 'ActionToMinimizeLoss' should be 'ActionToMinimizeLosses' 
+ActionToMinimizeLosses(I) CollectionEvent(I) DataCollection(M) 
+Attribute(I) NCube(V) NCubeScheme(M) 
+Category(V) CategoryGroup(V) CategoryScheme(M) 
+Category(V) CategoryScheme(M) 
+CategoryGroup(V) CategoryScheme(M) 
+# typo 'Comparative' should be 'Comparison'
+CategoryMap(V) Comparison(M)
+# typo 'Comparative' should be 'Comparison'
+CodeMap(V) Comparison(M) 
+Coding(I) ProcessingEvent(I) DataCollection(M) 
+CollectionEvent(I) DataCollection(M)
+#typo 'CollectionSitutation' should be 'CollectionSituation'
+CollectionSituation(I) CollectionEvent(I) DataCollection(M) 
+ComputationItem(V) ControlConstructScheme(M) 
+Concept(V) ConceptScheme(M) 
+ConceptGroup(V) ConceptScheme(M) 
+# typo 'Comparative' should be 'Comparison'
+ConceptMap(V) Comparison(M) 
+CoordinateGroup(I) NCube(V) NCubeScheme(M) 
+DataCollectionMethodology(I) Methodology(V) DataCollection(M) 
+DataElementConcept(V) ConceptScheme(M) 
+#typo 'DataFileIdentifiation' should be 'DataFileIdentification'
+DataFileIdentification(I) PhysicalInstance(M) 
+DataRelationship(I) LogicalProduct(M) 
+DefaultAccess(I) Archive(M) 
+DeviationFromSampleDesign(I) Methodology(V) DataCollection(M) 
+Embargo(I) StudyUnit(M)
+# change from type 'GeographicCoverage' to element 'SpatialCoverage' 
+SpatialCoverage(I) ConceptualComponent(M)
+# change from type 'GeographicCoverage' to element 'SpatialCoverage' 
+SpatialCoverage(I) DDIInstance(M)
+# change from type 'GeographicCoverage' to element 'SpatialCoverage'
+SpatialCoverage(I) DataCollection(M) 
+# change from type 'GeographicCoverage' to element 'SpatialCoverage'
+SpatialCoverage(I) Group(M) 
+# change from type 'GeographicCoverage' to element 'SpatialCoverage'
+SpatialCoverage(I) LogicalProduct(M) 
+# change from type 'GeographicCoverage' to element 'SpatialCoverage'
+SpatialCoverage(I) PhysicalInstance(M) 
+# change from type 'GeographicCoverage' to element 'SpatialCoverage'
+SpatialCoverage(I) ResourcePackage(M) 
+# change from type 'GeographicCoverage' to element 'SpatialCoverage'
+SpatialCoverage(I) StudyUnit(M) 
+# change from type 'GeographicCoverage' to element 'SpatialCoverage'
+SpatialCoverage(I) SubGroup(V) Group(M) 
+# typo 'GeograpicStructure' should be 'GeographicStructure'
+Geography(I) GeographicStructure(V) GeographicStructureScheme(M)
+# typo 'GeograpicLocation' should be 'GeographicLocation' 
+GeographicLocation(V) GeographicLocationScheme(M)
+# typo 'GeograpicStructure' should be 'GeographicStructure'
+GeographicStructure(V) GeographicStructureScheme(M) 
+GrossFileStructure(I) PhysicalInstance(M) 
+GrossRecordStructure(I) PhysicalStructure(V) PhysicalStructureScheme(M) 
+IfThenElse(V) ControlConstructScheme(M)
+Individual(V) OrganizationScheme(M)
+Instruction(V) InterviewerInstructionScheme(M) 
+# typo 'LifeCycleEvent' should be LifecycleEvent
+LifecycleEvent(I) Archive(M)
+Location(I) Individual(V) OrganizationScheme(M) 
+Location(I) Organization(V) OrganizationScheme(M)
+# typo 'LogicalRecordtype' should be LogicalRecordType
+LogicalRecordType(I) DataRelationship(I) LogicalProduct(M) 
+Loop(V) ControlConstructScheme(M) 
+Measure(I) NCube(V) NCubeScheme(M) 
+Methodology(V) DataCollection(M) 
+ModeOfCollection(I) CollectionEvent(I) DataCollection(M)
+MultipleQuestionItem(V) QuestionScheme(M) MultipleQuestionItem(V)
+# typo 'NCubeSchme' should be 'NCubeScheme' 
+NCube(V) NCubeScheme(M) 
+# typo 'NCubeSchme' should be 'NCubeScheme'
+NCubeGroup(V) NCubeScheme(M) 
+NCubeInstance(V) RecordLayout(I) RecordLayoutScheme(M)  
+Organization(V) OrganizationScheme(M) 
+PhysicalRecordSegment(I) GrossRecordStructure(I) PhysicalStructure(V) PhysicalStructureScheme(M) 
+PhysicalStructure(V) PhysicalStructureScheme(M) 
+ProcessingEvent(I) DataCollection(M) 
+# not found!
+# ProprietaryRecordLayout(I) RecordLayoutScheme(M)  
+Purpose(I) Group(M) 
+Purpose(I) StudyUnit(M) 
+QuestionConstruct(V) ControlConstructScheme(M) 
+QuestionItem(V) QuestionScheme(M) MulitpleQuestionItem(V) 
+# typo 'Comparative' should be 'Comparison'
+QuestionMap(V) Comparison(M) 
+RecordLayout(I) RecordLayoutScheme(M) 
+RecordRelationship(I) DataRelationship(I) LogicalProduct(M) 
+RepeatUntil(V) ControlConstructScheme(M) 
+RepeatWhile(V) ControlConstructScheme(M) 
+Role(I) OrganizationScheme(M) 
+SamplingProcedure(I) Methodology(V) DataCollection(M) 
+Sequence(V) ControlConstructScheme(M) 
+StatementItem(V) ControlConstructScheme(M) 
+SubGroup(V) Group(M) 
+TemporalCoverage(I) ConceptualComponent(M) 
+TemporalCoverage(I) DDIInstance(M) 
+TemporalCoverage(I) DataCollection(M) 
+TemporalCoverage(I) Group(M) 
+TemporalCoverage(I) LogicalProduct(M) 
+TemporalCoverage(I) PhysicalInstance(M) 
+TemporalCoverage(I) ResourcePackage(M) 
+TemporalCoverage(I) StudyUnit(M) 
+TemporalCoverage(I) SubGroup(V) Group(M) 
+TimeMethod(I) Methodology(V) DataCollection(M) 
+TopicalCoverage(I) ConceptualComponent(M) 
+TopicalCoverage(I) DDIInstance(M) 
+TopicalCoverage(I) DataCollection(M) 
+TopicalCoverage(I) Group(M) 
+TopicalCoverage(I) LogicalProduct(M) 
+TopicalCoverage(I) PhysicalInstance(M) 
+TopicalCoverage(I) ResourcePackage(M) 
+TopicalCoverage(I) StudyUnit(M) 
+TopicalCoverage(I) SubGroup(V) Group(M) 
+Universe(V) UniverseScheme(M)
+# typo 'VariableSchme' should be 'VariableScheme'
+Variable(V) VariableScheme(M) 
+# typo 'VariableSchme' should be 'VariableScheme'
+VariableGroup(V) VariableScheme(M)
+# typo 'Comparative' should be 'Comparison'
+VariableMap(V) Comparison(M) 
+VariableSet(I) Coding(I) ProcessingEvent(I) DataCollection(M) 
+Weighting(I) ProcessingEvent(I) DataCollection(M) 
