@@ -715,7 +715,7 @@ public class DdiManager {
 			throws Exception {
 		// ConceptScheme/Concept/Label
 		return queryLightXmlBeans(id, version, parentId, parentVersion,
-				"ConceptScheme", "Concept", null, "reusable__Name");
+				"ConceptScheme", "Concept", null, "reusable__Label");
 	}
 
 	@Profiled(tag = "getConcept")
@@ -765,12 +765,13 @@ public class DdiManager {
 		// QuestionScheme/Label
 		LightXmlObjectListDocument lightXmlObjectListDocument = queryLightXmlBeans(
 				id, version, parentId, parentVersion, "QuestionScheme", null,
-				null, "reusable__Name");
+				null, "reusable__Label");
 		if (lightXmlObjectListDocument.getLightXmlObjectList()
 				.getLightXmlObjectList().isEmpty()) {
 			queryLightXmlBeans(id, version, parentId, parentVersion,
-					"QuestionScheme", null, null, "reusable__Name");
+					"QuestionScheme", null, null, "reusable__Label");
 		}
+		log.error("Here");
 		return lightXmlObjectListDocument;
 	}
 
