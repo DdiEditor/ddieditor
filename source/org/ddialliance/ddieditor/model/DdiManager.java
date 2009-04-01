@@ -9,6 +9,7 @@ import org.ddialliance.ddi_3_0.xml.xmlbeans.conceptualcomponent.ConceptDocument;
 import org.ddialliance.ddi_3_0.xml.xmlbeans.datacollection.DataCollectionDocument;
 import org.ddialliance.ddi_3_0.xml.xmlbeans.datacollection.QuestionItemDocument;
 import org.ddialliance.ddi_3_0.xml.xmlbeans.datacollection.QuestionSchemeDocument;
+import org.ddialliance.ddi_3_0.xml.xmlbeans.logicalproduct.CodeSchemeDocument;
 import org.ddialliance.ddieditor.model.lightxmlobject.LightXmlObjectListDocument;
 import org.ddialliance.ddieditor.model.namespace.ddi3.Ddi3NamespaceGenerator;
 import org.ddialliance.ddieditor.model.namespace.ddi3.Ddi3NamespacePrefix;
@@ -178,7 +179,7 @@ public class DdiManager {
 	 * @return Light xml object list
 	 * @throws DDIFtpException
 	 */
-	@Profiled(tag="queryLightXmlBeans")
+	@Profiled(tag = "queryLightXmlBeans")
 	protected LightXmlObjectListDocument queryLightXmlBeans(String id,
 			String version, String parentId, String parentVersion,
 			String rootElement, String parentChildElement,
@@ -289,7 +290,7 @@ public class DdiManager {
 		return lightXmlObjectListDocument;
 	}
 
-	@Profiled(tag="xQueryLightXmlBeans")
+	@Profiled(tag = "xQueryLightXmlBeans")
 	private ParamatizedXquery xQueryLightXmlBeans(String parentId,
 			String childChildElement, String parentChildElement)
 			throws DDIFtpException {
@@ -641,7 +642,7 @@ public class DdiManager {
 		PersistenceManager.getInstance().updateQuery(query.toString());
 	}
 
-	@Profiled(tag="xQueryCrudPosition")
+	@Profiled(tag = "xQueryCrudPosition")
 	private XQuery xQueryCrudPosition(String id, String version,
 			String elementType, String parentId, String parentVersion,
 			String parentElementType) throws DDIFtpException {
@@ -798,5 +799,22 @@ public class DdiManager {
 		String text = queryElement(id, version, "QuestionItem", parentId,
 				parentVersion, "QuestionScheme");
 		return (text == "" ? null : QuestionItemDocument.Factory.parse(text));
+	}
+	
+	public LightXmlObjectListDocument getCodeSchemesLight(String id,
+			String version, String parentId, String parentVersion)
+			throws Exception {
+		return queryLightXmlBeans(id, version, parentId, parentVersion,
+				"CodeScheme", null, null, "reusable__Label");
+	}
+
+	public CodeSchemeDocument getCodeScheme(String id, String version,
+			String parentId, String parentVersion) throws Exception {
+		String text = queryElement(id, version, "CodeScheme", parentId,
+				parentVersion, "logicalproduct__LogicalProduct");
+		if (text==null) {
+			queryElement(id, version, "CodeScheme", null, null, null);
+		}
+		return (text == "" ? null : CodeSchemeDocument.Factory.parse(text));
 	}
 }
