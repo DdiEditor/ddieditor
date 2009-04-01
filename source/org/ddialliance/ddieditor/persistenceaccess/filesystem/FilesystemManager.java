@@ -39,19 +39,19 @@ public class FilesystemManager implements PersistenceStorage {
 			throw new DDIFtpException("Argument must be a file!");
 		}
 		File file = (File) obj;
-
+		
 		// check if file has been loaded
 		if (!PersistenceManager.getInstance().getResourceById(file.getName()).isEmpty()) {
-			throw new DDIFtpException("A resource with original name has been loaded!");
+			throw new DDIFtpException("A resource with the same name: '"+file.getName()+"' has already been added");
 		}
 		
 		// strip file of DDIInstance - left out!, until now :- )
 		
 		try {			
-			// load file into db xml container
+			// load file into db xml container	
 			String containerName = file.getName().substring(0,
 					file.getName().lastIndexOf("."));
-			String connection = containerName + ".dbxml";
+			String connection = containerName + ".dbxml";		
 			DbXmlManager.getInstance().openContainer(new File(connection));
 			DbXmlManager.getInstance().addResource(file);
 
