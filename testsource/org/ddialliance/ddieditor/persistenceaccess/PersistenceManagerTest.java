@@ -1,8 +1,11 @@
 package org.ddialliance.ddieditor.persistenceaccess;
 
+import static org.junit.Assert.*;
+
 import java.util.List;
 
 import org.ddialliance.ddieditor.DdieditorTestCase;
+import org.ddialliance.ddieditor.model.resource.DDIResourceDocument;
 import org.ddialliance.ddieditor.model.resource.TopURNDocument;
 import org.junit.Assert;
 import org.junit.Test;
@@ -35,4 +38,14 @@ public class PersistenceManagerTest extends DdieditorTestCase {
 		List<TopURNDocument> topUrns = PersistenceManager.getInstance().getTopUrnsByIdAndVersionByWorkingResource("hungobongo", "qs_-2", "1.0.2");
 		Assert.assertEquals("hungobongo", topUrns.get(0).getTopURN().getAgency());
 	}
+	
+	@Test
+	public void deleteResource() throws Exception {
+		String orgName = SINGLE_MANINTAINABLE_QS_FD_NS_DOC+".xml";
+		PersistenceManager.getInstance().deleteResource(orgName);
+		PersistenceManager.getInstance().commitAllResources();
+		
+		List<DDIResourceDocument> list = PersistenceManager.getInstance().getResourceById(orgName);
+		Assert.assertTrue("Not empty!", list.isEmpty());
+	}	
 }
