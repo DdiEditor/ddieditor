@@ -1,7 +1,5 @@
 package org.ddialliance.ddieditor.persistenceaccess;
 
-import static org.junit.Assert.*;
-
 import java.util.List;
 
 import org.ddialliance.ddieditor.DdieditorTestCase;
