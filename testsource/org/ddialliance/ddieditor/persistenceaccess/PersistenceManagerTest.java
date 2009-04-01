@@ -20,30 +20,35 @@ public class PersistenceManagerTest extends DdieditorTestCase {
 						.getConnection() + "/"
 				+ DdieditorTestCase.FULLY_DECLARED_NS_DOC + "\")", docPath);
 	}
-		
+
 	@Test
 	public void getTopUrnsByWorkingResource() throws Exception {
 		PersistenceManager.getInstance().setWorkingResource(
 				DdieditorTestCase.FULLY_DECLARED_NS_DOC);
-		List<TopURNDocument> topUrns = PersistenceManager.getInstance().getTopUrnsByWorkingResource();
+		List<TopURNDocument> topUrns = PersistenceManager.getInstance()
+				.getTopUrnsByWorkingResource();
 		Assert.assertEquals(5, topUrns.size());
 	}
-	
+
 	@Test
 	public void getTopUrnByIdAndVersionByWorkingResource() throws Exception {
 		PersistenceManager.getInstance().setWorkingResource(
 				DdieditorTestCase.FULLY_DECLARED_NS_DOC);
-		List<TopURNDocument> topUrns = PersistenceManager.getInstance().getTopUrnsByIdAndVersionByWorkingResource("hungobongo", "qs_-2", "1.0.2");
-		Assert.assertEquals("hungobongo", topUrns.get(0).getTopURN().getAgency());
+		List<TopURNDocument> topUrns = PersistenceManager.getInstance()
+				.getTopUrnsByIdAndVersionByWorkingResource("hungobongo",
+						"qs_-2", "1.0.2");
+		Assert.assertEquals("hungobongo", topUrns.get(0).getTopURN()
+				.getAgency());
 	}
-	
+
 	@Test
 	public void deleteResource() throws Exception {
-		String orgName = SINGLE_MANINTAINABLE_QS_FD_NS_DOC+".xml";
+		String orgName = SINGLE_MANINTAINABLE_QS_FD_NS_DOC + ".xml";
 		PersistenceManager.getInstance().deleteResource(orgName);
 		PersistenceManager.getInstance().commitAllResources();
-		
-		List<DDIResourceDocument> list = PersistenceManager.getInstance().getResourceById(orgName);
+
+		List<DDIResourceDocument> list = PersistenceManager.getInstance()
+				.getResourceById(orgName);
 		Assert.assertTrue("Not empty!", list.isEmpty());
-	}	
+	}
 }
