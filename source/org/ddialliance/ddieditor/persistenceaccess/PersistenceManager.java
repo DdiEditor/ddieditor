@@ -817,7 +817,7 @@ public class PersistenceManager {
 					.getResourcePath());
 			query.query
 					.append("//*[namespace-uri()='ddieditor-resoure-list' and local-name()='ResourceList']//*[namespace-uri()='ddieditor-resoure-list' and local-name()='Storage']//*[namespace-uri()='ddieditor-resoure-list' and local-name()='DDIResource']");
-			query.query.append(" where $x/@id = '");
+			query.query.append(" where $x/@orgName = '");
 			query.query.append(id);
 			query.query.append("'");
 			query.query.append(" return $x");
