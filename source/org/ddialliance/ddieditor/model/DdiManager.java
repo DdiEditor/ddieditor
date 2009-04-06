@@ -9,6 +9,7 @@ import org.ddialliance.ddi_3_0.xml.xmlbeans.conceptualcomponent.ConceptDocument;
 import org.ddialliance.ddi_3_0.xml.xmlbeans.datacollection.DataCollectionDocument;
 import org.ddialliance.ddi_3_0.xml.xmlbeans.datacollection.QuestionItemDocument;
 import org.ddialliance.ddi_3_0.xml.xmlbeans.datacollection.QuestionSchemeDocument;
+import org.ddialliance.ddi_3_0.xml.xmlbeans.logicalproduct.CategorySchemeDocument;
 import org.ddialliance.ddi_3_0.xml.xmlbeans.logicalproduct.CodeSchemeDocument;
 import org.ddialliance.ddieditor.model.lightxmlobject.LightXmlObjectListDocument;
 import org.ddialliance.ddieditor.model.namespace.ddi3.Ddi3NamespaceGenerator;
@@ -734,7 +735,6 @@ public class DdiManager {
 	public LightXmlObjectListDocument getDataCollectionLight(String id,
 			String version, String parentId, String parentVersion)
 			throws Exception {
-		// QuestionScheme/Label
 		LightXmlObjectListDocument lightXmlObjectListDocument = queryLightXmlBeans(
 				id, version, parentId, parentVersion, "studyunit__StudyUnit",
 				"datacollection__DataCollection", null, "reusable__Name");
@@ -800,21 +800,59 @@ public class DdiManager {
 				parentVersion, "QuestionScheme");
 		return (text == "" ? null : QuestionItemDocument.Factory.parse(text));
 	}
-	
+
+	//
+	// logical product
+	//
 	public LightXmlObjectListDocument getCodeSchemesLight(String id,
 			String version, String parentId, String parentVersion)
 			throws Exception {
-		return queryLightXmlBeans(id, version, parentId, parentVersion,
-				"CodeScheme", null, null, "reusable__Label");
+		LightXmlObjectListDocument lightXmlObjectListDocument = queryLightXmlBeans(
+				id, version, parentId, parentVersion,
+				"logicalproduct__LogicalProduct", "CodeScheme", null,
+				"reusable__Label");
+		if (lightXmlObjectListDocument.getLightXmlObjectList()
+				.getLightXmlObjectList().isEmpty()) {
+			lightXmlObjectListDocument = queryLightXmlBeans(id, version,
+					parentId, parentVersion, "//", "CodeScheme", null,
+					"reusable__Label");
+		}
+		return lightXmlObjectListDocument;
 	}
 
 	public CodeSchemeDocument getCodeScheme(String id, String version,
 			String parentId, String parentVersion) throws Exception {
 		String text = queryElement(id, version, "CodeScheme", parentId,
 				parentVersion, "logicalproduct__LogicalProduct");
-		if (text==null) {
+		if (text == null) {
 			queryElement(id, version, "CodeScheme", null, null, null);
 		}
 		return (text == "" ? null : CodeSchemeDocument.Factory.parse(text));
+	}
+
+	public LightXmlObjectListDocument getCategorySchemesLight(String id,
+			String version, String parentId, String parentVersion)
+			throws Exception {
+		LightXmlObjectListDocument lightXmlObjectListDocument = queryLightXmlBeans(
+				id, version, parentId, parentVersion,
+				"logicalproduct__LogicalProduct", "CategoryScheme", null,
+				"reusable__Label");
+		if (lightXmlObjectListDocument.getLightXmlObjectList()
+				.getLightXmlObjectList().isEmpty()) {
+			lightXmlObjectListDocument = queryLightXmlBeans(id, version,
+					parentId, parentVersion, "//", "CategoryScheme", null,
+					"reusable__Label");
+		}
+		return lightXmlObjectListDocument;
+	}
+
+	public CategorySchemeDocument getCategoryScheme(String id, String version,
+			String parentId, String parentVersion) throws Exception {
+		String text = queryElement(id, version, "CategoryScheme", parentId,
+				parentVersion, "logicalproduct__LogicalProduct");
+		if (text == null) {
+			queryElement(id, version, "CategoryScheme", null, null, null);
+		}
+		return (text == "" ? null : CategorySchemeDocument.Factory.parse(text));
 	}
 }
