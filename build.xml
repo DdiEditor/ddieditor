@@ -86,6 +86,11 @@
 				<include name="picocolo/${version.picocolo}/*.jar" />
 				<include name="vtd-xml/${version.vtd-xml}/*.jar" />
 				<include name="joda-time/${version.joda-time}/*.jar" />
+				<include name="aspectj/${version.aspectj}/*.jar" />
+				<include name="commons/jexl/${version.commons.jexl}/*.jar" />
+				<include name="perf4j/${version.perf4j}/*.jar" />
+				<include name="relaxngDatatype/${version.relaxngDatatype}/*.jar" />
+				<include name="xsom/${version.xsom}/*.jar" />
 			</fileset>
 			<fileset dir="${ddi_3_0-xml-xmlbeans}">
 				<include name="*20080428*.jar" />
