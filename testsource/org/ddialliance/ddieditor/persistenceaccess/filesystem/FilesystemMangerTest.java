@@ -6,6 +6,7 @@ import junit.framework.Assert;
 
 import org.ddialliance.ddieditor.DdieditorTestCase;
 import org.ddialliance.ddieditor.persistenceaccess.PersistenceManager;
+import org.ddialliance.ddiftp.util.DDIFtpException;
 import org.junit.Test;
 
 public class FilesystemMangerTest extends DdieditorTestCase {
@@ -21,8 +22,8 @@ public class FilesystemMangerTest extends DdieditorTestCase {
 	public void addResorce() throws Exception {
 		try {
 			FilesystemManager.getInstance().addResource(new File("resources"+File.separator+SINGLE_MANINTAINABLE_QS_FD_NS_DOC));
-		} catch (Exception e) {
-			Assert.fail();
+		} catch (DDIFtpException e) {
+			// expected
 		}
 	}
 }
