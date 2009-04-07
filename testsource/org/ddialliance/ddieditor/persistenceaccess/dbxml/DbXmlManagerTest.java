@@ -19,7 +19,7 @@ public class DbXmlManagerTest extends DdieditorTestCase {
 		StringBuilder query = new StringBuilder();
 		query.append(PersistenceManager.getInstance().getResourcePath());
 		query.append(DdiManager.getInstance()
-				.addFullyQualifiedNamespaceDeclarationToElements("/DDIInstance/StudyUnit[1]/LogicalProduct/VariableScheme[1]"));
+				.addFullyQualifiedNamespaceDeclarationToElements("/DDIInstance/studyunit__StudyUnit[1]/logicalproduct__LogicalProduct/VariableScheme[1]"));
 		XmlResults rs = DbXmlManager.getInstance().xQuery(query.toString());
 		Assert.assertTrue(rs.hasNext());
 		rs.delete();
