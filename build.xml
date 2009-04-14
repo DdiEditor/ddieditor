@@ -17,9 +17,9 @@
 	<property name="junit.results.dir" value="${build.classes.dir}/junit-reports" />
 
 	<!-- dbxml -->
-	<property name="dbxml.native.filename" value="dbxml-native" />
+	<!--property name="dbxml.native.filename" value="dbxml-native" />
 	<property name="dbxml.native.lib" value="${lib.dir}/bdbxml/${version.bdbxml}/native/${os.name}/${os.arch}/" />
-	<property name="dbxml.native.path" value="${build.classes.dir}/resources/dbxml-native" />
+	<property name="dbxml.native.path" value="${build.classes.dir}/resources/dbxml-native" /-->
 
 	<!-- javac arguments -->
 	<property name="javac.debug" value="on" />
@@ -241,6 +241,9 @@
 		</copy>
 	</target>
 
+	<!-- 	Currently not used! 
+			TODO look into this
+	-->
 	<target name="native-dbxml" description="Sets up the native dbxml libs dependend on platform">
 		<if>
 			<available type="dir" file="${dbxml.native.lib}" />
@@ -294,7 +297,7 @@
 	<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
 	<!-- junit test									 -->
 	<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
-	<target name="compile-test" depends="compile, resource, native-dbxml" description="Compiles all test code">
+	<target name="compile-test" depends="compile, resource" description="Compiles all test code">
 		<javac destdir="${build.classes.dir}" classpathref="project.classpath" fork="yes" debug="${javac.debug}" deprecation="${javac.deprecation}" optimize="${javac.optimize}">
 			<src path="${testsrc.dir}" />
 		</javac>
@@ -309,8 +312,8 @@
 			</fileset>
 		</delete>
 
-		<!-- run tests -->
-		<junit fork="yes" forkmode="perTest" printsummary="yes" haltonfailure="false" dir="${build.classes.dir}">
+		<!-- run tests forkmode="perTest" -->
+		<junit fork="yes"  printsummary="yes" haltonfailure="false" dir="${build.classes.dir}">
 			<classpath refid="project.classpath" />
 			<jvmarg value="-Xms${java.heap.init}m" />
 			<jvmarg value="-Xmx${java.heap.max}m" />
