@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<rl:ResourceList xmlns:rl="ddieditor-resoure-list"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="ddieditor-resoure-list ddieditor-resource-list.xsd" version="0.1">
-    <Storage  id="resource-list" connection="resource-list.dbxml" manager="org.ddialliance.ddieditor.persistenceaccess.dbxml.DbXmlManager" xmlns="ddieditor-resoure-list"/>    
-</rl:ResourceList>
