@@ -24,8 +24,6 @@ public class DdieditorTestCase {
 
 	@BeforeClass
 	public static void runOnceBeforeAllTests() throws Exception {
-		// PersistenceManager.getInstance();
-		DdiManager.getInstance();
 
 		try {
 			// clean out dbxml
@@ -45,6 +43,10 @@ public class DdieditorTestCase {
 				}
 			}
 
+			// initialize
+			PersistenceManager.getInstance();
+			DdiManager.getInstance();
+
 			// add resources
 			System.setProperty("ddieditor.test", "false");
 			FilesystemManager.getInstance().addResource(
@@ -63,7 +65,7 @@ public class DdieditorTestCase {
 
 			// no commit
 			System.setProperty("ddieditor.test", "true");
-			PersistenceManager.getInstance().rebuildResources();
+			//PersistenceManager.getInstance().rebuildResources();
 			PersistenceManager.getInstance().exportResourceList(
 					new File(PersistenceManager.RESOURCE_LIST_FILE));
 		} catch (Exception e) {
