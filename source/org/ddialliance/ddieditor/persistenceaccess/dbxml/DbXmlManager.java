@@ -9,13 +9,11 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
-import org.apache.log4j.lf5.LogLevel;
 import org.ddialliance.ddieditor.model.resource.StorageType;
 import org.ddialliance.ddieditor.persistenceaccess.PersistenceStorage;
 import org.ddialliance.ddieditor.util.DdiEditorConfig;
 import org.ddialliance.ddiftp.util.DDIFtpException;
 import org.ddialliance.ddiftp.util.log.Log;
-import org.ddialliance.ddiftp.util.log.Log4jLogOutputStream;
 import org.ddialliance.ddiftp.util.log.LogFactory;
 import org.ddialliance.ddiftp.util.log.LogType;
 import org.perf4j.aop.Profiled;
@@ -361,7 +359,7 @@ public class DbXmlManager implements PersistenceStorage {
 
 		// ingest
 		try {
-			getContainer(currentWorikingContainer).putDocument(path.getName(),
+			getContainer(currentWorikingContainer).putDocument(getTransaction(), path.getName(),
 					xmlInputStream, getXmlDocumentConfig());
 		} catch (XmlException e) {
 			if (e.getErrorCode() == XmlException.UNIQUE_ERROR) {

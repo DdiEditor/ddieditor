@@ -41,7 +41,7 @@ public class FilesystemManager implements PersistenceStorage {
 		File file = (File) obj;
 		
 		// check if file has been loaded
-		if (!PersistenceManager.getInstance().getResourceById(file.getName()).isEmpty()) {
+		if (PersistenceManager.getInstance().getStorageByResourceOrgName(file.getName())!=null) {
 			throw new DDIFtpException("A resource with the same name: '"+file.getName()+"' has already been added");
 		}
 		
@@ -85,7 +85,6 @@ public class FilesystemManager implements PersistenceStorage {
 			PersistenceManager.getInstance().createResource(
 					ddiResourceDocument, containerName);
 			PersistenceManager.getInstance().commitWorkingResource();
-			PersistenceManager.getInstance().rebuildResources();
 		} catch (Exception e) {
 			throw e;
 		} finally {
