@@ -325,7 +325,7 @@ public class Urn2Util {
 		String initialParentElement = DdiManager.getInstance()
 				.getParentElementName(urn.getContainedElement());
 
-		List<TopURNDocument> topUrns = PersistenceManager.getInstance()
+		List<TopURNType> topUrns = PersistenceManager.getInstance()
 				.getTopUrnsByIdAndVersionByWorkingResource(
 						urn.getIdentifingAgency(), urn.getMaintainableId(),
 						urn.getMaintainableVersion());
@@ -355,7 +355,7 @@ public class Urn2Util {
 		List<String> result = new ArrayList<String>();
 		String xmlText = null;
 		String version = null;
-		for (TopURNDocument tmpTopUrn : topUrns) {
+		for (TopURNType tmpTopUrn : topUrns) {
 			// element lookup
 			xQuery.clearParameters();
 			xQuery.setObject(1, DdiManager.getInstance()
@@ -366,9 +366,9 @@ public class Urn2Util {
 					.getResourcePath());
 			xQuery.setObject(4, DdiManager.getInstance()
 					.addFullyQualifiedNamespaceDeclarationToElements(
-							tmpTopUrn.getTopURN().getElement()));
-			xQuery.setString(5, tmpTopUrn.getTopURN().getId());
-			xQuery.setString(6, tmpTopUrn.getTopURN().getVersion());
+							tmpTopUrn.getElement()));
+			xQuery.setString(5, tmpTopUrn.getId());
+			xQuery.setString(6, tmpTopUrn.getVersion());
 
 			result = PersistenceManager.getInstance().query(
 					xQuery.getParamatizedQuery());

@@ -89,16 +89,16 @@ public class UrnUtil {
 		}
 
 		// determine topURN
-		List<TopURNDocument> topUrns = PersistenceManager.getInstance()
+		List<TopURNType> topUrns = PersistenceManager.getInstance()
 				.getTopUrnsByWorkingResource();
 
 		// check if element is topUrn
-		TopURNDocument topUrn = null;
-		for (TopURNDocument tmpTopUrn : topUrns) {
-			if (tmpTopUrn.getTopURN().getElement().equals(elementName)
-					&& tmpTopUrn.getTopURN().getId().equals(id)) {
+		TopURNType topUrn = null;
+		for (TopURNType tmpTopUrn : topUrns) {
+			if (tmpTopUrn.getElement().equals(elementName)
+					&& tmpTopUrn.getId().equals(id)) {
 				if (version != null) {
-					if (tmpTopUrn.getTopURN().getVersion().equals(version)) {
+					if (tmpTopUrn.getVersion().equals(version)) {
 						topUrn = tmpTopUrn;
 						elementIsTopUrn = true;
 						break;
@@ -115,27 +115,27 @@ public class UrnUtil {
 		// determine parent topUrn
 		if (topUrn == null) {
 			for (String haystack : parentElements) {
-				for (TopURNDocument tmpTopUrn : topUrns) {
-					String needle = tmpTopUrn.getTopURN().getElement();
+				for (TopURNType tmpTopUrn : topUrns) {
+					String needle = tmpTopUrn.getElement();
 					if (haystack.equals(needle)) {
 						// check if a parent is the correct eg. scheme parent
 						if (haystack.equals(initialParentElement)
-								&& tmpTopUrn.getTopURN().getId().equals(
+								&& tmpTopUrn.getId().equals(
 										parentId)) {
 							// check if it is the right version of topUrn
-							if (tmpTopUrn.getTopURN().getVersion() != null
-									&& !tmpTopUrn.getTopURN().getVersion()
+							if (tmpTopUrn.getVersion() != null
+									&& !tmpTopUrn.getVersion()
 											.equals(parentVersion)) {
 								continue;
 							}
-							if (checkInitialTopUrn(tmpTopUrn.getTopURN(),
+							if (checkInitialTopUrn(tmpTopUrn,
 									elementName, id, version)) {
 								topUrn = tmpTopUrn;
 								break;
 							}
 						}
 						if (!haystack.equals(initialParentElement)) {
-							if (checkTopUrn(tmpTopUrn.getTopURN(), elementName,
+							if (checkTopUrn(tmpTopUrn, elementName,
 									id, version, initialParentElement, parentId)) {
 								topUrn = tmpTopUrn;
 								break;
@@ -169,13 +169,13 @@ public class UrnUtil {
 		if (!elementIsTopUrn && version != null && !version.equals("")) {
 			urn.setVersionableElementVersion(version);
 		} else if (!elementIsTopUrn) {
-			urn.setVersionableElementVersion(topUrn.getTopURN().getVersion());
+			urn.setVersionableElementVersion(topUrn.getVersion());
 		}
-		urn.setIdentifingAgency(topUrn.getTopURN().getAgency());
-		urn.setMaintainableId(topUrn.getTopURN().getId());
-		urn.setMaintainableVersion(topUrn.getTopURN().getVersion());
+		urn.setIdentifingAgency(topUrn.getAgency());
+		urn.setMaintainableId(topUrn.getId());
+		urn.setMaintainableVersion(topUrn.getVersion());
 		urn.setPrefix("ddi");
-		urn.setSchemaVersion(topUrn.getTopURN().getDdi().toString());
+		urn.setSchemaVersion(topUrn.getDdi().toString());
 		return urn;
 	}
 
@@ -406,7 +406,7 @@ public class UrnUtil {
 		String initialParentElement = DdiManager.getInstance()
 				.getParentElementName(urn.getContainedElement());
 
-		List<TopURNDocument> topUrns = PersistenceManager.getInstance()
+		List<TopURNType> topUrns = PersistenceManager.getInstance()
 				.getTopUrnsByIdAndVersionByWorkingResource(
 						urn.getIdentifingAgency(), urn.getMaintainableId(),
 						urn.getMaintainableVersion());
@@ -436,7 +436,7 @@ public class UrnUtil {
 		List<String> result = new ArrayList<String>();
 		String xmlText = null;
 		String version = null;
-		for (TopURNDocument tmpTopUrn : topUrns) {
+		for (TopURNType tmpTopUrn : topUrns) {
 			// element lookup
 			xQuery.clearParameters();
 			xQuery.setObject(1, DdiManager.getInstance()
@@ -447,9 +447,9 @@ public class UrnUtil {
 					.getResourcePath());
 			xQuery.setObject(4, DdiManager.getInstance()
 					.addFullyQualifiedNamespaceDeclarationToElements(
-							tmpTopUrn.getTopURN().getElement()));
-			xQuery.setString(5, tmpTopUrn.getTopURN().getId());
-			xQuery.setString(6, tmpTopUrn.getTopURN().getVersion());
+							tmpTopUrn.getElement()));
+			xQuery.setString(5, tmpTopUrn.getId());
+			xQuery.setString(6, tmpTopUrn.getVersion());
 
 			result = PersistenceManager.getInstance().query(
 					xQuery.getParamatizedQuery());
