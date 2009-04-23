@@ -28,7 +28,7 @@ package org.ddialliance.ddieditor.model.namespace.ddi3;
  */
 public enum Ddi3NamespacePrefix {
 	SCHEMA_INSTANCE("xsi", "http://www.w3.org/2001/XMLSchema-instance"), INSTANCE(
-			"ddi", "ddi:instance:3_0"), REUSEABLE("r", "ddi:reusable:3_0"), XHTML(
+			"ns1", "ddi:instance:3_0"), REUSEABLE("r", "ddi:reusable:3_0"), XHTML(
 			"xhtml", "http://www.w3.org/1999/xhtml"), DC_ELEMENTS("dce",
 			"ddi:dcelements:3_0"), DUBLIN_CORE("dc",
 			"http://purl.org/dc/elements/1.1/"), ARCHIVE("a", "ddi:archive:3_0"), GROUP(
@@ -95,5 +95,15 @@ public enum Ddi3NamespacePrefix {
 		result.append(Ddi3NamespacePrefix.DEFAULT_NAMESPACE_URI);
 		result.append("\"; ");
 		return result.toString();
+	}
+	
+	public static Ddi3NamespacePrefix getNamespaceByDefaultPrefix(String prefix) {
+		for (int i = 0; i < Ddi3NamespacePrefix.values().length; i++) {
+			Ddi3NamespacePrefix namespacePrefix = Ddi3NamespacePrefix.values()[i];
+			if (namespacePrefix.getPrefix().equals(prefix)) {
+				return namespacePrefix;
+			}
+		}
+		return null;
 	}
 }
