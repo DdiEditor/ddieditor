@@ -1,6 +1,7 @@
 package org.ddialliance.ddieditor.model;
 
 import java.util.List;
+import java.util.Properties;
 import java.util.Set;
 
 import org.apache.xmlbeans.XmlException;
@@ -17,6 +18,9 @@ import org.ddialliance.ddieditor.model.namespace.ddi3.Ddi3NamespacePrefix;
 import org.ddialliance.ddieditor.model.relationship.ElementDocument.Element;
 import org.ddialliance.ddieditor.persistenceaccess.ParamatizedXquery;
 import org.ddialliance.ddieditor.persistenceaccess.PersistenceManager;
+import org.ddialliance.ddieditor.persistenceaccess.SchemeQuery;
+import org.ddialliance.ddieditor.persistenceaccess.SchemeQueryResult;
+import org.ddialliance.ddieditor.persistenceaccess.SchemeUpdateElement;
 import org.ddialliance.ddieditor.persistenceaccess.XQueryInsertKeyword;
 import org.ddialliance.ddiftp.util.DDIFtpException;
 import org.ddialliance.ddiftp.util.ReflectionUtil;
@@ -126,6 +130,10 @@ public class DdiManager {
 		return ddi3NamespaceGenerator.getNamespaceObjectByElement(elementName);
 	}
 
+	public Properties getIdentifiables() {
+		return ddi3NamespaceGenerator.getIdentifiables();
+	}
+
 	/**
 	 * Retrieve the DDI module name by the name of a DDI element name
 	 * 
@@ -155,6 +163,17 @@ public class DdiManager {
 
 	public Element getElementParents(String elementName) {
 		return ddi3NamespaceGenerator.getElementParents(elementName);
+	}
+
+	/**
+	 * Transform the conversion name to local schema name
+	 * 
+	 * @param conversionName
+	 *            to transform
+	 * @return local schema name
+	 */
+	public String getLocalSchemaName(String conversionName) {
+		return ddi3NamespaceGenerator.getLocalSchemaName(conversionName);
 	}
 
 	/**
@@ -268,9 +287,8 @@ public class DdiManager {
 				whereClause.append(" $y/@version = '");
 				whereClause.append(version);
 				whereClause.append("'");
-			}
+			}			
 			query.setObject(i++, whereClause.toString());
-
 			query.setObject(i++, parentChildElement);
 		} else {
 			query.setObject(i++, rootElement);
@@ -427,6 +445,36 @@ public class DdiManager {
 	protected String queryElement(String id, String version,
 			String elementType, String parentId, String parentVersion,
 			String parentElementType) throws DDIFtpException {
+		List<String> result = PersistenceManager.getInstance().query(
+				getQueryElementString(id, version, elementType, parentId,
+						parentVersion, parentElementType));
+		if (!result.isEmpty()) {
+			return result.get(0);
+		} else
+			return "";
+	}
+
+	/**
+	 * Generates a XQuery string for DDI elements
+	 * 
+	 * @param id
+	 *            id of element
+	 * @param version
+	 *            version of element
+	 * @param elementType
+	 *            local name of DDI element
+	 * @param parentId
+	 *            id of parent element
+	 * @param parentVersion
+	 *            version of parent element
+	 * @param parentElementType
+	 *            local name of DDI parent element
+	 * @return xml result as string
+	 * @throws DDIFtpException
+	 */
+	protected String getQueryElementString(String id, String version,
+			String elementType, String parentId, String parentVersion,
+			String parentElementType) throws DDIFtpException {
 		ParamatizedXquery xQuery = xQueryElement(id, version, elementType,
 				parentId, parentVersion, parentElementType);
 		int i = 1;
@@ -457,6 +505,11 @@ public class DdiManager {
 				whereClause.append(" $element/@version = '");
 				whereClause.append(parentVersion);
 				whereClause.append("'");
+			} else {
+				if (whereClause.length() > 6) {
+					whereClause.append(" and");
+				}
+				whereClause.append(" empty($element/@version)");
 			}
 
 			// child
@@ -475,6 +528,11 @@ public class DdiManager {
 				whereClause.append(" $child/@version = '");
 				whereClause.append(version);
 				whereClause.append("'");
+			} else {
+				if (whereClause.length() > 6) {
+					whereClause.append(" and");
+				}
+				whereClause.append(" empty($child/@version)");
 			}
 		} else {
 			xQuery
@@ -493,6 +551,11 @@ public class DdiManager {
 				whereClause.append(" $element/@version = '");
 				whereClause.append(version);
 				whereClause.append("'");
+			} else {
+				if (whereClause.length() > 6) {
+					whereClause.append(" and");
+				}
+				whereClause.append(" empty($element/@version)");
 			}
 		}
 
@@ -500,18 +563,12 @@ public class DdiManager {
 		if (whereClause.length() > 6) {
 			xQuery.setObject(i, whereClause.toString());
 		} else {
-
 			if (whereClause.length() > 0) {
 				xQuery.setObject(i, "");
 			}
 		}
 
-		List<String> result = PersistenceManager.getInstance().query(
-				xQuery.getParamatizedQuery());
-		if (!result.isEmpty()) {
-			return result.get(0);
-		} else
-			return "";
+		return xQuery.getParamatizedQuery();
 	}
 
 	private ParamatizedXquery xQueryElement(String id, String version,
@@ -661,9 +718,11 @@ public class DdiManager {
 			query.query.append(id);
 			query.query.append("'");
 			if (version != null && !version.equals("")) {
-				query.query.append("and $element/@version = '");
+				query.query.append(" and $element/@version = '");
 				query.query.append(parentVersion);
 				query.query.append("'");
+			} else {
+				query.query.append(" and empty($element/@version)");
 			}
 			query.query.append(" return $element");
 		}
@@ -679,9 +738,11 @@ public class DdiManager {
 							.addFullyQualifiedNamespaceDeclarationToElements(elementType));
 			query.function.append(" where $child/@id = $id");
 			if (version != null && !version.equals("")) {
-				query.query.append("and $element/@version = '");
-				query.query.append(version);
-				query.query.append("'");
+				query.function.append(" and $child/@version = '");
+				query.function.append(version);
+				query.function.append("'");
+			}else {
+				query.function.append(" and empty($child/@version)");
 			}
 			query.function.append(" return $child");
 			query.function.append("};");
@@ -697,15 +758,129 @@ public class DdiManager {
 			query.query.append(parentId);
 			query.query.append("'");
 			if (parentVersion != null && !parentVersion.equals("")) {
-				query.query.append("and $element/@version = '");
+				query.query.append(" and $element/@version = '");
 				query.query.append(parentVersion);
 				query.query.append("'");
+			}else {
+				query.query.append(" and empty($element/@version)");
 			}
 			query.query.append(" return ddieditor:child_search($element, '");
 			query.query.append(id);
 			query.query.append("')");
 		}
 		return query;
+	}
+
+	public SchemeQueryResult queryScheme(SchemeQuery schemeQuery)
+			throws DDIFtpException {
+		try {
+			return PersistenceManager.getInstance().getPersistenceStorage()
+					.queryScheme(schemeQuery);
+		} catch (Exception e) {
+			throw new DDIFtpException("Error querying persistent storage", e);
+		}
+	}
+
+	public void updateSchema(SchemeQueryResult schemeQueryResult,
+			List<SchemeUpdateElement> elements) throws DDIFtpException {
+		// sort update value in correspondence with elementNames array
+		// TODO
+
+		Integer updateValue;
+		String queryString = schemeQueryResult.getQuery();
+		String updatePosition = "";
+		String nodeValue = "";
+		for (SchemeUpdateElement element : elements) {
+			updateValue = element.getUpdateValue();
+			nodeValue = substitutePrefixesFromElements(element.getValue());
+			updatePosition = schemeUpdatePosition(element, schemeQueryResult);
+
+			// delete
+			if (updateValue < 0) {
+				PersistenceManager.getInstance().delete(
+						queryString + updatePosition);
+			}
+			// replace
+			else if (updateValue > 0) {
+				PersistenceManager.getInstance().updateNode(
+						queryString + updatePosition, nodeValue);
+			}
+			// new
+			else if (updateValue == 0) {
+				XQueryInsertKeyword insertKeyword = XQueryInsertKeyword.AFTER;
+				if (updatePosition.equals("")) {
+					insertKeyword = XQueryInsertKeyword.AS_FIRST_NODE;
+				}
+				PersistenceManager.getInstance().insert(nodeValue,
+						insertKeyword, queryString + updatePosition);
+			}
+
+			// not specified
+			if (updateValue == null) {
+				throw new DDIFtpException("Update value not specified for: "
+						+ element, new Throwable());
+			}
+		}
+	}
+
+	private String schemeUpdatePosition(SchemeUpdateElement element,
+			SchemeQueryResult schemeQueryResult) throws DDIFtpException {
+		// compute insert point
+		String localName = element.getLocalName();
+		String[] elementNames = schemeQueryResult.getElementNames();
+		int conversionName = -1;
+		int privious = -1;
+		int size = -1;
+		for (int i = 0; i < elementNames.length; i++) {
+			if (elementNames[i].indexOf(localName) > -1) {
+				conversionName = i;
+				// update
+				int updateValue = element.getUpdateValue();
+				// delete
+				if (updateValue < 0) {
+					schemeQueryResult.getElements()[i].remove(0);
+				}
+				// new
+				else if (updateValue == 0) {
+					size = schemeQueryResult.getElements()[i].size();
+					schemeQueryResult.getElements()[i].add("");
+				}
+				break;
+			}
+			privious = i;
+		}
+
+		// query position
+		StringBuilder positionQuery = new StringBuilder();
+		positionQuery.append("//");
+
+		// update
+		if (element.getUpdateValue() > 0) {
+			positionQuery.append(elementNames[conversionName]);
+			positionQuery.append("[");
+			positionQuery.append(element.getUpdateValue());
+			positionQuery.append("]");
+		}
+		// new
+		if (element.getUpdateValue() == 0) {
+			if (size > 0) {
+				positionQuery.append(elementNames[conversionName]);
+				positionQuery.append("[");
+				positionQuery.append(size);
+				positionQuery.append("]");
+			}
+		}
+		// delete
+		if (element.getUpdateValue() < 0) {
+			positionQuery.append(elementNames[conversionName]);
+			positionQuery.append("[");
+			positionQuery.append(element.getUpdateValue() * -1);
+			positionQuery.append("]");
+		} else if (privious != -1) {
+			positionQuery.append(elementNames[privious]);
+		}
+		return addFullyQualifiedNamespaceDeclarationToElements(positionQuery
+				.toString());
 	}
 
 	//
@@ -774,6 +949,19 @@ public class DdiManager {
 		}
 		log.error("Here");
 		return lightXmlObjectListDocument;
+	}
+
+	public SchemeQueryResult getQuestionSchemeLabel(String id, String version,
+			String parentId, String parentVersion) throws DDIFtpException {
+		SchemeQuery schemeQuery = new SchemeQuery();
+		schemeQuery.setQuery(getQueryElementString(id, parentVersion,
+				"QuestionScheme", parentId, parentVersion,
+				"datacollection__DataCollection"));
+		schemeQuery.setElementNames(new String[] { "reusable__Label" });
+		schemeQuery.setSchemeTarget("QuestionScheme");
+		schemeQuery.setStopTag("QuestionItem");
+
+		return queryScheme(schemeQuery);
 	}
 
 	@Profiled(tag = "getQuestionScheme")
