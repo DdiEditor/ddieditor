@@ -298,16 +298,17 @@ public class PersistenceManager {
 	 * Insert a node on persistence storage
 	 * 
 	 * @param nodes
-	 *            the content that to insert. It can be a string or an XQuery
+	 *            the content that to insert. It can be a string or a XQuery
 	 *            selection statement
 	 * @param insertKeyword
 	 *            before, after, as first node, as last node, into
 	 * @param position
-	 *            XQuery expression that selects exactly one insert location
+	 *            Can be a XQuery or a selection statement that selects exactly
+	 *            one insert location
 	 * @throws DDIFtpException
 	 */
 	public void insert(Object nodes, XQueryInsertKeyword insertKeyword,
-			XQuery xQuery) throws DDIFtpException {
+			Object position) throws DDIFtpException {
 		// insert nodes [(node|nodes) keyword position]
 
 		// e.g. insert nodes <b4>inserted child</b4> after
@@ -319,7 +320,7 @@ public class PersistenceManager {
 			query.namespaceDeclaration
 					.append(((XQuery) nodes).namespaceDeclaration.toString());
 			query.function.append(((XQuery) nodes).function.toString());
-			query.function.append(" ");
+			query.function.append(' ');
 			query.query.append(" insert nodes ");
 			query.query.append(((XQuery) nodes).query.toString());
 		} else {
@@ -328,20 +329,27 @@ public class PersistenceManager {
 		}
 
 		// insert keyword
-		query.query.append(" ");
+		query.query.append(' ');
 		query.query.append(insertKeyword.getKeyWord());
 
 		// position
-		if (xQuery.namespaceDeclaration.length() > 1) {
-			query.namespaceDeclaration.append(" ");
-			query.namespaceDeclaration.append(xQuery.namespaceDeclaration
-					.toString());
+		if (position instanceof XQuery) {
+			XQuery xQuery = (XQuery) position;
+			if (xQuery.namespaceDeclaration.length() > 1) {
+				query.namespaceDeclaration.append(' ');
+				query.namespaceDeclaration.append(xQuery.namespaceDeclaration
+						.toString());
+			}
+			if (xQuery.function.length() > 1) {
+				query.function.append(xQuery.function.toString());
+			}
+			query.query.append(xQuery.query.toString());
 		}
-		if (xQuery.function.length() > 1) {
-			query.function.append(xQuery.function.toString());
-		}
-		query.query.append(xQuery.query.toString());
 
+		if (position instanceof String) {
+			query.query.append(' ');
+			query.query.append(position.toString());
+		}
 		String queryStr = query.getFullQueryString();
 		queryLog.info(queryStr);
 
@@ -354,26 +362,81 @@ public class PersistenceManager {
 	}
 
 	/**
-	 * Update a node in persistence storage
+	 * Update the value of a node in persistence storage
 	 * 
-	 * @param xQuery
-	 *            XQuery expression that selects exactly one location to update
+	 * @param position
+	 *            XQuery expression or statement that selects exactly one
+	 *            location to update
 	 * @param value
 	 *            update value of node
 	 * @throws DDIFtpException
 	 */
-	public void update(XQuery xQuery, String value) throws DDIFtpException {
+	public void update(Object position, String value) throws DDIFtpException {
 		// replace value of node [oldNode] with [newNode]
 
 		// e.g. replace node fn:doc("bib.xml")/books/book[1]/publisher with
 		// fn:doc("bib.xml")/books/book[2]/publisher
-		if (xQuery.query.indexOf("replace value of node") < 0) {
-			xQuery.query.replace(0, 0, "replace value of node ");
+		String queryStr = null;
+		if (position instanceof XQuery) {
+			XQuery xquery = (XQuery) position;
+			if (xquery.query.indexOf("replace value of node") < 0) {
+				xquery.query.replace(0, 0, "replace value of node ");
+			}
+			xquery.query.append(" with ");
+			xquery.query.append(value);
+			queryStr = xquery.getFullQueryString();
+		} else if (position instanceof String) {
+			StringBuilder query = new StringBuilder((String) position);
+			if (query.indexOf("replace value of node") < 0) {
+				query.replace(0, 0, "replace value of node ");
+			}
+			query.append(" with ");
+			query.append(value);
+			queryStr = query.toString();
 		}
-		xQuery.query.append(" with ");
-		xQuery.query.append(value);
+		queryLog.info(queryStr);
 
-		String queryStr = xQuery.getFullQueryString();
+		// execute
+		try {
+			getPersistenceStorage().updateQuery(queryStr);
+		} catch (Exception e) {
+			throw new DDIFtpException("Error on update query", e);
+		}
+	}
+
+	/**
+	 * Update a node in persistence storage
+	 * 
+	 * @param position
+	 *            XQuery expression or statement that selects exactly one
+	 *            location to update
+	 * @param node
+	 *            update value of node
+	 * @throws DDIFtpException
+	 */
+	public void updateNode(Object position, String node) throws DDIFtpException {
+		// replace value of node [oldNode] with [newNode]
+
+		// e.g. replace node fn:doc("bib.xml")/books/book[1]/publisher with
+		// fn:doc("bib.xml")/books/book[2]/publisher
+		String queryStr = null;
+		if (position instanceof XQuery) {
+			XQuery xquery = (XQuery) position;
+			if (xquery.query.indexOf("replace node") < 0) {
+				xquery.query.replace(0, 0, "replace node ");
+			}
+			xquery.query.append(" with ");
+			xquery.query.append(node);
+			queryStr = xquery.getFullQueryString();
+		} else if (position instanceof String) {
+			StringBuilder query = new StringBuilder((String) position);
+			if (query.indexOf("replace node") < 0) {
+				query.replace(0, 0, "replace node ");
+			}
+			query.append(" with ");
+			query.append(node);
+			queryStr = query.toString();
+		}
 		queryLog.info(queryStr);
 
 		// execute
@@ -390,16 +453,23 @@ public class PersistenceManager {
 	 * @param xQuery
 	 *            XQuery expression selecting node/ nodes to delete
 	 */
-	public void delete(XQuery xQuery) throws DDIFtpException {
+	public void delete(Object position) throws DDIFtpException {
 		// delete (node|nodes) [node]
 		// e.g. delete nodes /email/message [fn:currentDate() - date >
 		// xs:dayTimeDuration("P365D")]
-
-		if (xQuery.query.indexOf("delete node") < 0) {
-			xQuery.query.replace(0, 0, "delete node ");
+		String queryStr = null;
+		if (position instanceof XQuery) {
+			XQuery xQuery = (XQuery) position;
+			if (xQuery.query.indexOf("delete node") < 0) {
+				xQuery.query.replace(0, 0, "delete node ");
+			}
+			queryStr = xQuery.getFullQueryString();
+		} else if (position instanceof String) {
+			queryStr = (String) position;
+			if (queryStr.indexOf("delete node") < 0) {
+				queryStr = "delete node " + queryStr;
+			}
 		}
-
-		String queryStr = xQuery.getFullQueryString();
 		queryLog.info(queryStr);
 
 		try {
