@@ -9,8 +9,12 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
+import org.ddialliance.ddieditor.model.DdiManager;
 import org.ddialliance.ddieditor.model.resource.StorageType;
+import org.ddialliance.ddieditor.persistenceaccess.PersistenceManager;
 import org.ddialliance.ddieditor.persistenceaccess.PersistenceStorage;
+import org.ddialliance.ddieditor.persistenceaccess.SchemeQuery;
+import org.ddialliance.ddieditor.persistenceaccess.SchemeQueryResult;
 import org.ddialliance.ddieditor.util.DdiEditorConfig;
 import org.ddialliance.ddiftp.util.DDIFtpException;
 import org.ddialliance.ddiftp.util.log.Log;
@@ -27,6 +31,8 @@ import com.sleepycat.dbxml.XmlDocument;
 import com.sleepycat.dbxml.XmlDocumentConfig;
 import com.sleepycat.dbxml.XmlEventReader;
 import com.sleepycat.dbxml.XmlException;
+import com.sleepycat.dbxml.XmlIndexDeclaration;
+import com.sleepycat.dbxml.XmlIndexSpecification;
 import com.sleepycat.dbxml.XmlInputStream;
 import com.sleepycat.dbxml.XmlManager;
 import com.sleepycat.dbxml.XmlManagerConfig;
@@ -37,12 +43,15 @@ import com.sleepycat.dbxml.XmlTransaction;
 import com.sleepycat.dbxml.XmlUpdateContext;
 import com.sleepycat.dbxml.XmlValue;
 
-
 /**
  * Accesses the Oracle Berkeley XML data base
  */
 public class DbXmlManager implements PersistenceStorage {
 	private static Log logSystem = LogFactory.getLog(LogType.SYSTEM,
+			DbXmlManager.class);
+	private static Log logBug = LogFactory.getLog(LogType.BUG,
+			DbXmlManager.class);
+	private Log queryLog = LogFactory.getLog(LogType.PERSISTENCE,
 			DbXmlManager.class);
 
 	private static DbXmlManager instance = null;
@@ -145,9 +154,8 @@ public class DbXmlManager implements PersistenceStorage {
 
 			// transaction
 			environmentConfig.setTransactional(true);
-			environmentConfig.setTxnMaxActive(20000); // teori: cachesize/
-			// pagesize ~ cache/
-			// logBuffer
+			environmentConfig.setTxnMaxActive(20000);
+			// teori: cachesize/pagesize ~ cache logBuffer
 			environmentConfig.setTxnTimeout(0); // live forever, no timeout
 
 			// locking subsystem
@@ -160,15 +168,16 @@ public class DbXmlManager implements PersistenceStorage {
 
 			// deadlock detection
 			environmentConfig.setLockDetectMode(LockDetectMode.MINWRITE);
-//environmentConfig.setDsyncDatabases(true);
+			// environmentConfig.setDsyncDatabases(true);
 			// error stream
 			// change to property definition of dbxml log level
 			XmlManager.setLogLevel(XmlManager.LEVEL_ALL, true);
-			XmlManager.setLogCategory(XmlManager.CATEGORY_CONTAINER|XmlManager.CATEGORY_MANAGER|XmlManager.CATEGORY_QUERY,
-			true);
+			XmlManager.setLogCategory(XmlManager.CATEGORY_CONTAINER
+					| XmlManager.CATEGORY_MANAGER | XmlManager.CATEGORY_QUERY,
+					true);
 			// be aware of log level may affect execution to hang!
-//			environmentConfig.setErrorStream(new Log4jLogOutputStream(
-//			 logPersistence, LogLevel.INFO));
+			// environmentConfig.setErrorStream(new Log4jLogOutputStream(
+			// logPersistence, LogLevel.INFO));
 		}
 		return environmentConfig;
 	}
@@ -198,14 +207,11 @@ public class DbXmlManager implements PersistenceStorage {
 	private XmlContainerConfig getXmlContainerConfig() {
 		if (xmlContainerConfig == null) {
 			xmlContainerConfig = new XmlContainerConfig();
-			/*
-			 * xmlContainerConfig.setAllowValidation(false);
-			 * xmlContainerConfig.setIndexNodes(true);
-			 * xmlContainerConfig.setNodeContainer(true);
-			 */
+			// xmlContainerConfig.setAllowValidation(false);
+			xmlContainerConfig.setIndexNodes(true);
+			xmlContainerConfig.setNodeContainer(true);
 			xmlContainerConfig.setTransactional(true);
 		}
-
 		return xmlContainerConfig;
 	}
 
@@ -237,9 +243,16 @@ public class DbXmlManager implements PersistenceStorage {
 						logSystem.debug("Creating dbxml container: "
 								+ file.getAbsolutePath());
 					}
-					openContainers.put(file.getName(), xmlManager
-							.createContainer(file.getName(), instance
-									.getXmlContainerConfig()));
+					XmlContainer xmlContainer = xmlManager.createContainer(file
+							.getName(), instance.getXmlContainerConfig());
+					openContainers.put(file.getName(), xmlContainer);
+
+					// create indices
+					if (!file.getName().equals(
+							PersistenceManager.RESOURCE_LIST_FILE)) {
+						createIndices(xmlContainer);
+						listIndices(xmlContainer);
+					}
 				} else {
 					if (logSystem.isDebugEnabled()) {
 						logSystem.debug("Opening dbxml container: "
@@ -343,6 +356,56 @@ public class DbXmlManager implements PersistenceStorage {
 		return result.toString();
 	}
 
+	public void listIndices(XmlContainer xmlContainer) throws Exception {
+		// indices
+		XmlIndexSpecification indexSpecification = xmlContainer
+				.getIndexSpecification(getTransaction());
+		XmlIndexDeclaration indexDeclaration = null;
+		if (logSystem.isDebugEnabled()) {
+			while ((indexDeclaration = (indexSpecification.next())) != null) {
+				logSystem.debug(indexDeclaration.name);
+				logSystem.debug(indexDeclaration.index);
+			}
+		}
+		indexSpecification.delete();
+	}
+
+	public void createIndices(XmlContainer xmlContainer) throws Exception {
+
+		if (System.getProperty("ddieditor.index", "false").equals("false")) {
+			return;
+		}
+
+		// define indices
+		String namespace[] = { "", "" };
+		String nameOfXmlElement[] = { "id", "version" };
+		String indexString[] = { "node-attribute-equality-string",
+				"node-attribute-equality-string node-attribute-presence" };
+
+		// tried
+		// id node-attribute-substring-string = slow
+		// deleting default index name unique-node-metadata-equality-string =
+		// slow
+
+		// create indexes
+		XmlIndexSpecification indexSpecification = xmlContainer
+				.getIndexSpecification(getTransaction());
+		XmlUpdateContext xmlUpdateContext = getXmlUpdateContext();
+		for (int i = 0; i < indexString.length; i++) {
+			indexSpecification.addIndex(namespace[i], nameOfXmlElement[i],
+					indexString[i]);
+		}
+		indexSpecification.addDefaultIndex("node-metadata-presence");
+
+		// update xml container with indices
+		xmlContainer.setIndexSpecification(getTransaction(),
+				indexSpecification, xmlUpdateContext);
+		commitTransaction();
+
+		// clean up
+		indexSpecification.delete();
+	}
+
 	public void addResource(Object obj) throws Exception {
 		if (!(obj instanceof File)) {
 			throw new DDIFtpException("Must be a file!");
@@ -358,8 +421,10 @@ public class DbXmlManager implements PersistenceStorage {
 				.createLocalFileInputStream(path.getAbsolutePath());
 
 		// ingest
+		XmlContainer xmlContainer = null;
 		try {
-			getContainer(currentWorikingContainer).putDocument(getTransaction(), path.getName(),
+			xmlContainer = getContainer(currentWorikingContainer);
+			xmlContainer.putDocument(getTransaction(), path.getName(),
 					xmlInputStream, getXmlDocumentConfig());
 		} catch (XmlException e) {
 			if (e.getErrorCode() == XmlException.UNIQUE_ERROR) {
@@ -367,7 +432,6 @@ public class DbXmlManager implements PersistenceStorage {
 						+ " exists in container!");
 			}
 		}
-
 		xmlInputStream.delete();
 	}
 
@@ -400,7 +464,7 @@ public class DbXmlManager implements PersistenceStorage {
 		return documents;
 	}
 
-	@Profiled(tag="dbxml-query")
+	@Profiled(tag = "dbxml-query")
 	public List<String> query(String query) throws Exception {
 		XmlResults rs = xQuery(query);
 		List<String> result = new ArrayList<String>();
@@ -411,7 +475,7 @@ public class DbXmlManager implements PersistenceStorage {
 		return result;
 	}
 
-	@Profiled(tag="dbxml-updatequery")
+	@Profiled(tag = "dbxml-updatequery")
 	public void updateQuery(String query) throws Exception {
 		XmlResults rs = xQuery(query);
 		rs.delete();
@@ -419,21 +483,13 @@ public class DbXmlManager implements PersistenceStorage {
 
 	@Profiled(tag = "xQuery")
 	protected XmlResults xQuery(String query) throws Exception {
-		xmlQueryContext = xmlManager.createQueryContext(//XmlQueryContext.Eager);
+		xmlQueryContext = xmlManager.createQueryContext(
 				XmlQueryContext.LiveValues, XmlQueryContext.Lazy);
-		// for (int i = 0; i < Ddi3NamespacePrefix.values().length; i++) {
-		// Ddi3NamespacePrefix prefix = Ddi3NamespacePrefix.values()[i];
-		// xmlQueryContext.setNamespace(prefix.getPrefix(),
-		// prefix.getNamespace());
-		// }
 		XmlQueryExpression xmlQueryExpression = null;
 		try {
-			//StopWatch stopWatch = new LoggingStopWatch("xmldbQueryPrepare");
-			// aprox 5-24 mills
 			xmlQueryExpression = xmlManager.prepare(getTransaction(), query,
 					xmlQueryContext);
-			//System.out.println(xmlQueryExpression.getQueryPlan());
-			//stopWatch.stop();
+			// logBug.info(xmlQueryExpression.getQueryPlan());
 		} catch (Exception e) {
 			if (xmlQueryContext != null) {
 				xmlQueryContext.delete();
@@ -445,7 +501,9 @@ public class DbXmlManager implements PersistenceStorage {
 		try {
 			rs = xmlQueryExpression.execute(getTransaction(), xmlQueryContext);
 		}
-		// catch deadlock and implement retry
+
+		// TODO catch deadlock and implement retry
+
 		catch (Exception e) {
 			throw new DDIFtpException("Error on query execute of: " + query, e);
 		} finally {
@@ -479,6 +537,169 @@ public class DbXmlManager implements PersistenceStorage {
 		rs.delete();
 		rs = null;
 		return result;
+	}
+
+	public SchemeQueryResult queryScheme(SchemeQuery schemeQuery)
+			throws Exception {
+		queryLog.info(schemeQuery.getQuery());
+		XmlResults rs = xQuery(schemeQuery.getQuery());
+		if (rs.isNull()) {
+			throw new DDIFtpException("No results for query: "
+					+ schemeQuery.getQuery());
+		}
+
+		// result
+		SchemeQueryResult result = new SchemeQueryResult();
+		result.setElementNames(schemeQuery.getElementNames());
+		List<String>[] values = new ArrayList[schemeQuery.getElementNames().length];
+		for (int i = 0; i < values.length; i++) {
+			values[i] = new ArrayList<String>();
+		}
+		result.setElements(values);
+		result.setQuery(schemeQuery.getQuery());
+
+		// populate result
+		String localName;
+		XmlValue xmlValue = rs.next();
+		
+		// guard 
+		if(xmlValue == null) {
+			rs.delete();
+			rs = null;
+			return result;
+		}
+		
+		if (xmlValue.isNode()) {
+			XmlEventReader reader = xmlValue.asEventReader();
+
+			while (reader.hasNext()) {
+				int type = reader.next();
+				if (type == XmlEventReader.StartElement) {
+					localName = reader.getLocalName();
+					if (localName.equals(DdiManager.getInstance()
+							.getLocalSchemaName(schemeQuery.getSchemeTarget()))) {
+						// target scheme/@id @version @agency
+						int attrs = reader.getAttributeCount();
+						for (int i = 0; i < attrs; i++) {
+							if (reader.getAttributeLocalName(i).equals("id")) {
+								result.setId(reader.getAttributeValue(i));
+							}
+							if (reader.getAttributeLocalName(i).equals(
+									"version")) {
+								result.setVersion(reader.getAttributeValue(i));
+							}
+							if (reader.getAttributeLocalName(i)
+									.equals("agency")) {
+								result.setAgency(reader.getAttributeValue(i));
+							}
+						}
+					}
+
+					// sub elements
+					for (int h = 0; h < schemeQuery.getElementNames().length; h++) {
+						if (localName.equals(DdiManager.getInstance()
+								.getLocalSchemaName(
+										schemeQuery.getElementNames()[h]))) {
+							// extract start tag
+							StringBuffer element = new StringBuffer("<");
+							String prefix = reader.getPrefix();
+							if (prefix != null) {
+								element.append(prefix);
+								element.append(":");
+							}
+							element.append(localName);
+
+							// attributes
+							int attrs = reader.getAttributeCount();
+							for (int i = 0; i < attrs; i++) {
+								element.append(" ");
+								String attrPrefix = reader
+										.getAttributePrefix(i);
+								String attrLocalname = reader
+										.getAttributeLocalName(i);
+								String attrValue = reader.getAttributeValue(i);
+
+								if (attrPrefix != null) {
+									element.append(attrPrefix);
+									element.append(":");
+								}
+								element.append(attrLocalname);
+								element.append("=\"");
+								element.append(attrValue);
+								element.append("\"");
+							}
+
+							// empty element
+							if (reader.isEmptyElement()) {
+								element.append("/>");
+							} else {
+								element.append(">");
+							}
+
+							// extract until end tag
+							extractSubelementsOfSchemeQuery(element, reader);
+
+							// do transformation
+							result.getElements()[h].add(element.toString());
+						}
+					}
+
+					// stop read at subelements
+					if (localName.equals(schemeQuery.getStopTag())) {
+						break;
+					}
+				}
+
+				// stop read at end element of target scheme
+				else if (type == XmlEventReader.EndElement) {
+					localName = reader.getLocalName();
+					if (localName.equals(schemeQuery.getSchemeTarget())) {
+						break;
+					}
+				}
+			}
+			reader.close();
+		}
+		rs.delete();
+		rs = null;
+		return result;
+	}
+
+	private void extractSubelementsOfSchemeQuery(StringBuffer element,
+			XmlEventReader reader) throws Exception {
+		boolean characterEvent = false;
+		boolean end = false;
+		while (!end && reader.hasNext()) {
+			int eventType = reader.next();
+			switch (eventType) {
+			case XmlEventReader.EndElement: {
+				String localName = reader.getLocalName();
+				String prefix = reader.getPrefix();
+
+				StringBuffer endElement = new StringBuffer("</");
+				if (prefix != null) {
+					endElement.append(prefix);
+					endElement.append(":");
+				}
+				endElement.append(localName);
+				endElement.append(">");
+				element.append(endElement.toString());
+
+				end = true;
+				break;
+			}
+			case XmlEventReader.CDATA: {
+				break;
+			}
+			case XmlEventReader.Characters: {
+				characterEvent = true;
+				element.append(reader.getValue());
+			}
+			case XmlEventReader.Whitespace: {
+				break;
+			}
+			}
+		}
 	}
 
 	public void exportResource(String document, File file) throws Exception {
@@ -517,7 +738,6 @@ public class DbXmlManager implements PersistenceStorage {
 					startElement.append(":");
 				}
 				startElement.append(localname);
-				// name space
 
 				// attributes
 				for (int i = 0; i < attrs; i++) {
