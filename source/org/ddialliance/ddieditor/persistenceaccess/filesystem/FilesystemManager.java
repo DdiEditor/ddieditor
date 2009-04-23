@@ -12,6 +12,8 @@ import org.ddialliance.ddieditor.model.resource.StorageType;
 import org.ddialliance.ddieditor.model.resource.TopURNType;
 import org.ddialliance.ddieditor.persistenceaccess.PersistenceManager;
 import org.ddialliance.ddieditor.persistenceaccess.PersistenceStorage;
+import org.ddialliance.ddieditor.persistenceaccess.SchemeQuery;
+import org.ddialliance.ddieditor.persistenceaccess.SchemeQueryResult;
 import org.ddialliance.ddieditor.persistenceaccess.dbxml.DbXmlManager;
 import org.ddialliance.ddiftp.util.DDIFtpException;
 import org.ddialliance.ddiftp.util.FileUtil;
@@ -39,19 +41,21 @@ public class FilesystemManager implements PersistenceStorage {
 			throw new DDIFtpException("Argument must be a file!");
 		}
 		File file = (File) obj;
-		
+
 		// check if file has been loaded
-		if (PersistenceManager.getInstance().getStorageByResourceOrgName(file.getName())!=null) {
-			throw new DDIFtpException("A resource with the same name: '"+file.getName()+"' has already been added");
+		if (PersistenceManager.getInstance().getStorageByResourceOrgName(
+				file.getName()) != null) {
+			throw new DDIFtpException("A resource with the same name: '"
+					+ file.getName() + "' has already been added");
 		}
-		
+
 		// strip file of DDIInstance - left out!, until now :- )
-		
-		try {			
-			// load file into db xml container	
+
+		try {
+			// load file into db xml container
 			String containerName = file.getName().substring(0,
 					file.getName().lastIndexOf("."));
-			String connection = containerName + ".dbxml";		
+			String connection = containerName + ".dbxml";
 			DbXmlManager.getInstance().openContainer(new File(connection));
 			DbXmlManager.getInstance().addResource(file);
 
@@ -130,6 +134,11 @@ public class FilesystemManager implements PersistenceStorage {
 
 	public String querySingleString(String query) throws Exception {
 		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public SchemeQueryResult queryScheme(SchemeQuery schemeQuery)
+			throws Exception {
 		return null;
 	}
 

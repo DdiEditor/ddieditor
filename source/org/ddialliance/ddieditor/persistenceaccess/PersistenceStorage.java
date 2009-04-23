@@ -55,6 +55,9 @@ public interface PersistenceStorage {
 
 	public String querySingleString(String query) throws Exception;
 
+	public SchemeQueryResult queryScheme(SchemeQuery schemeQuery)
+	throws Exception;
+	
 	/**
 	 * Set the the working connection of the persistence manager
 	 * 
