@@ -1,8 +1,6 @@
 package org.ddialliance.ddieditor.model.namespace.ddi3;
 
 import java.io.File;
-import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Properties;
@@ -12,7 +10,6 @@ import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.xmlbeans.XmlException;
 import org.ddialliance.ddieditor.model.relationship.UrnRelationhipListDocument;
 import org.ddialliance.ddieditor.model.relationship.ElementDocument.Element;
 import org.ddialliance.ddieditor.model.relationship.UrnRelationhipListDocument.UrnRelationhipList;
@@ -77,7 +74,7 @@ public class Ddi3NamespaceGenerator {
 				throw new DDIFtpException(e);
 			}
 		}
-		
+
 		// load
 		elementNamespace = FileUtil.loadProperties(ELEMENT_NAMESPACE);
 		elementIdentifiable = FileUtil.loadProperties(ELEMENT_IDENTIFIABLE);
@@ -89,6 +86,10 @@ public class Ddi3NamespaceGenerator {
 		}
 	}
 
+	public Properties getIdentifiables() {
+		return elementIdentifiable;
+	}
+
 	public Element getElementParents(String elementName) {
 		for (Element element : urnRelationhipList.getElementList()) {
 			if (element.getId().equals(elementName)) {
@@ -97,7 +98,7 @@ public class Ddi3NamespaceGenerator {
 		}
 		return null;
 	}
-	
+
 	/**
 	 * Retrieve a DDI namespace object by a DDI element
 	 * 
@@ -176,10 +177,10 @@ public class Ddi3NamespaceGenerator {
 			throws DDIFtpException {
 		String cacheResult = qualifiedNsCache.get(query);
 		if (cacheResult != null) {
-			if (log.isDebugEnabled()) {
-				log.debug("Qualified NS declaration for: '" + query
-						+ "' found in qualifiedNsCache: '" + cacheResult + "'");
-			}
+			// if (log.isDebugEnabled()) {
+			// log.debug("Qualified NS declaration for: '" + query
+			// + "' found in qualifiedNsCache: '" + cacheResult + "'");
+			// }
 			return cacheResult;
 		}
 
@@ -294,6 +295,7 @@ public class Ddi3NamespaceGenerator {
 
 		// search start prefix
 		startTagMatcher = startTagPattern.matcher(element.toString());
+		String namespace = null;
 		if (startTagMatcher.find()) {
 			do {
 				// delete prefix
@@ -304,11 +306,22 @@ public class Ddi3NamespaceGenerator {
 				elementMacher = elementPattern.matcher(element.toString());
 				elementMacher.region(startTagMatcher.start(), element.length());
 				elementMacher.find();
-				element.insert(elementMacher.end(), " xmlns=\""
-						+ getNamespaceObjectByElement(
-								element.substring(elementMacher.start() + 1,
-										elementMacher.end())).getNamespace()
-						+ "\"");
+
+				try {
+					namespace = getNamespaceObjectByElement(
+							element.substring(elementMacher.start() + 1,
+									elementMacher.end())).getNamespace();
+				} catch (Exception e) {
+					// hack to circumvent unused unique element name to
+					// namespace convention via using standard ddi namespace
+					// prefixes
+					String prefix = node.substring(startTagMatcher.start()+1, startTagMatcher.end()-1);
+					namespace = Ddi3NamespacePrefix.getNamespaceByDefaultPrefix(prefix).getNamespace();					
+				}
+				if (namespace==null) {
+					throw new DDIFtpException("Unsuccessfull namespace prefix substitution for element: "+node, new Throwable());
+				}
+				element.insert(elementMacher.end(), " xmlns=\"" + namespace +"\"");
 
 				// reset start prefix matcher
 				startTagMatcher = startTagPattern.matcher(element.toString());
@@ -340,5 +353,20 @@ public class Ddi3NamespaceGenerator {
 			log.debug("Parent element: " + parentElementName);
 		}
 		return parentElementName;
+	}
+
+	/**
+	 * Transform the conversion name to local schema name
+	 * 
+	 * @param conversionName
+	 *            to transform
+	 * @return local schema name
+	 */
+	public String getLocalSchemaName(String conversionName) {
+		int index = conversionName.indexOf("__");
+		if (index > -1) {
+			return conversionName.substring(index + 2);
+		} else
+			return conversionName;
 	}
 }
