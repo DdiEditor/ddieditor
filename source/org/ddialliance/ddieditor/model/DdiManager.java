@@ -1,5 +1,6 @@
 package org.ddialliance.ddieditor.model;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
@@ -12,7 +13,10 @@ import org.ddialliance.ddi_3_0.xml.xmlbeans.datacollection.QuestionItemDocument;
 import org.ddialliance.ddi_3_0.xml.xmlbeans.datacollection.QuestionSchemeDocument;
 import org.ddialliance.ddi_3_0.xml.xmlbeans.logicalproduct.CategorySchemeDocument;
 import org.ddialliance.ddi_3_0.xml.xmlbeans.logicalproduct.CodeSchemeDocument;
+import org.ddialliance.ddieditor.model.conceptual.ConceptualElement;
+import org.ddialliance.ddieditor.model.conceptual.ConceptualType;
 import org.ddialliance.ddieditor.model.lightxmlobject.LightXmlObjectListDocument;
+import org.ddialliance.ddieditor.model.lightxmlobject.LightXmlObjectType;
 import org.ddialliance.ddieditor.model.namespace.ddi3.Ddi3NamespaceGenerator;
 import org.ddialliance.ddieditor.model.namespace.ddi3.Ddi3NamespacePrefix;
 import org.ddialliance.ddieditor.model.relationship.ElementDocument.Element;
@@ -287,7 +291,7 @@ public class DdiManager {
 				whereClause.append(" $y/@version = '");
 				whereClause.append(version);
 				whereClause.append("'");
-			}			
+			}
 			query.setObject(i++, whereClause.toString());
 			query.setObject(i++, parentChildElement);
 		} else {
@@ -642,12 +646,16 @@ public class DdiManager {
 	@Profiled(tag = "updateElement")
 	public void updateElement(XmlObject xmlObject, String oldId,
 			String oldVersion) throws DDIFtpException {
-		XmlObject xmlObjectType = XmlBeansUtil.getXmlObjectTypeFromXmlDocument(
-				xmlObject, new Throwable());
+		String className = xmlObject.getClass().getName();
+		int index = -1;
+		index = className.lastIndexOf('.');
+		className = className.substring(index + 1);
+		index = className.lastIndexOf("Document");
+		className = className.substring(0, index);
 
 		// position
-		XQuery position = xQueryCrudPosition(oldId, oldVersion, xmlObjectType
-				.getDomNode().getLocalName(), null, null, null);
+		XQuery position = xQueryCrudPosition(oldId, oldVersion, className,
+				null, null, null);
 
 		// query
 		StringBuilder query = new StringBuilder();
@@ -655,7 +663,7 @@ public class DdiManager {
 		query.append("replace node ");
 		query.append(position.query.toString());
 		query.append(" with ");
-		query.append(xmlObject.xmlText());
+		query.append(xmlObject);
 		PersistenceManager.getInstance().updateQuery(query.toString());
 	}
 
@@ -741,7 +749,7 @@ public class DdiManager {
 				query.function.append(" and $child/@version = '");
 				query.function.append(version);
 				query.function.append("'");
-			}else {
+			} else {
 				query.function.append(" and empty($child/@version)");
 			}
 			query.function.append(" return $child");
@@ -761,7 +769,7 @@ public class DdiManager {
 				query.query.append(" and $element/@version = '");
 				query.query.append(parentVersion);
 				query.query.append("'");
-			}else {
+			} else {
 				query.query.append(" and empty($element/@version)");
 			}
 			query.query.append(" return ddieditor:child_search($element, '");
@@ -884,8 +892,85 @@ public class DdiManager {
 	}
 
 	//
-	// conceptual components
+	// ui overview
 	//
+	public List<ConceptualElement> getConceptualOverview() throws Exception {
+		List<ConceptualElement> result = new ArrayList<ConceptualElement>();
+
+		// study
+		LightXmlObjectListDocument lightDoc = getStudyUnitLight(null, null, null,
+				null);
+		for (LightXmlObjectType lightElement : lightDoc.getLightXmlObjectList()
+				.getLightXmlObjectList()) {
+			result
+					.add(new ConceptualElement(ConceptualType.STUDY,
+							lightElement));
+		}
+
+		// logic
+		// - universe
+		// TODO
+
+		// - concepts
+		lightDoc = getConceptSchemeLight(null, null, null,
+				null);
+		for (LightXmlObjectType lightElement : lightDoc.getLightXmlObjectList()
+				.getLightXmlObjectList()) {
+			result
+					.add(new ConceptualElement(ConceptualType.LOGIC_concepts,
+							lightElement));
+		}
+		
+		// - questions
+		lightDoc = getQuestionSchemesLight(null, null, null, null);
+		for (LightXmlObjectType lightElement : lightDoc.getLightXmlObjectList()
+				.getLightXmlObjectList()) {
+			result
+					.add(new ConceptualElement(ConceptualType.LOGIC_questions,
+							lightElement));
+		}
+		
+		// - instumentation
+		// TODO
+		
+		return result;
+	}
+
+	//
+	// study unit
+	//
+	public LightXmlObjectListDocument getStudyUnitLight(String id,
+			String version, String parentId, String parentVersion)
+			throws Exception {
+		LightXmlObjectListDocument lightXmlObjectListDocument = queryLightXmlBeans(
+				id, version, parentId, parentVersion, "Group",
+				"studyunit__StudyUnit", null, "reusable__Name");
+		if (lightXmlObjectListDocument.getLightXmlObjectList()
+				.getLightXmlObjectList().isEmpty()) {
+			lightXmlObjectListDocument = queryLightXmlBeans(id, version,
+					parentId, parentVersion, "//", "studyunit__StudyUnit",
+					null, "reusable__Name");
+		}
+		return lightXmlObjectListDocument;
+	}
+
+	//
+	// conceptual components
+	//	
+	public LightXmlObjectListDocument getConceptSchemeLight(String id,
+			String version, String parentId, String parentVersion)
+			throws Exception {
+		LightXmlObjectListDocument lightXmlObjectListDocument = queryLightXmlBeans(
+				id, version, parentId, parentVersion, "ConceptualComponent",
+				"ConceptScheme", null, "reusable__Name");
+		if (lightXmlObjectListDocument.getLightXmlObjectList()
+				.getLightXmlObjectList().isEmpty()) {
+			lightXmlObjectListDocument = queryLightXmlBeans(id, version, parentId, parentVersion,
+					"//", "ConceptScheme", null, "reusable__Label");
+		}
+		return lightXmlObjectListDocument;
+	}
+	
 	@Profiled(tag = "getConceptLight")
 	public LightXmlObjectListDocument getConceptsLight(String id,
 			String version, String parentId, String parentVersion)
@@ -947,7 +1032,6 @@ public class DdiManager {
 			queryLightXmlBeans(id, version, parentId, parentVersion,
 					"QuestionScheme", null, null, "reusable__Label");
 		}
-		log.error("Here");
 		return lightXmlObjectListDocument;
 	}
 
