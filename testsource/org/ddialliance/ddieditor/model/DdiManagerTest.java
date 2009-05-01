@@ -15,6 +15,7 @@ import org.ddialliance.ddi_3_0.xml.xmlbeans.logicalproduct.CategorySchemeDocumen
 import org.ddialliance.ddi_3_0.xml.xmlbeans.logicalproduct.CodeSchemeDocument;
 import org.ddialliance.ddi_3_0.xml.xmlbeans.reusable.InternationalStringType;
 import org.ddialliance.ddieditor.DdieditorTestCase;
+import org.ddialliance.ddieditor.model.conceptual.ConceptualElement;
 import org.ddialliance.ddieditor.model.lightxmlobject.LightXmlObjectListDocument;
 import org.ddialliance.ddieditor.persistenceaccess.PersistenceManager;
 import org.ddialliance.ddieditor.persistenceaccess.SchemeQuery;
@@ -371,5 +372,22 @@ public class DdiManagerTest extends DdieditorTestCase {
 				schemeQuery);
 		Assert.assertEquals("New not inserted!", 1, test.getElements()[0]
 				.size());
+	}
+	@Test
+	public void getConceptSchemes() throws Exception {
+		PersistenceManager.getInstance().setWorkingResource(FULLY_DECLARED_NS_DOC);
+		Assert.assertEquals(1, DdiManager.getInstance()
+				.getConceptSchemeLight(null, null, null, null)
+				.getLightXmlObjectList().getLightXmlObjectList().size());
+	}
+	
+	@Test
+	public void getConceptualOverview() throws Exception {
+		PersistenceManager.getInstance().setWorkingResource(FULLY_DECLARED_NS_DOC);
+		List<ConceptualElement> list = DdiManager.getInstance().getConceptualOverview();
+		Assert.assertNotNull(list);
+		for (ConceptualElement conceptualElement : list) {
+			System.out.println(conceptualElement);
+		}
 	}
 }
