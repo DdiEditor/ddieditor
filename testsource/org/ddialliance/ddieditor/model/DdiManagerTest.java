@@ -250,7 +250,7 @@ public class DdiManagerTest extends DdieditorTestCase {
 	public void updateElement() throws Exception {
 		PersistenceManager.getInstance().setWorkingResource(
 				DdieditorTestCase.SINGLE_MANINTAINABLE_QS_FD_NS_DOC);
-		
+
 		String id = "qi_1";
 		String newId = "new_id";
 		String parentId = "qs_";
@@ -258,7 +258,9 @@ public class DdiManagerTest extends DdieditorTestCase {
 				id, null, parentId, "1.0");
 
 		Assert.assertNotNull("Not found!", test);
-		Assert.assertEquals("Id not equal!", id, test.getQuestionItem().getId());
+		Assert
+				.assertEquals("Id not equal!", id, test.getQuestionItem()
+						.getId());
 
 		test.getQuestionItem().setId(newId);
 		DdiManager.getInstance().updateElement(test, id, null);
@@ -291,7 +293,8 @@ public class DdiManagerTest extends DdieditorTestCase {
 				DdieditorTestCase.FULLY_DECLARED_NS_DOC);
 
 		// query
-		SchemeQueryResult result = DdiManager.getInstance().getQuestionSchemeLabel("qs_", null, "dd", null);
+		SchemeQueryResult result = DdiManager.getInstance()
+				.getQuestionSchemeLabel("qs_", null, "dd", null);
 		Assert.assertEquals("qs_", result.getId());
 		Assert.assertEquals(2, result.getElements()[0].size());
 
@@ -308,7 +311,8 @@ public class DdiManagerTest extends DdieditorTestCase {
 		elements.add(update);
 		DdiManager.getInstance().updateSchema(result, elements);
 		PersistenceManager.getInstance().commitWorkingResource();
-		SchemeQueryResult test = DdiManager.getInstance().getQuestionSchemeLabel("qs_", null, "dd", null);
+		SchemeQueryResult test = DdiManager.getInstance()
+				.getQuestionSchemeLabel("qs_", null, "dd", null);
 		Assert.assertTrue("Not updated!", test.getElements()[0].get(0).indexOf(
 				updateValue) > -1);
 
@@ -319,7 +323,8 @@ public class DdiManagerTest extends DdieditorTestCase {
 		elements.add(update);
 		DdiManager.getInstance().updateSchema(result, elements);
 		PersistenceManager.getInstance().commitWorkingResource();
-		test = DdiManager.getInstance().getQuestionSchemeLabel("qs_", null, "dd", null);
+		test = DdiManager.getInstance().getQuestionSchemeLabel("qs_", null,
+				"dd", null);
 		Assert.assertEquals("New not inserted!", 3, test.getElements()[0]
 				.size());
 
@@ -329,7 +334,8 @@ public class DdiManagerTest extends DdieditorTestCase {
 		elements.add(update);
 		DdiManager.getInstance().updateSchema(result, elements);
 		PersistenceManager.getInstance().commitWorkingResource();
-		test = DdiManager.getInstance().getQuestionSchemeLabel("qs_", null, "dd", null);
+		test = DdiManager.getInstance().getQuestionSchemeLabel("qs_", null,
+				"dd", null);
 		Assert.assertEquals("Not deleted!", 2, test.getElements()[0].size());
 	}
 
@@ -373,18 +379,22 @@ public class DdiManagerTest extends DdieditorTestCase {
 		Assert.assertEquals("New not inserted!", 1, test.getElements()[0]
 				.size());
 	}
+
 	@Test
 	public void getConceptSchemes() throws Exception {
-		PersistenceManager.getInstance().setWorkingResource(FULLY_DECLARED_NS_DOC);
-		Assert.assertEquals(1, DdiManager.getInstance()
-				.getConceptSchemeLight(null, null, null, null)
-				.getLightXmlObjectList().getLightXmlObjectList().size());
+		PersistenceManager.getInstance().setWorkingResource(
+				FULLY_DECLARED_NS_DOC);
+		Assert.assertEquals(1, DdiManager.getInstance().getConceptSchemeLight(
+				null, null, null, null).getLightXmlObjectList()
+				.getLightXmlObjectList().size());
 	}
-	
+
 	@Test
 	public void getConceptualOverview() throws Exception {
-		PersistenceManager.getInstance().setWorkingResource(FULLY_DECLARED_NS_DOC);
-		List<ConceptualElement> list = DdiManager.getInstance().getConceptualOverview();
+		PersistenceManager.getInstance().setWorkingResource(
+				FULLY_DECLARED_NS_DOC);
+		List<ConceptualElement> list = DdiManager.getInstance()
+				.getConceptualOverview();
 		Assert.assertNotNull(list);
 		for (ConceptualElement conceptualElement : list) {
 			System.out.println(conceptualElement);
