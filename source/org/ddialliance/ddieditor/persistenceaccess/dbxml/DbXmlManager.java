@@ -25,6 +25,7 @@ import org.perf4j.aop.Profiled;
 import com.sleepycat.db.Environment;
 import com.sleepycat.db.EnvironmentConfig;
 import com.sleepycat.db.LockDetectMode;
+import com.sleepycat.db.TransactionConfig;
 import com.sleepycat.dbxml.XmlContainer;
 import com.sleepycat.dbxml.XmlContainerConfig;
 import com.sleepycat.dbxml.XmlDocument;
@@ -207,10 +208,13 @@ public class DbXmlManager implements PersistenceStorage {
 	private XmlContainerConfig getXmlContainerConfig() {
 		if (xmlContainerConfig == null) {
 			xmlContainerConfig = new XmlContainerConfig();
-			// xmlContainerConfig.setAllowValidation(false);
 			xmlContainerConfig.setIndexNodes(true);
 			xmlContainerConfig.setNodeContainer(true);
 			xmlContainerConfig.setTransactional(true);
+			if (DdiEditorConfig
+					.getBoolean(DdiEditorConfig.DBXML_IMPORT_VALIDATE)) {
+				xmlContainerConfig.setAllowValidation(true);
+			}
 		}
 		return xmlContainerConfig;
 	}
@@ -277,6 +281,7 @@ public class DbXmlManager implements PersistenceStorage {
 	public void close() throws Exception {
 		// close all open containers
 		try {
+			getTransaction().abort();
 			for (Iterator<String> iterator = openContainers.keySet().iterator(); iterator
 					.hasNext();) {
 				openContainers.get(iterator.next()).close();
@@ -298,9 +303,10 @@ public class DbXmlManager implements PersistenceStorage {
 		}
 	}
 
-	public XmlTransaction getTransaction() throws Exception {
+	public synchronized XmlTransaction getTransaction() throws Exception {
 		if (transaction.get() == null) {
-			XmlTransaction t = xmlManager.createTransaction();
+			TransactionConfig tc = new TransactionConfig();
+			XmlTransaction t = xmlManager.createTransaction(null, tc);
 			logSystem.info("Transaction created, id: "
 					+ t.getTransaction().getId());
 			transaction.set(t);
@@ -323,6 +329,9 @@ public class DbXmlManager implements PersistenceStorage {
 				transaction.get().commit();
 				transaction.get().delete();
 				transaction.set(null);
+				// if (currentWorikingContainer.length() > 1) {
+				// getContainer(currentWorikingContainer).sync();
+				// }
 			}
 		}
 	}
@@ -431,6 +440,7 @@ public class DbXmlManager implements PersistenceStorage {
 				logSystem.warn("Xml document: " + path.getName()
 						+ " exists in container!");
 			}
+			throw e;
 		}
 		xmlInputStream.delete();
 	}
@@ -483,23 +493,33 @@ public class DbXmlManager implements PersistenceStorage {
 
 	@Profiled(tag = "xQuery")
 	protected XmlResults xQuery(String query) throws Exception {
-		xmlQueryContext = xmlManager.createQueryContext(
+		XmlQueryContext xmlQueryContext = xmlManager.createQueryContext(
 				XmlQueryContext.LiveValues, XmlQueryContext.Lazy);
-		XmlQueryExpression xmlQueryExpression = null;
-		try {
-			xmlQueryExpression = xmlManager.prepare(getTransaction(), query,
-					xmlQueryContext);
-			// logBug.info(xmlQueryExpression.getQueryPlan());
-		} catch (Exception e) {
-			if (xmlQueryContext != null) {
-				xmlQueryContext.delete();
-			}
-			throw new DDIFtpException("Error prepare query: " + query, e);
-		}
+		XmlDocumentConfig xmlDocumentConfig = new XmlDocumentConfig();
+		xmlDocumentConfig.setLazyDocs(false);
+		xmlDocumentConfig.setWellFormedOnly(true);
+		// XmlQueryExpression used to requery
+		// Cache idear: hash query and store hash and query expression in
+		// hashmap
+		// query reuse via lookup in hashmap
+		// XmlQueryExpression xmlQueryExpression = null;
+		// try {
+		// xmlQueryExpression = xmlManager.prepare(getTransaction(), query,
+		// xmlQueryContext);
+		// logBug.info(xmlQueryExpression.getQueryPlan());
+		// } catch (Exception e) {
+		// if (xmlQueryContext != null) {
+		// xmlQueryContext.delete();
+		// }
+		// throw new DDIFtpException("Error prepare query: " + query, e);
+		// }
 
 		XmlResults rs = null;
 		try {
-			rs = xmlQueryExpression.execute(getTransaction(), xmlQueryContext);
+			// rs = xmlQueryExpression.execute(getTransaction(),
+			// xmlQueryContext);
+			rs = xmlManager.query(getTransaction(), query, xmlQueryContext,
+					xmlDocumentConfig);
 		}
 
 		// TODO catch deadlock and implement retry
@@ -507,10 +527,10 @@ public class DbXmlManager implements PersistenceStorage {
 		catch (Exception e) {
 			throw new DDIFtpException("Error on query execute of: " + query, e);
 		} finally {
-			if (xmlQueryContext != null) {
-				xmlQueryContext.delete();
-			}
-			xmlQueryExpression.delete();
+			// if (xmlQueryContext != null) {
+			// xmlQueryContext.delete();
+			// }
+			// xmlQueryExpression.delete();
 		}
 		return rs;
 	}
@@ -561,14 +581,14 @@ public class DbXmlManager implements PersistenceStorage {
 		// populate result
 		String localName;
 		XmlValue xmlValue = rs.next();
-		
-		// guard 
-		if(xmlValue == null) {
+
+		// guard
+		if (xmlValue == null) {
 			rs.delete();
 			rs = null;
 			return result;
 		}
-		
+
 		if (xmlValue.isNode()) {
 			XmlEventReader reader = xmlValue.asEventReader();
 
@@ -716,7 +736,6 @@ public class DbXmlManager implements PersistenceStorage {
 			reader = getWorkingContainer().getDocument(getTransaction(),
 					document).getContentAsEventReader();
 		} catch (Exception e) {
-			e.printStackTrace();
 			throw e;
 		}
 		boolean characterEvent = false;
@@ -830,6 +849,7 @@ public class DbXmlManager implements PersistenceStorage {
 			}
 			characterEvent = false;
 		}
+		reader.close();
 	}
 
 	private void writeExportDocument(FileChannel rafFc, String value)
