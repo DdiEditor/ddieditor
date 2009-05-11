@@ -8,6 +8,7 @@ import java.util.Set;
 import org.apache.xmlbeans.XmlException;
 import org.apache.xmlbeans.XmlObject;
 import org.ddialliance.ddi_3_0.xml.xmlbeans.conceptualcomponent.ConceptDocument;
+import org.ddialliance.ddi_3_0.xml.xmlbeans.conceptualcomponent.ConceptSchemeDocument;
 import org.ddialliance.ddi_3_0.xml.xmlbeans.datacollection.DataCollectionDocument;
 import org.ddialliance.ddi_3_0.xml.xmlbeans.datacollection.QuestionItemDocument;
 import org.ddialliance.ddi_3_0.xml.xmlbeans.datacollection.QuestionSchemeDocument;
@@ -978,6 +979,14 @@ public class DdiManager {
 		// ConceptScheme/Concept/Label
 		return queryLightXmlBeans(id, version, parentId, parentVersion,
 				"ConceptScheme", "Concept", null, "reusable__Label");
+	}
+
+	@Profiled(tag = "getConceptScheme")
+	public ConceptSchemeDocument getConceptScheme(String id, String version,
+			String parentId, String parentVersion) throws Exception {
+		String text = queryElement(id, version, "ConceptScheme", parentId,
+				parentVersion, "ConceptualComponent");
+		return (text == "" ? null : ConceptSchemeDocument.Factory.parse(text));
 	}
 
 	@Profiled(tag = "getConcept")
