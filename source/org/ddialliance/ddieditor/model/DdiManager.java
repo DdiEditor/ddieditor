@@ -627,7 +627,7 @@ public class DdiManager {
 
 		// insert xml object
 		PersistenceManager.getInstance().insert(
-				xmlObject.xmlText(),
+				substitutePrefixesFromElements(xmlObject.xmlText()),
 				XQueryInsertKeyword.INTO,
 				xQueryCrudPosition(parentId, parentVersion, parentElementType,
 						null, null, null));
@@ -664,7 +664,7 @@ public class DdiManager {
 		query.append("replace node ");
 		query.append(position.query.toString());
 		query.append(" with ");
-		query.append(xmlObject);
+		query.append(substitutePrefixesFromElements(xmlObject.xmlText()));
 		PersistenceManager.getInstance().updateQuery(query.toString());
 	}
 
@@ -899,8 +899,8 @@ public class DdiManager {
 		List<ConceptualElement> result = new ArrayList<ConceptualElement>();
 
 		// study
-		LightXmlObjectListDocument lightDoc = getStudyUnitLight(null, null, null,
-				null);
+		LightXmlObjectListDocument lightDoc = getStudyUnitLight(null, null,
+				null, null);
 		for (LightXmlObjectType lightElement : lightDoc.getLightXmlObjectList()
 				.getLightXmlObjectList()) {
 			result
@@ -913,27 +913,24 @@ public class DdiManager {
 		// TODO
 
 		// - concepts
-		lightDoc = getConceptSchemeLight(null, null, null,
-				null);
+		lightDoc = getConceptSchemeLight(null, null, null, null);
 		for (LightXmlObjectType lightElement : lightDoc.getLightXmlObjectList()
 				.getLightXmlObjectList()) {
-			result
-					.add(new ConceptualElement(ConceptualType.LOGIC_concepts,
-							lightElement));
+			result.add(new ConceptualElement(ConceptualType.LOGIC_concepts,
+					lightElement));
 		}
-		
+
 		// - questions
 		lightDoc = getQuestionSchemesLight(null, null, null, null);
 		for (LightXmlObjectType lightElement : lightDoc.getLightXmlObjectList()
 				.getLightXmlObjectList()) {
-			result
-					.add(new ConceptualElement(ConceptualType.LOGIC_questions,
-							lightElement));
+			result.add(new ConceptualElement(ConceptualType.LOGIC_questions,
+					lightElement));
 		}
-		
+
 		// - instumentation
 		// TODO
-		
+
 		return result;
 	}
 
@@ -949,10 +946,50 @@ public class DdiManager {
 		if (lightXmlObjectListDocument.getLightXmlObjectList()
 				.getLightXmlObjectList().isEmpty()) {
 			lightXmlObjectListDocument = queryLightXmlBeans(id, version,
-					parentId, parentVersion, "//", "studyunit__StudyUnit",
+					parentId, parentVersion, "*", "studyunit__StudyUnit",
 					null, "reusable__Name");
 		}
 		return lightXmlObjectListDocument;
+	}
+
+	public SchemeQueryResult getStudyLabel(String id, String version,
+			String parentId, String parentVersion) throws DDIFtpException {
+		SchemeQuery schemeQuery = new SchemeQuery();
+		schemeQuery
+				.setQuery(getQueryElementString(id, version,
+						"studyunit__StudyUnit", parentId, parentVersion,
+						"DDIInstance"));
+
+		// # [Reference] (r:Citation)
+		// # [Reference] (Abstract) - max. unbounded
+		// # [Reference] (r:UniverseReference) - max. unbounded
+		// # [Reference] (r:SeriesStatement) - min. 0
+		// # [Reference] (r:FundingInformation) - min. 0 - max. unbounded
+		// # [Reference] (Purpose) - max. unbounded
+		// # [Reference] (r:Coverage) - min. 0
+		// # [Reference] (r:AnalysisUnit) - min. 0 - max. unbounded
+		// # [Reference] (KindOfData) - min. 0 - max. unbounded
+		// # [Reference] (r:OtherMaterial) - min. 0 - max. unbounded
+
+		schemeQuery.setElementNames(new String[] { "Citation", "Abstract",
+				"UniverseReference", "SeriesStatement", "FundingInformation",
+				"Purpose", "Coverage", "AnalysisUnit", "KindOfData",
+				"OtherMaterial" });
+		schemeQuery.setSchemeTarget("studyunit__StudyUnit");
+		schemeQuery.setStopTag("ConceptualComponent");
+
+		SchemeQueryResult result = queryScheme(schemeQuery);
+		if (result.getId() == null) {
+			schemeQuery.setQuery(getQueryElementString(id, version,
+					"studyunit__StudyUnit", parentId, parentVersion, "Group"));
+			result = queryScheme(schemeQuery);
+		}
+		if (result.getId() == null) {
+			schemeQuery.setQuery(getQueryElementString(id, version,
+					"studyunit__StudyUnit", parentId, parentVersion, null));
+			result = queryScheme(schemeQuery);
+		}
+		return result;
 	}
 
 	//
@@ -966,12 +1003,13 @@ public class DdiManager {
 				"ConceptScheme", null, "reusable__Name");
 		if (lightXmlObjectListDocument.getLightXmlObjectList()
 				.getLightXmlObjectList().isEmpty()) {
-			lightXmlObjectListDocument = queryLightXmlBeans(id, version, parentId, parentVersion,
-					"//", "ConceptScheme", null, "reusable__Label");
+			lightXmlObjectListDocument = queryLightXmlBeans(id, version,
+					parentId, parentVersion, "//", "ConceptScheme", null,
+					"reusable__Label");
 		}
 		return lightXmlObjectListDocument;
 	}
-	
+
 	@Profiled(tag = "getConceptLight")
 	public LightXmlObjectListDocument getConceptsLight(String id,
 			String version, String parentId, String parentVersion)
@@ -1047,7 +1085,7 @@ public class DdiManager {
 	public SchemeQueryResult getQuestionSchemeLabel(String id, String version,
 			String parentId, String parentVersion) throws DDIFtpException {
 		SchemeQuery schemeQuery = new SchemeQuery();
-		schemeQuery.setQuery(getQueryElementString(id, parentVersion,
+		schemeQuery.setQuery(getQueryElementString(id, version,
 				"QuestionScheme", parentId, parentVersion,
 				"datacollection__DataCollection"));
 		schemeQuery.setElementNames(new String[] { "reusable__Label" });
