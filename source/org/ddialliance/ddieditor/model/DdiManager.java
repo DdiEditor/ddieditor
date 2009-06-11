@@ -664,7 +664,8 @@ public class DdiManager {
 		query.append("replace node ");
 		query.append(position.query.toString());
 		query.append(" with ");
-		query.append(substitutePrefixesFromElements(xmlObject.xmlText()));
+		query.append(xmlObject.xmlText());
+		//query.append(substitutePrefixesFromElements(xmlObject.xmlText()));
 		PersistenceManager.getInstance().updateQuery(query.toString());
 	}
 
@@ -1000,7 +1001,7 @@ public class DdiManager {
 			throws Exception {
 		LightXmlObjectListDocument lightXmlObjectListDocument = queryLightXmlBeans(
 				id, version, parentId, parentVersion, "ConceptualComponent",
-				"ConceptScheme", null, "reusable__Name");
+				"ConceptScheme", null, "reusable__Label");
 		if (lightXmlObjectListDocument.getLightXmlObjectList()
 				.getLightXmlObjectList().isEmpty()) {
 			lightXmlObjectListDocument = queryLightXmlBeans(id, version,
