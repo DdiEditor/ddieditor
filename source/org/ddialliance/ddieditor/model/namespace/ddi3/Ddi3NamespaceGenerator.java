@@ -320,6 +320,7 @@ public class Ddi3NamespaceGenerator {
 		// search start prefix
 		startTagMatcher = startTagPattern.matcher(element.toString());
 		String namespace;
+
 		if (startTagMatcher.find()) {
 			do {
 				String prefix = element.substring(startTagMatcher.start() + 1,
@@ -362,7 +363,8 @@ public class Ddi3NamespaceGenerator {
 						int start = element.indexOf("xmlns:ddi=\"",
 								elementMacher.start() + 1);
 						if (start > -1) {
-							namespaceStr = element.substring(start+11, element.indexOf("\"", start+11));
+							namespaceStr = element.substring(start + 11,
+									element.indexOf("\"", start + 11));
 						}
 					}
 					if (namespaceStr == null) {
@@ -372,9 +374,16 @@ public class Ddi3NamespaceGenerator {
 					}
 					namespace = namespaceStr;
 				}
+//				if (prevNamespace != null && prevNamespace.equals(namespace)) {
+//					//
+//				} else {
+//					element.insert(elementMacher.end(), " xmlns=\"" + namespace
+//							+ "\"");
+//				}
+//				prevNamespace = namespace;
+
 				element.insert(elementMacher.end(), " xmlns=\"" + namespace
 						+ "\"");
-
 				// reset start prefix matcher
 				startTagMatcher = startTagPattern.matcher(element.toString());
 			} while (startTagMatcher.find());
