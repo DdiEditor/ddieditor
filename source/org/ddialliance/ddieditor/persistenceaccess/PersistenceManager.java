@@ -2,25 +2,19 @@ package org.ddialliance.ddieditor.persistenceaccess;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.Map.Entry;
 
 import org.apache.xmlbeans.XmlOptions;
-import org.ddialliance.ddieditor.model.DdiManager;
 import org.ddialliance.ddieditor.model.XQuery;
 import org.ddialliance.ddieditor.model.resource.DDIResourceDocument;
 import org.ddialliance.ddieditor.model.resource.DDIResourceType;
 import org.ddialliance.ddieditor.model.resource.ResourceListDocument;
 import org.ddialliance.ddieditor.model.resource.StorageDocument;
 import org.ddialliance.ddieditor.model.resource.StorageType;
-import org.ddialliance.ddieditor.model.resource.TopURNDocument;
 import org.ddialliance.ddieditor.model.resource.TopURNType;
 import org.ddialliance.ddieditor.persistenceaccess.dbxml.DbXmlManager;
 import org.ddialliance.ddiftp.util.DDIFtpException;
@@ -29,8 +23,6 @@ import org.ddialliance.ddiftp.util.log.Log;
 import org.ddialliance.ddiftp.util.log.LogFactory;
 import org.ddialliance.ddiftp.util.log.LogType;
 import org.perf4j.aop.Profiled;
-
-import sun.reflect.ReflectionFactory.GetReflectionFactoryAction;
 
 /**
  * Accesses persistence storage
