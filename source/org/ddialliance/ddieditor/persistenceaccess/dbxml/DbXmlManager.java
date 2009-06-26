@@ -493,7 +493,9 @@ public class DbXmlManager implements PersistenceStorage {
 		XmlDocumentConfig xmlDocumentConfig = new XmlDocumentConfig();
 
 		for (int i = 0; i < Ddi3NamespacePrefix.values().length; i++) {
-			xmlQueryContext.setNamespace(Ddi3NamespacePrefix.values()[i].getPrefix(), Ddi3NamespacePrefix.values()[i].getNamespace());
+			xmlQueryContext.setNamespace(Ddi3NamespacePrefix.values()[i]
+					.getPrefix(), Ddi3NamespacePrefix.values()[i]
+					.getNamespace());
 		}
 
 		try {
@@ -505,7 +507,7 @@ public class DbXmlManager implements PersistenceStorage {
 
 		catch (Exception e) {
 			throw new DDIFtpException("Error on query execute of: " + query, e);
-		} 		
+		}
 		rs.delete();
 	}
 
@@ -514,8 +516,8 @@ public class DbXmlManager implements PersistenceStorage {
 		XmlQueryContext xmlQueryContext = xmlManager.createQueryContext(
 				XmlQueryContext.LiveValues, XmlQueryContext.Lazy);
 		XmlDocumentConfig xmlDocumentConfig = new XmlDocumentConfig();
-//		xmlDocumentConfig.setLazyDocs(false);
-//		xmlDocumentConfig.setWellFormedOnly(true);
+		// xmlDocumentConfig.setLazyDocs(false);
+		// xmlDocumentConfig.setWellFormedOnly(true);
 		// XmlQueryExpression used to requery
 		// Cache idear: hash query and store hash and query expression in
 		// hashmap
@@ -532,8 +534,7 @@ public class DbXmlManager implements PersistenceStorage {
 		// throw new DDIFtpException("Error prepare query: " + query, e);
 		// }
 
-		
-		//xmlQueryContext.setNamespace(prefix, uri)
+		// xmlQueryContext.setNamespace(prefix, uri)
 		XmlResults rs = null;
 		try {
 			// rs = xmlQueryExpression.execute(getTransaction(),
@@ -541,8 +542,6 @@ public class DbXmlManager implements PersistenceStorage {
 			rs = xmlManager.query(getTransaction(), query, xmlQueryContext,
 					xmlDocumentConfig);
 		}
-
-		// TODO catch deadlock and implement retry
 
 		catch (Exception e) {
 			throw new DDIFtpException("Error on query execute of: " + query, e);
