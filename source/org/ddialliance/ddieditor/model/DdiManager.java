@@ -594,7 +594,9 @@ public class DdiManager {
 			StringBuilder query = new StringBuilder();
 			query.append("for $element in ?/? ");
 			if (parentElementType != null) {
-				query.append("for $child in $element/? ? return $child");
+//				query.append("for $child in $element/? ? return $child");
+				query.append("for $child in " + PersistenceManager.getInstance().getResourcePath()
+						+ "/? ? return $child");
 			} else {
 				query.append("? return $element");
 			}
