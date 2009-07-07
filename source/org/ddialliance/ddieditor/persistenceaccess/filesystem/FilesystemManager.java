@@ -88,7 +88,7 @@ public class FilesystemManager implements PersistenceStorage {
 			}
 			PersistenceManager.getInstance().createResource(
 					ddiResourceDocument, containerName);
-			PersistenceManager.getInstance().commitWorkingResource();
+			//PersistenceManager.getInstance().commitWorkingResource();
 		} catch (Exception e) {
 			throw e;
 		} finally {
@@ -101,10 +101,8 @@ public class FilesystemManager implements PersistenceStorage {
 
 	}
 
-	public void commitTransaction() throws Exception {
-		// TODO Auto-generated method stub
-
-	}
+//	public void commitTransaction() throws Exception {
+//	}
 
 	public String getGlobalResourcePath(StorageType storage) throws Exception {
 		// TODO Auto-generated method stub
@@ -142,10 +140,8 @@ public class FilesystemManager implements PersistenceStorage {
 		return null;
 	}
 
-	public void rollbackTransaction() throws Exception {
-		// TODO Auto-generated method stub
-
-	}
+//	public void rollbackTransaction() throws Exception {		
+//	}
 
 	public void setWorkingConnection(StorageType storage) throws Exception {
 		// TODO Auto-generated method stub

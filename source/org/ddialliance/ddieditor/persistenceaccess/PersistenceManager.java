@@ -66,28 +66,22 @@ public class PersistenceManager {
 			try {
 				log.info("Initializing PersistenceManager");
 				instance.workingResource = RESOURCE_LIST_FILE;
-				DbXmlManager.getInstance().getTransaction();
 				DbXmlManager.getInstance().openContainer(
 						new File(RESOURCE_LIST_CONTAINER));
-				instance.commitWorkingResource();
 
 				if (instance.getResourceList() == null) {
 					// add empty resource list
-					DbXmlManager.getInstance().getTransaction();
 					DbXmlManager.getInstance().addResource(
 							new File("resources" + File.separator
 									+ RESOURCE_LIST_FILE));
-					instance.commitWorkingResource();
 				}
 				instance.rebuildResources();
 			} catch (Exception e) {
 				DDIFtpException ddiFtpE = new DDIFtpException(
 						"Error parsing project file: " + RESOURCE_LIST_FILE, e);
 				throw ddiFtpE;
-			} finally {
-				// instance.resetWorkingResource();
 			}
-
+			
 			// create paramatized queries to store in cache
 			// cache is filled up lazily
 		}
@@ -228,62 +222,6 @@ public class PersistenceManager {
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	// xquery functions
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	/**
-	 * Commit the working resource transaction
-	 * 
-	 * @throws DDIFtpException
-	 */
-	public void commitWorkingResource() throws DDIFtpException {
-		try {
-			getPersistenceStorage().commitTransaction();
-		} catch (Exception e) {
-			throw new DDIFtpException("Error on commit", e);
-		}
-	}
-
-	/**
-	 * Roll back the working resource transaction
-	 * 
-	 * @throws DDIFtpException
-	 */
-	public void rollbackWorkingResource() throws DDIFtpException {
-		if (log.isDebugEnabled()) {
-			log.debug("Rollback working resource: " + getWorkingResource());
-		}
-
-		try {
-			getPersistenceStorage().rollbackTransaction();
-		} catch (Exception e) {
-			throw new DDIFtpException("Error on rollback", e);
-		}
-	}
-
-	/**
-	 * Commit all resources
-	 * 
-	 * @throws DDIFtpException
-	 */
-	public void commitAllResources() throws DDIFtpException {
-		List<DDIResourceType> resouses = getResources();
-		for (DDIResourceType resource : resouses) {
-			setWorkingResource(resource.getOrgName());
-			commitWorkingResource();
-		}
-	}
-
-	/**
-	 * Roll back all resources
-	 * 
-	 * @throws DDIFtpException
-	 */
-	public void rollbackAllResources() throws DDIFtpException {
-		List<DDIResourceType> resouses = getResources();
-		for (DDIResourceType resource : resouses) {
-			setWorkingResource(resource.getOrgName());
-			rollbackWorkingResource();
-		}
-	}
-
 	// insert, delete, replace and rename node
 	// XQuery Update Facility http://www.w3.org/TR/xquery-update-10
 	/**

@@ -4,33 +4,8 @@ import java.io.File;
 import java.util.List;
 
 import org.ddialliance.ddieditor.model.resource.StorageType;
-import org.ddialliance.ddiftp.util.xml.Urn;
 
 public interface PersistenceStorage {
-
-	// public static PersistenceStorage getInstance();
-
-	/**
-	 * Retrieve the current transaction
-	 * 
-	 * @return xml transaction
-	 * @throws Exception
-	 */
-	public Object getTransaction() throws Exception;
-
-	/**
-	 * Commit the current transaction
-	 * 
-	 * @throws Exception
-	 */
-	public void commitTransaction() throws Exception;
-
-	/**
-	 * Rollback the current transaction
-	 * 
-	 * @throws Exception
-	 */
-	public void rollbackTransaction() throws Exception;
 
 	/**
 	 * Execute query against persistence storage

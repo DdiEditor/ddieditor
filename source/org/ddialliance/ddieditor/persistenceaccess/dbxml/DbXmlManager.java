@@ -303,7 +303,7 @@ public class DbXmlManager implements PersistenceStorage {
 		}
 	}
 
-	public synchronized XmlTransaction getTransaction() throws Exception {
+	protected synchronized XmlTransaction getTransaction() throws Exception {
 		if (transaction.get() == null) {
 			TransactionConfig tc = new TransactionConfig();
 			XmlTransaction t = xmlManager.createTransaction(null, tc);
@@ -317,7 +317,7 @@ public class DbXmlManager implements PersistenceStorage {
 		return transaction.get();
 	}
 
-	public synchronized void commitTransaction() throws Exception {
+	protected synchronized void commitTransaction() throws Exception {
 		if (transaction.get() != null) {
 			if (System.getProperty("ddieditor.test") != null
 					&& System.getProperty("ddieditor.test").equals("true")) {
@@ -336,7 +336,7 @@ public class DbXmlManager implements PersistenceStorage {
 		}
 	}
 
-	public synchronized void rollbackTransaction() throws Exception {
+	protected synchronized void rollbackTransaction() throws Exception {
 		if (transaction.get() != null) {
 			logSystem.info("Transaction rollback, id: "
 					+ getTransaction().getTransaction().getId());
@@ -482,6 +482,7 @@ public class DbXmlManager implements PersistenceStorage {
 			result.add(rs.next().asString());
 		}
 		rs.delete();
+		commitTransaction();
 		return result;
 	}
 
@@ -501,11 +502,9 @@ public class DbXmlManager implements PersistenceStorage {
 		try {
 			rs = xmlManager.query(getTransaction(), query, xmlQueryContext,
 					xmlDocumentConfig);
-		}
-
-		// TODO catch deadlock and implement retry
-
-		catch (Exception e) {
+			commitTransaction();
+		} catch (Exception e) {
+			rollbackTransaction();
 			throw new DDIFtpException("Error on query execute of: " + query, e);
 		}
 		rs.delete();
@@ -541,9 +540,8 @@ public class DbXmlManager implements PersistenceStorage {
 			// xmlQueryContext);
 			rs = xmlManager.query(getTransaction(), query, xmlQueryContext,
 					xmlDocumentConfig);
-		}
-
-		catch (Exception e) {
+		} catch (Exception e) {
+			rollbackTransaction();
 			throw new DDIFtpException("Error on query execute of: " + query, e);
 		} finally {
 			// if (xmlQueryContext != null) {
@@ -605,6 +603,7 @@ public class DbXmlManager implements PersistenceStorage {
 		if (xmlValue == null) {
 			rs.delete();
 			rs = null;
+			commitTransaction();
 			return result;
 		}
 
@@ -701,6 +700,7 @@ public class DbXmlManager implements PersistenceStorage {
 		}
 		rs.delete();
 		rs = null;
+		commitTransaction();
 		return result;
 	}
 
