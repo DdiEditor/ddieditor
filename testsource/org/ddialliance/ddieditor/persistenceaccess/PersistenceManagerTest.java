@@ -52,7 +52,6 @@ public class PersistenceManagerTest extends DdieditorTestCase {
 	public void deleteResource() throws Exception {
 		String orgName = SINGLE_MANINTAINABLE_QS_FD_NS_DOC + ".xml";
 		PersistenceManager.getInstance().deleteResource(orgName);
-		PersistenceManager.getInstance().commitAllResources();
 
 		DDIResourceType  ddiResource= PersistenceManager.getInstance()
 				.getResourceByOrgName(orgName);

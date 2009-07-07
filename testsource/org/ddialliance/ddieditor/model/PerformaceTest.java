@@ -72,7 +72,6 @@ public class PerformaceTest extends DdieditorTestCase {
 		// update
 		String update = "insert nodes <Label xmlns='ddi:reusable:3_0' xml:lang='en'>my new value</Label> as first into";
 		PersistenceManager.getInstance().updateQuery(update+query );
-		PersistenceManager.getInstance().commitWorkingResource();
 		
 		// check
 		result = PersistenceManager.getInstance().query(query);
