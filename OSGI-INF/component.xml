@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.1.0" immediate="true" name="ddieditor_core">
+   <implementation class="org.ddialliance.ddieditor.osgi.DdiEditorCoreImpl"/>
+   <service>
+      <provide interface="org.ddialliance.ddieditor.osgi.IDdiEditorCore"/>
+   </service>
+</scr:component>
