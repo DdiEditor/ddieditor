@@ -27,6 +27,7 @@ import org.ddialliance.ddieditor.persistenceaccess.SchemeQuery;
 import org.ddialliance.ddieditor.persistenceaccess.SchemeQueryResult;
 import org.ddialliance.ddieditor.persistenceaccess.SchemeUpdateElement;
 import org.ddialliance.ddieditor.persistenceaccess.XQueryInsertKeyword;
+import org.ddialliance.ddieditor.util.DdiEditorRefUtil;
 import org.ddialliance.ddiftp.util.DDIFtpException;
 import org.ddialliance.ddiftp.util.ReflectionUtil;
 import org.ddialliance.ddiftp.util.log.Log;
@@ -694,9 +695,9 @@ public class DdiManager {
 		// position
 		XQuery position = null;
 		try {
-			position = xQueryCrudPosition((String) ReflectionUtil.invokeMethod(
+			position = xQueryCrudPosition((String) DdiEditorRefUtil.invokeMethod(
 					xmlObjectType, "getId", false, null),
-					(String) ReflectionUtil.invokeMethod(xmlObjectType,
+					(String) DdiEditorRefUtil.invokeMethod(xmlObjectType,
 							"getVersion", false, null), xmlObjectType
 							.getDomNode().getLocalName(), parentId,
 					parentVersion, parentElementType);
