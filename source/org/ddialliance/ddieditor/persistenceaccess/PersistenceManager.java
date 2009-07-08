@@ -17,6 +17,7 @@ import org.ddialliance.ddieditor.model.resource.StorageDocument;
 import org.ddialliance.ddieditor.model.resource.StorageType;
 import org.ddialliance.ddieditor.model.resource.TopURNType;
 import org.ddialliance.ddieditor.persistenceaccess.dbxml.DbXmlManager;
+import org.ddialliance.ddieditor.util.DdiEditorRefUtil;
 import org.ddialliance.ddiftp.util.DDIFtpException;
 import org.ddialliance.ddiftp.util.ReflectionUtil;
 import org.ddialliance.ddiftp.util.log.Log;
@@ -121,7 +122,7 @@ public class PersistenceManager {
 			if (workingPersistenceStorage == null
 					|| !(Class.forName(pStoreClassName)
 							.isInstance(workingPersistenceStorage))) {
-				PersistenceStorage pStorage = (PersistenceStorage) ReflectionUtil
+				PersistenceStorage pStorage = (PersistenceStorage) DdiEditorRefUtil
 						.invokeStaticMethod(pStoreClassName, "getInstance",
 								null);
 				workingPersistenceStorage = pStorage;
@@ -464,7 +465,7 @@ public class PersistenceManager {
 		for (String pStoreClassName : openStorages) {
 			pStorage = null;
 			try {
-				pStorage = (PersistenceStorage) ReflectionUtil
+				pStorage = (PersistenceStorage) DdiEditorRefUtil
 						.invokeStaticMethod(pStoreClassName, "getInstance",
 								null);
 			} catch (Exception e) {

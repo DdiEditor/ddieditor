@@ -15,6 +15,7 @@ import org.ddialliance.ddieditor.model.resource.TopURNDocument;
 import org.ddialliance.ddieditor.model.resource.TopURNType;
 import org.ddialliance.ddieditor.persistenceaccess.ParamatizedXquery;
 import org.ddialliance.ddieditor.persistenceaccess.PersistenceManager;
+import org.ddialliance.ddieditor.util.DdiEditorRefUtil;
 import org.ddialliance.ddiftp.util.DDIFtpException;
 import org.ddialliance.ddiftp.util.ReflectionUtil;
 import org.ddialliance.ddiftp.util.log.Log;
@@ -295,7 +296,7 @@ public class Urn2Util {
 
 		LightXmlObjectListDocument lightXmlObjectList = null;
 		try {
-			lightXmlObjectList = (LightXmlObjectListDocument)ReflectionUtil.invokeMethod(DdiManager.getInstance(),
+			lightXmlObjectList = (LightXmlObjectListDocument)DdiEditorRefUtil.invokeMethod(DdiManager.getInstance(),
 					methodName.toString(), false, urn.getElementId(), "", "", "");
 		} catch (Exception e) {
 			throw new DDIFtpException("Error on get light xml object by urn", e);
