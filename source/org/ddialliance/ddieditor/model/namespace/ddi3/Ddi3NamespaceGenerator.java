@@ -27,7 +27,7 @@ public class Ddi3NamespaceGenerator {
 	private static Log log = LogFactory.getLog(LogType.SYSTEM,
 			Ddi3NamespaceGenerator.class);
 
-	public static final String DDI_INSTANCE_URL = "http://www.icpsr.umich.edu/DDI/schema/ddi3.0/instance.xsd";
+	public static final String DDI_INSTANCE_URL = "file://resources/ddi/3.0/instance.xsd";
 
 	public static File ELEMENT_NAMESPACE = new File("resources"
 			+ File.separator + "element-namespace.properties");

@@ -313,7 +313,7 @@
 		</delete>
 
 		<!-- run tests forkmode="perTest" -->
-		<junit fork="yes"  printsummary="yes" haltonfailure="false" dir="${build.classes.dir}">
+		<junit fork="yes" printsummary="yes" haltonfailure="false" dir="${build.classes.dir}">
 			<classpath refid="project.classpath" />
 			<jvmarg value="-Xms${java.heap.init}m" />
 			<jvmarg value="-Xmx${java.heap.max}m" />
