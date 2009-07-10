@@ -8,6 +8,7 @@ import java.util.Set;
 import org.apache.xmlbeans.XmlException;
 import org.apache.xmlbeans.XmlObject;
 import org.ddialliance.ddi_3_0.xml.xmlbeans.conceptualcomponent.ConceptDocument;
+import org.ddialliance.ddi_3_0.xml.xmlbeans.conceptualcomponent.ConceptGroupDocument;
 import org.ddialliance.ddi_3_0.xml.xmlbeans.conceptualcomponent.ConceptSchemeDocument;
 import org.ddialliance.ddi_3_0.xml.xmlbeans.datacollection.DataCollectionDocument;
 import org.ddialliance.ddi_3_0.xml.xmlbeans.datacollection.QuestionItemDocument;
@@ -29,7 +30,6 @@ import org.ddialliance.ddieditor.persistenceaccess.SchemeUpdateElement;
 import org.ddialliance.ddieditor.persistenceaccess.XQueryInsertKeyword;
 import org.ddialliance.ddieditor.util.DdiEditorRefUtil;
 import org.ddialliance.ddiftp.util.DDIFtpException;
-import org.ddialliance.ddiftp.util.ReflectionUtil;
 import org.ddialliance.ddiftp.util.log.Log;
 import org.ddialliance.ddiftp.util.log.LogFactory;
 import org.ddialliance.ddiftp.util.log.LogType;
@@ -627,6 +627,17 @@ public class DdiManager {
 			String parentVersion, String parentElementType)
 			throws DDIFtpException {
 		XmlBeansUtil.instanceOfXmlBeanDocument(xmlObject, new Throwable());
+		LightXmlObjectListDocument lightXmlObjectList = null;
+		
+		// concept 
+		// check for concept group in concept scheme
+//		try {
+//			lightXmlObjectList = getConceptGroupsLight(null, null, parentId, parentVersion);
+//		} catch (Exception e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+//		System.out.println(lightXmlObjectList.getLightXmlObjectList().sizeOfLightXmlObjectArray());
 
 		// insert xml object
 		PersistenceManager.getInstance().insert(
@@ -1037,6 +1048,21 @@ public class DdiManager {
 		String text = queryElement(id, version, "Concept", parentId,
 				parentVersion, "ConceptScheme");
 		return (text == "" ? null : ConceptDocument.Factory.parse(text));
+	}
+	
+	public LightXmlObjectListDocument getConceptGroupsLight(String id,
+			String version, String parentId, String parentVersion)
+			throws Exception {
+		// ConceptScheme/Concept/Label
+		return queryLightXmlBeans(id, version, parentId, parentVersion,
+				"ConceptScheme", "ConceptGroup", null, "reusable__Label");
+	}
+	
+	public ConceptGroupDocument getConceptGroup(String id, String version,
+			String parentId, String parentVersion) throws Exception {
+		String text = queryElement(id, version, "ConceptGroup", parentId,
+				parentVersion, "ConceptScheme");
+		return (text == "" ? null : ConceptGroupDocument.Factory.parse(text));
 	}
 
 	//
