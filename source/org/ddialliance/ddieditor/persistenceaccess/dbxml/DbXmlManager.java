@@ -675,7 +675,7 @@ public class DbXmlManager implements PersistenceStorage {
 							}
 
 							// extract until end tag
-							extractSubelementsOfSchemeQuery(element, reader);
+							extractSubelementsOfSchemeQuery(element, reader, localName);
 
 							// do transformation
 							result.getElements()[h].add(element.toString());
@@ -705,12 +705,25 @@ public class DbXmlManager implements PersistenceStorage {
 	}
 
 	private void extractSubelementsOfSchemeQuery(StringBuffer element,
-			XmlEventReader reader) throws Exception {
+			XmlEventReader reader, String stopElement) throws Exception {
 		boolean characterEvent = false;
 		boolean end = false;
 		while (!end && reader.hasNext()) {
 			int eventType = reader.next();
 			switch (eventType) {
+			case XmlEventReader.StartElement: {
+				String localName = reader.getLocalName();
+				String prefix = reader.getPrefix();
+
+				StringBuffer endElement = new StringBuffer("<");
+				if (prefix != null) {
+					endElement.append(prefix);
+					endElement.append(":");
+				}
+				endElement.append(localName);
+				endElement.append(">");
+				element.append(endElement.toString());
+			}
 			case XmlEventReader.EndElement: {
 				String localName = reader.getLocalName();
 				String prefix = reader.getPrefix();
@@ -724,8 +737,10 @@ public class DbXmlManager implements PersistenceStorage {
 				endElement.append(">");
 				element.append(endElement.toString());
 
-				end = true;
-				break;
+				if(stopElement.equals(localName)) {
+					end = true;
+					break;	
+				}
 			}
 			case XmlEventReader.CDATA: {
 				break;
