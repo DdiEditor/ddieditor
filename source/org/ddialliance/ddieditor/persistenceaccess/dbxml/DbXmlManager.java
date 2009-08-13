@@ -675,7 +675,8 @@ public class DbXmlManager implements PersistenceStorage {
 							}
 
 							// extract until end tag
-							extractSubelementsOfSchemeQuery(element, reader, localName);
+							extractSubelementsOfSchemeQuery(element, reader,
+									localName);
 
 							// do transformation
 							result.getElements()[h].add(element.toString());
@@ -715,14 +716,45 @@ public class DbXmlManager implements PersistenceStorage {
 				String localName = reader.getLocalName();
 				String prefix = reader.getPrefix();
 
-				StringBuffer endElement = new StringBuffer("<");
+				StringBuffer startElement = new StringBuffer("<");
 				if (prefix != null) {
-					endElement.append(prefix);
-					endElement.append(":");
+					startElement.append(prefix);
+					startElement.append(":");
 				}
-				endElement.append(localName);
-				endElement.append(">");
-				element.append(endElement.toString());
+				startElement.append(localName);
+
+				// attr
+				StringBuilder attr = new StringBuilder();
+				int attrSize = reader.getAttributeCount();
+				if (attrSize > 0) {
+					for (int i = 0; i < attrSize; i++) {
+						attr.append(" ");
+						if (reader.getAttributePrefix(i) != null
+								&& !reader.getAttributePrefix(i).equals("")) {
+							attr.append(reader.getAttributePrefix(i));
+							attr.append(":");
+						}
+						attr.append(reader.getAttributeLocalName(i));
+						attr.append("=\"");
+						attr.append(reader.getAttributeValue(i));
+						attr.append("\"");
+					}
+				}
+				startElement.append(attr);
+
+				if (reader.isEmptyElement()) {
+					startElement.append("/>");
+				} else {
+					startElement.append(">");
+				}
+
+				element.append(startElement.toString());
+				break;
+			}
+			case XmlEventReader.Characters: {
+				characterEvent = true;
+				element.append(reader.getValue());
+				break;
 			}
 			case XmlEventReader.EndElement: {
 				String localName = reader.getLocalName();
@@ -737,17 +769,13 @@ public class DbXmlManager implements PersistenceStorage {
 				endElement.append(">");
 				element.append(endElement.toString());
 
-				if(stopElement.equals(localName)) {
+				if (stopElement.equals(localName)) {
 					end = true;
-					break;	
 				}
+				break;
 			}
 			case XmlEventReader.CDATA: {
 				break;
-			}
-			case XmlEventReader.Characters: {
-				characterEvent = true;
-				element.append(reader.getValue());
 			}
 			case XmlEventReader.Whitespace: {
 				break;
