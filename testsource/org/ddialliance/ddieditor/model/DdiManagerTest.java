@@ -29,7 +29,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 public class DdiManagerTest extends DdieditorTestCase {
-	@Ignore
+	@Test
 	public void getQuestionSchemesLight() throws Exception {
 		PersistenceManager.getInstance().setWorkingResource(
 				DdieditorTestCase.FULLY_DECLARED_NS_DOC);
@@ -45,7 +45,7 @@ public class DdiManagerTest extends DdieditorTestCase {
 				.getLightXmlObjectList().getLightXmlObjectList().size());
 	}
 
-	@Ignore
+	@Test
 	public void getQuestionScheme() throws Exception {
 		PersistenceManager.getInstance().setWorkingResource(
 				DdieditorTestCase.FULLY_DECLARED_NS_DOC);
@@ -57,7 +57,7 @@ public class DdiManagerTest extends DdieditorTestCase {
 		Assert.assertEquals(id, test.getQuestionScheme().getId());
 	}
 
-	@Ignore
+	@Test
 	public void updateRetrieve() throws Exception {
 		PersistenceManager.getInstance().setWorkingResource(
 				DdieditorTestCase.FULLY_DECLARED_NS_DOC);
@@ -75,7 +75,7 @@ public class DdiManagerTest extends DdieditorTestCase {
 		Assert.assertNotNull(questionItem);
 	}
 
-	@Ignore
+	@Test
 	public void insertUpdate() throws Exception {
 		PersistenceManager.getInstance().setWorkingResource(
 				DdieditorTestCase.FULLY_DECLARED_NS_DOC);
@@ -108,7 +108,7 @@ public class DdiManagerTest extends DdieditorTestCase {
 				DdieditorTestCase.FULLY_DECLARED_NS_DOC, new File("test.xml"));
 	}
 
-	@Ignore
+	@Test
 	public void getQuestionItemsLight() throws Exception {
 		PersistenceManager.getInstance().setWorkingResource(
 				DdieditorTestCase.FULLY_DECLARED_NS_DOC);
@@ -139,7 +139,7 @@ public class DdiManagerTest extends DdieditorTestCase {
 				.getLightXmlObjectList().size());
 	}
 
-	@Ignore
+	@Test
 	public void getQuestionItem() throws Exception {
 		PersistenceManager.getInstance().setWorkingResource(
 				DdieditorTestCase.FULLY_DECLARED_NS_DOC);
@@ -150,7 +150,7 @@ public class DdiManagerTest extends DdieditorTestCase {
 				.getId());
 	}
 
-	@Ignore
+	@Test
 	public void getConceptsLight() throws Exception {
 		PersistenceManager.getInstance().setWorkingResource(
 				DdieditorTestCase.FULLY_DECLARED_NS_DOC);
@@ -160,7 +160,7 @@ public class DdiManagerTest extends DdieditorTestCase {
 				.getLightXmlObjectList().size());
 	}
 
-	@Ignore
+	@Test
 	public void getConcept() throws Exception {
 		PersistenceManager.getInstance().setWorkingResource(
 				DdieditorTestCase.FULLY_DECLARED_NS_DOC);
@@ -196,7 +196,7 @@ public class DdiManagerTest extends DdieditorTestCase {
 				.sizeOfLightXmlObjectArray());
 	}
 
-	@Ignore
+	@Test
 	public void getDataCollectionLight() throws Exception {
 		PersistenceManager.getInstance().setWorkingResource(
 				DdieditorTestCase.SINGLE_MANINTAINABLE_D_FD_NS_DOC);
@@ -206,7 +206,7 @@ public class DdiManagerTest extends DdieditorTestCase {
 				.sizeOfLightXmlObjectArray());
 	}
 
-	@Ignore
+	@Test
 	public void getCodeScheme() throws Exception {
 		PersistenceManager.getInstance().setWorkingResource(
 				DdieditorTestCase.FULLY_DECLARED_NS_DOC);
@@ -215,7 +215,7 @@ public class DdiManagerTest extends DdieditorTestCase {
 		Assert.assertNotNull(xmlObj.getCodeScheme());
 	}
 
-	@Ignore
+	@Test
 	public void getCodeSchemesLight() throws Exception {
 		PersistenceManager.getInstance().setWorkingResource(
 				DdieditorTestCase.FULLY_DECLARED_NS_DOC);
@@ -225,7 +225,7 @@ public class DdiManagerTest extends DdieditorTestCase {
 				.sizeOfLightXmlObjectArray());
 	}
 
-	@Ignore
+	@Test
 	public void getCategorySchemesLight() throws Exception {
 		PersistenceManager.getInstance().setWorkingResource(
 				DdieditorTestCase.FULLY_DECLARED_NS_DOC);
@@ -235,7 +235,7 @@ public class DdiManagerTest extends DdieditorTestCase {
 				.sizeOfLightXmlObjectArray());
 	}
 
-	@Ignore
+	@Test
 	public void getCategoryScheme() throws Exception {
 		PersistenceManager.getInstance().setWorkingResource(
 				DdieditorTestCase.FULLY_DECLARED_NS_DOC);
@@ -244,7 +244,7 @@ public class DdiManagerTest extends DdieditorTestCase {
 		Assert.assertNotNull(xmlObj.getCategoryScheme());
 	}
 
-	@Ignore
+	@Test
 	public void getDataCollection() throws Exception {
 		PersistenceManager.getInstance().setWorkingResource(
 				DdieditorTestCase.FULLY_DECLARED_NS_DOC);
@@ -253,7 +253,7 @@ public class DdiManagerTest extends DdieditorTestCase {
 		Assert.assertNotNull(dataCollection.getDataCollection());
 	}
 
-	@Ignore
+	@Test
 	public void createLargeElement() throws Exception {
 		PersistenceManager.getInstance().setWorkingResource(
 				DdieditorTestCase.FULLY_DECLARED_NS_DOC);
@@ -317,7 +317,7 @@ public class DdiManagerTest extends DdieditorTestCase {
 				new File("createDocOut.xml"));
 	}
 
-	@Ignore
+	@Test
 	public void updateElement() throws Exception {
 		PersistenceManager.getInstance().setWorkingResource(
 				DdieditorTestCase.SINGLE_MANINTAINABLE_QS_FD_NS_DOC);
@@ -342,7 +342,7 @@ public class DdiManagerTest extends DdieditorTestCase {
 		Assert.assertEquals(newId, test.getQuestionItem().getId());
 	}
 
-	@Ignore
+	@Test
 	public void deleteElement() throws Exception {
 		PersistenceManager.getInstance().setWorkingResource(
 				DdieditorTestCase.FULLY_DECLARED_NS_DOC);
@@ -357,7 +357,7 @@ public class DdiManagerTest extends DdieditorTestCase {
 				"datacollection__DataCollection");
 	}
 
-	@Ignore
+	@Test
 	public void queryScheme() throws Exception {
 		PersistenceManager.getInstance().setWorkingResource(
 				DdieditorTestCase.FULLY_DECLARED_NS_DOC);
@@ -407,7 +407,7 @@ public class DdiManagerTest extends DdieditorTestCase {
 		Assert.assertEquals("Not deleted!", 2, test.getElements()[0].size());
 	}
 
-	@Ignore
+	@Test
 	public void querySchemeNoLabel() throws Exception {
 		PersistenceManager.getInstance().setWorkingResource(
 				DdieditorTestCase.FULLY_DECLARED_NS_DOC);
@@ -446,8 +446,24 @@ public class DdiManagerTest extends DdieditorTestCase {
 		Assert.assertEquals("New not inserted!", 1, test.getElements()[0]
 				.size());
 	}
+	
+	@Test
+	public void getStudyLabel() throws Exception {
+		PersistenceManager.getInstance().setWorkingResource(
+				FULLY_DECLARED_NS_DOC);
+		SchemeQueryResult result = DdiManager.getInstance().getStudyLabel("dda-4755", null, "dda-4755", "1.0");
+		String[] subElements = new String[] { "Citation", "Abstract",
+				"UniverseReference", "SeriesStatement", "FundingInformation",
+				"Purpose", "Coverage", "AnalysisUnit", "KindOfData",
+				"OtherMaterial" };
+		for (int i = 0; i < subElements.length; i++) {			
+			String test = result.getSubElement(subElements[i]);
+			System.out.println(subElements[i]+" - "+test);
+		}
+		Assert.assertNotNull(result);
+	}
 
-	@Ignore
+	@Test
 	public void getConceptSchemes() throws Exception {
 		PersistenceManager.getInstance().setWorkingResource(
 				FULLY_DECLARED_NS_DOC);
@@ -456,7 +472,7 @@ public class DdiManagerTest extends DdieditorTestCase {
 				.getLightXmlObjectList().size());
 	}
 
-	@Ignore
+	@Test
 	public void getConceptualOverview() throws Exception {
 		PersistenceManager.getInstance().setWorkingResource(
 				FULLY_DECLARED_NS_DOC);
