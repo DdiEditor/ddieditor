@@ -71,6 +71,23 @@
 			</else>
 		</if>
 
+		<!-- checking for ddi schema files -->
+		<if>
+			<available file="${build.classes.dir}/resources/ddi/instance.xsd" />
+			<then>
+				<echo message="Ddi schema files are present" />
+			</then>
+			<else>
+				<echo message="Coping ddi schema files" />
+				<copy todir="${build.classes.dir}/resources/ddi" overwrite="yes">
+					<fileset dir="../org.ddialliance.ddi_3_0.xml.xmlbeans/build/ddi/${ddi.dir.name}">
+						<include name="**/*.*" />
+						<exclude name="**/*.zip" />
+					</fileset>
+				</copy>
+			</else>
+		</if>
+
 		<!-- project class path -->
 		<path id="project.classpath">
 			<fileset dir="${lib.dir}">
@@ -145,6 +162,14 @@
 			</fileset>
 		</copy>
 		<mkdir dir="${build.classes.dir}/logs" />
+
+		<mkdir dir="${build.classes.dir}/resources/ddi" />
+		<copy todir="${build.classes.dir}/resources/ddi" overwrite="yes">
+			<fileset dir="../org.ddialliance.ddi_3_0.xml.xmlbeans/build/ddi/${ddi.dir.name}">
+				<include name="**/*.*" />
+				<exclude name="**/*.zip" />
+			</fileset>
+		</copy>
 	</target>
 
 	<target name="jar" depends="compile" description="Generate deploy files for distribution">
