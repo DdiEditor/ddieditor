@@ -7,7 +7,7 @@ public class SchemeQueryResult {
 	private String version;
 	private String agency;
 
-	private String query; 
+	private String query;
 	private String elementNames[];
 	private List<String>[] elements;
 
@@ -61,7 +61,20 @@ public class SchemeQueryResult {
 	public void setQuery(String query) {
 		this.query = query;
 	}
-	
+
+	public String getSubElement(String elementName) {
+		for (int i = 0; i < elementNames.length; i++) {
+			if (elementNames[i].equals(elementName)) {
+				StringBuffer result = new StringBuffer();
+				for (String elment : elements[i]) {
+					result.append(elment);
+				}
+				return result.toString();
+			}
+		}
+		return "";
+	}
+
 	public void cleanElements() {
 		for (int i = 0; i < elements.length; i++) {
 			List<String> element = elements[i];
