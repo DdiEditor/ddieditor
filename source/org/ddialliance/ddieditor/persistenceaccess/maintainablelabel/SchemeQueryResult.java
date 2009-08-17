@@ -1,4 +1,4 @@
-package org.ddialliance.ddieditor.persistenceaccess;
+package org.ddialliance.ddieditor.persistenceaccess.maintainablelabel;
 
 import java.util.List;
 

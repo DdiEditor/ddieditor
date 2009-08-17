@@ -1,4 +1,4 @@
-package org.ddialliance.ddieditor.persistenceaccess;
+package org.ddialliance.ddieditor.persistenceaccess.maintainablelabel;
 
 public class SchemeUpdateElement {
 	public static final int NEW = 0;
