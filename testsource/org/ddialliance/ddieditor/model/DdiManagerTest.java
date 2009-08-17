@@ -20,10 +20,10 @@ import org.ddialliance.ddieditor.DdieditorTestCase;
 import org.ddialliance.ddieditor.model.conceptual.ConceptualElement;
 import org.ddialliance.ddieditor.model.lightxmlobject.LightXmlObjectListDocument;
 import org.ddialliance.ddieditor.persistenceaccess.PersistenceManager;
-import org.ddialliance.ddieditor.persistenceaccess.SchemeQuery;
-import org.ddialliance.ddieditor.persistenceaccess.SchemeQueryResult;
-import org.ddialliance.ddieditor.persistenceaccess.SchemeUpdateElement;
 import org.ddialliance.ddieditor.persistenceaccess.dbxml.DbXmlManager;
+import org.ddialliance.ddieditor.persistenceaccess.maintainablelabel.SchemeQuery;
+import org.ddialliance.ddieditor.persistenceaccess.maintainablelabel.SchemeQueryResult;
+import org.ddialliance.ddieditor.persistenceaccess.maintainablelabel.SchemeUpdateElement;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -380,7 +380,7 @@ public class DdiManagerTest extends DdieditorTestCase {
 		List<SchemeUpdateElement> elements = new ArrayList<SchemeUpdateElement>();
 		elements.add(update);
 		DdiManager.getInstance().updateSchema(result, elements);
-		;
+		
 		SchemeQueryResult test = DdiManager.getInstance()
 				.getQuestionSchemeLabel("qs_", null, "dd", null);
 		Assert.assertTrue("Not updated!", test.getElements()[0].get(0).indexOf(
@@ -441,6 +441,7 @@ public class DdiManagerTest extends DdieditorTestCase {
 		update.setValue("<r:Label xml:lang='en'>my new value</r:Label>");
 		elements.add(update);
 		DdiManager.getInstance().updateSchema(result, elements);
+		
 		SchemeQueryResult test = DdiManager.getInstance().queryScheme(
 				schemeQuery);
 		Assert.assertEquals("New not inserted!", 1, test.getElements()[0]

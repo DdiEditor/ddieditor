@@ -4,6 +4,8 @@ import java.io.File;
 import java.util.List;
 
 import org.ddialliance.ddieditor.model.resource.StorageType;
+import org.ddialliance.ddieditor.persistenceaccess.maintainablelabel.SchemeQuery;
+import org.ddialliance.ddieditor.persistenceaccess.maintainablelabel.SchemeQueryResult;
 
 public interface PersistenceStorage {
 
