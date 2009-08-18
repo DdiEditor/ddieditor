@@ -4,8 +4,8 @@ import java.io.File;
 import java.util.List;
 
 import org.ddialliance.ddieditor.model.resource.StorageType;
-import org.ddialliance.ddieditor.persistenceaccess.maintainablelabel.SchemeQuery;
-import org.ddialliance.ddieditor.persistenceaccess.maintainablelabel.SchemeQueryResult;
+import org.ddialliance.ddieditor.persistenceaccess.maintainablelabel.MaintainableLabelQuery;
+import org.ddialliance.ddieditor.persistenceaccess.maintainablelabel.MaintainableLabelQueryResult;
 
 public interface PersistenceStorage {
 
@@ -32,7 +32,7 @@ public interface PersistenceStorage {
 
 	public String querySingleString(String query) throws Exception;
 
-	public SchemeQueryResult queryScheme(SchemeQuery schemeQuery)
+	public MaintainableLabelQueryResult queryScheme(MaintainableLabelQuery schemeQuery)
 	throws Exception;
 	
 	/**

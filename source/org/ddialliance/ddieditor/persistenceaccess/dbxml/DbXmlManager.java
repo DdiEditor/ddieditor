@@ -7,6 +7,7 @@ import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 
 import org.ddialliance.ddieditor.model.DdiManager;
@@ -14,8 +15,8 @@ import org.ddialliance.ddieditor.model.namespace.ddi3.Ddi3NamespacePrefix;
 import org.ddialliance.ddieditor.model.resource.StorageType;
 import org.ddialliance.ddieditor.persistenceaccess.PersistenceManager;
 import org.ddialliance.ddieditor.persistenceaccess.PersistenceStorage;
-import org.ddialliance.ddieditor.persistenceaccess.maintainablelabel.SchemeQuery;
-import org.ddialliance.ddieditor.persistenceaccess.maintainablelabel.SchemeQueryResult;
+import org.ddialliance.ddieditor.persistenceaccess.maintainablelabel.MaintainableLabelQuery;
+import org.ddialliance.ddieditor.persistenceaccess.maintainablelabel.MaintainableLabelQueryResult;
 import org.ddialliance.ddieditor.util.DdiEditorConfig;
 import org.ddialliance.ddiftp.util.DDIFtpException;
 import org.ddialliance.ddiftp.util.log.Log;
@@ -576,8 +577,8 @@ public class DbXmlManager implements PersistenceStorage {
 		return result;
 	}
 
-	public SchemeQueryResult queryScheme(SchemeQuery schemeQuery)
-			throws Exception {
+	public MaintainableLabelQueryResult queryScheme(
+			MaintainableLabelQuery schemeQuery) throws Exception {
 		queryLog.info(schemeQuery.getQuery());
 		XmlResults rs = xQuery(schemeQuery.getQuery());
 		if (rs.isNull()) {
@@ -586,20 +587,15 @@ public class DbXmlManager implements PersistenceStorage {
 		}
 
 		// result
-		SchemeQueryResult result = new SchemeQueryResult();
-		result.setElementNames(schemeQuery.getElementNames());
-		List<String>[] values = new ArrayList[schemeQuery.getElementNames().length];
-		for (int i = 0; i < values.length; i++) {
-			values[i] = new ArrayList<String>();
-		}
-		result.setElements(values);
+		MaintainableLabelQueryResult result = new MaintainableLabelQueryResult();
 		result.setQuery(schemeQuery.getQuery());
-
-		// populate result
-		String localName;
-		XmlValue xmlValue = rs.next();
+		for (int i = 0; i < schemeQuery.getElementNames().length; i++) {
+			result.getResult().put(schemeQuery.getElementNames()[i],
+					new LinkedList<String>());
+		}
 
 		// guard
+		XmlValue xmlValue = rs.next();
 		if (xmlValue == null) {
 			rs.delete();
 			rs = null;
@@ -607,6 +603,8 @@ public class DbXmlManager implements PersistenceStorage {
 			return result;
 		}
 
+		// populate result
+		String localName;
 		if (xmlValue.isNode()) {
 			XmlEventReader reader = xmlValue.asEventReader();
 
@@ -614,8 +612,10 @@ public class DbXmlManager implements PersistenceStorage {
 				int type = reader.next();
 				if (type == XmlEventReader.StartElement) {
 					localName = reader.getLocalName();
+					// maintainable attrs
 					if (localName.equals(DdiManager.getInstance()
-							.getLocalSchemaName(schemeQuery.getSchemeTarget()))) {
+							.getLocalSchemaName(
+									schemeQuery.getMaintainableTarget()))) {
 						// target scheme/@id @version @agency
 						int attrs = reader.getAttributeCount();
 						for (int i = 0; i < attrs; i++) {
@@ -678,8 +678,15 @@ public class DbXmlManager implements PersistenceStorage {
 							extractSubelementsOfSchemeQuery(element, reader,
 									localName);
 
-							// do transformation
-							result.getElements()[h].add(element.toString());
+							// add to result
+							String insertKey = null;
+							for (String key : result.getResult().keySet()) {
+								if (key.indexOf(localName) > -1) {
+									insertKey = key;
+								}
+							}
+							result.getResult().get(insertKey).addLast(
+									element.toString());
 						}
 					}
 
@@ -692,7 +699,7 @@ public class DbXmlManager implements PersistenceStorage {
 				// stop read at end element of target scheme
 				else if (type == XmlEventReader.EndElement) {
 					localName = reader.getLocalName();
-					if (localName.equals(schemeQuery.getSchemeTarget())) {
+					if (localName.equals(schemeQuery.getMaintainableTarget())) {
 						break;
 					}
 				}

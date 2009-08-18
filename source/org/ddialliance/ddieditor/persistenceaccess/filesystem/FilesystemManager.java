@@ -13,8 +13,8 @@ import org.ddialliance.ddieditor.model.resource.TopURNType;
 import org.ddialliance.ddieditor.persistenceaccess.PersistenceManager;
 import org.ddialliance.ddieditor.persistenceaccess.PersistenceStorage;
 import org.ddialliance.ddieditor.persistenceaccess.dbxml.DbXmlManager;
-import org.ddialliance.ddieditor.persistenceaccess.maintainablelabel.SchemeQuery;
-import org.ddialliance.ddieditor.persistenceaccess.maintainablelabel.SchemeQueryResult;
+import org.ddialliance.ddieditor.persistenceaccess.maintainablelabel.MaintainableLabelQuery;
+import org.ddialliance.ddieditor.persistenceaccess.maintainablelabel.MaintainableLabelQueryResult;
 import org.ddialliance.ddiftp.util.DDIFtpException;
 import org.ddialliance.ddiftp.util.FileUtil;
 import org.ddialliance.ddiftp.util.log.Log;
@@ -135,7 +135,7 @@ public class FilesystemManager implements PersistenceStorage {
 		return null;
 	}
 
-	public SchemeQueryResult queryScheme(SchemeQuery schemeQuery)
+	public MaintainableLabelQueryResult queryScheme(MaintainableLabelQuery schemeQuery)
 			throws Exception {
 		return null;
 	}

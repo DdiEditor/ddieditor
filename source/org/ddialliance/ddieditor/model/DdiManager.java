@@ -25,9 +25,9 @@ import org.ddialliance.ddieditor.model.relationship.ElementDocument.Element;
 import org.ddialliance.ddieditor.persistenceaccess.ParamatizedXquery;
 import org.ddialliance.ddieditor.persistenceaccess.PersistenceManager;
 import org.ddialliance.ddieditor.persistenceaccess.XQueryInsertKeyword;
-import org.ddialliance.ddieditor.persistenceaccess.maintainablelabel.SchemeQuery;
-import org.ddialliance.ddieditor.persistenceaccess.maintainablelabel.SchemeQueryResult;
-import org.ddialliance.ddieditor.persistenceaccess.maintainablelabel.SchemeUpdateElement;
+import org.ddialliance.ddieditor.persistenceaccess.maintainablelabel.MaintainableLabelQuery;
+import org.ddialliance.ddieditor.persistenceaccess.maintainablelabel.MaintainableLabelQueryResult;
+import org.ddialliance.ddieditor.persistenceaccess.maintainablelabel.MaintainableLabelUpdateElement;
 import org.ddialliance.ddieditor.util.DdiEditorRefUtil;
 import org.ddialliance.ddiftp.util.DDIFtpException;
 import org.ddialliance.ddiftp.util.log.Log;
@@ -595,8 +595,9 @@ public class DdiManager {
 			StringBuilder query = new StringBuilder();
 			query.append("for $element in ?/? ");
 			if (parentElementType != null) {
-//				query.append("for $child in $element/? ? return $child");
-				query.append("for $child in " + PersistenceManager.getInstance().getResourcePath()
+				// query.append("for $child in $element/? ? return $child");
+				query.append("for $child in "
+						+ PersistenceManager.getInstance().getResourcePath()
 						+ "/? ? return $child");
 			} else {
 				query.append("? return $element");
@@ -628,16 +629,17 @@ public class DdiManager {
 			throws DDIFtpException {
 		XmlBeansUtil.instanceOfXmlBeanDocument(xmlObject, new Throwable());
 		LightXmlObjectListDocument lightXmlObjectList = null;
-		
-		// concept 
+
+		// concept
 		// check for concept group in concept scheme
-//		try {
-//			lightXmlObjectList = getConceptGroupsLight(null, null, parentId, parentVersion);
-//		} catch (Exception e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
-//		System.out.println(lightXmlObjectList.getLightXmlObjectList().sizeOfLightXmlObjectArray());
+		// try {
+		// lightXmlObjectList = getConceptGroupsLight(null, null, parentId,
+		// parentVersion);
+		// } catch (Exception e) {
+		// // TODO Auto-generated catch block
+		// e.printStackTrace();
+		// }
+		// System.out.println(lightXmlObjectList.getLightXmlObjectList().sizeOfLightXmlObjectArray());
 
 		// insert xml object
 		PersistenceManager.getInstance().insert(
@@ -679,7 +681,7 @@ public class DdiManager {
 		query.append(position.query.toString());
 		query.append(" with ");
 		query.append(xmlObject.xmlText());
-		//query.append(substitutePrefixesFromElements(xmlObject.xmlText()));
+		// query.append(substitutePrefixesFromElements(xmlObject.xmlText()));
 		PersistenceManager.getInstance().updateQuery(query.toString());
 	}
 
@@ -706,8 +708,8 @@ public class DdiManager {
 		// position
 		XQuery position = null;
 		try {
-			position = xQueryCrudPosition((String) DdiEditorRefUtil.invokeMethod(
-					xmlObjectType, "getId", false, null),
+			position = xQueryCrudPosition((String) DdiEditorRefUtil
+					.invokeMethod(xmlObjectType, "getId", false, null),
 					(String) DdiEditorRefUtil.invokeMethod(xmlObjectType,
 							"getVersion", false, null), xmlObjectType
 							.getDomNode().getLocalName(), parentId,
@@ -795,8 +797,8 @@ public class DdiManager {
 		return query;
 	}
 
-	public SchemeQueryResult queryScheme(SchemeQuery schemeQuery)
-			throws DDIFtpException {
+	public MaintainableLabelQueryResult queryScheme(
+			MaintainableLabelQuery schemeQuery) throws DDIFtpException {
 		try {
 			return PersistenceManager.getInstance().getPersistenceStorage()
 					.queryScheme(schemeQuery);
@@ -805,32 +807,30 @@ public class DdiManager {
 		}
 	}
 
-	public void updateSchema(SchemeQueryResult schemeQueryResult,
-			List<SchemeUpdateElement> elements) throws DDIFtpException {
-		// sort update value in correspondence with elementNames array
-		// TODO
-
-		Integer updateValue;
+	public void updateMaintainableLabel(
+			MaintainableLabelQueryResult schemeQueryResult,
+			List<MaintainableLabelUpdateElement> elements)
+			throws DDIFtpException {
 		String queryString = schemeQueryResult.getQuery();
 		String updatePosition = "";
 		String nodeValue = "";
-		for (SchemeUpdateElement element : elements) {
-			updateValue = element.getUpdateValue();
+		for (MaintainableLabelUpdateElement element : elements) {
 			nodeValue = substitutePrefixesFromElements(element.getValue());
-			updatePosition = schemeUpdatePosition(element, schemeQueryResult);
+			updatePosition = maintainableLabelUpdatePosition(element,
+					schemeQueryResult);
 
 			// delete
-			if (updateValue < 0) {
+			if (element.getCrudValue() < 0) {
 				PersistenceManager.getInstance().delete(
 						queryString + updatePosition);
 			}
 			// replace
-			else if (updateValue > 0) {
+			else if (element.getCrudValue() > 0) {
 				PersistenceManager.getInstance().updateNode(
 						queryString + updatePosition, nodeValue);
 			}
 			// new
-			else if (updateValue == 0) {
+			else if (element.getCrudValue() == 0) {
 				XQueryInsertKeyword insertKeyword = XQueryInsertKeyword.AFTER;
 				if (updatePosition.equals("")) {
 					insertKeyword = XQueryInsertKeyword.AS_FIRST_NODE;
@@ -840,69 +840,81 @@ public class DdiManager {
 			}
 
 			// not specified
-			if (updateValue == null) {
+			if (element.getCrudValue() == null) {
 				throw new DDIFtpException("Update value not specified for: "
 						+ element, new Throwable());
 			}
 		}
 	}
 
-	private String schemeUpdatePosition(SchemeUpdateElement element,
-			SchemeQueryResult schemeQueryResult) throws DDIFtpException {
-		// compute insert point
-		String localName = element.getLocalName();
-		String[] elementNames = schemeQueryResult.getElementNames();
-		int conversionName = -1;
-		int privious = -1;
-		int size = -1;
-		for (int i = 0; i < elementNames.length; i++) {
-			if (elementNames[i].indexOf(localName) > -1) {
-				conversionName = i;
-				// update
-				int updateValue = element.getUpdateValue();
-				// delete
-				if (updateValue < 0) {
-					schemeQueryResult.getElements()[i].remove(0);
-				}
-				// new
-				else if (updateValue == 0) {
-					size = schemeQueryResult.getElements()[i].size();
-					schemeQueryResult.getElements()[i].add("");
-				}
-				break;
-			}
-			privious = i;
+	private String maintainableLabelUpdatePosition(
+			MaintainableLabelUpdateElement element,
+			MaintainableLabelQueryResult schemeQueryResult)
+			throws DDIFtpException {
+		int size = schemeQueryResult.getResult().get(element.getLocalName())
+				.size();
+
+		// guard
+		if ((size == 0 && element.getCrudValue() > 0)
+				|| (size == 0 && element.getCrudValue() < 0)) {
+			String errorLabel = "of element: '"
+					+ getLocalSchemaName(element.getLocalName()) + "["
+					+ element.getCrudValue()
+					+ "]' not posible as element does not exist";
+			throw new DDIFtpException(element.getCrudValue() > 0 ? "Update "
+					+ errorLabel : "Deletion " + errorLabel, new Throwable());
 		}
 
-		// query position
+		// implement change into query result
+		// update
+		if (element.getCrudValue() > 0) {
+			schemeQueryResult.getResult().get(element.getLocalName()).set(
+					element.getCrudValue(), element.getValue());
+		}
+		// delete
+		else if (element.getCrudValue() < 0) {
+			schemeQueryResult.getResult().get(element.getLocalName()).remove(
+					(element.getCrudValue() * -1) - 1);
+		}
+		// new
+		else if (element.getCrudValue() == 0) {
+			schemeQueryResult.getResult().get(element.getLocalName()).addLast(
+					element.getValue());
+		}
+
+		// compute insert position
 		StringBuilder positionQuery = new StringBuilder();
 		positionQuery.append("//");
 
 		// update
-		if (element.getUpdateValue() > 0) {
-			positionQuery.append(elementNames[conversionName]);
+		if (element.getCrudValue() > 0) {
+			positionQuery.append(element.getLocalName());
 			positionQuery.append("[");
-			positionQuery.append(element.getUpdateValue());
+			// update value
+			positionQuery.append(element.getCrudValue());
 			positionQuery.append("]");
 		}
 		// new
-		if (element.getUpdateValue() == 0) {
+		if (element.getCrudValue() == 0) {
 			if (size > 0) {
-				positionQuery.append(elementNames[conversionName]);
+				positionQuery.append(element.getLocalName());
 				positionQuery.append("[");
 				positionQuery.append(size);
 				positionQuery.append("]");
 			}
 		}
 		// delete
-		if (element.getUpdateValue() < 0) {
-			positionQuery.append(elementNames[conversionName]);
+		if (element.getCrudValue() < 0) {
+			positionQuery.append(element.getLocalName());
 			positionQuery.append("[");
-			positionQuery.append(element.getUpdateValue() * -1);
+			// update value
+			positionQuery.append(element.getCrudValue() * -1);
 			positionQuery.append("]");
-		} else if (privious != -1) {
-			positionQuery.append(elementNames[privious]);
 		}
+		// marked for deletion
+		// } else if (privious != -1) {
+		// positionQuery.append(elementNames[privious]);
+		// }
 		return addFullyQualifiedNamespaceDeclarationToElements(positionQuery
 				.toString());
 	}
@@ -961,15 +973,16 @@ public class DdiManager {
 		if (lightXmlObjectListDocument.getLightXmlObjectList()
 				.getLightXmlObjectList().isEmpty()) {
 			lightXmlObjectListDocument = queryLightXmlBeans(id, version,
-					parentId, parentVersion, "*", "studyunit__StudyUnit",
-					null, "reusable__Name");
+					parentId, parentVersion, "*", "studyunit__StudyUnit", null,
+					"reusable__Name");
 		}
 		return lightXmlObjectListDocument;
 	}
 
-	public SchemeQueryResult getStudyLabel(String id, String version,
-			String parentId, String parentVersion) throws DDIFtpException {
-		SchemeQuery schemeQuery = new SchemeQuery();
+	public MaintainableLabelQueryResult getStudyLabel(String id,
+			String version, String parentId, String parentVersion)
+			throws DDIFtpException {
+		MaintainableLabelQuery schemeQuery = new MaintainableLabelQuery();
 		schemeQuery
 				.setQuery(getQueryElementString(id, version,
 						"studyunit__StudyUnit", parentId, parentVersion,
@@ -990,10 +1003,10 @@ public class DdiManager {
 				"UniverseReference", "SeriesStatement", "FundingInformation",
 				"Purpose", "Coverage", "AnalysisUnit", "KindOfData",
 				"OtherMaterial" });
-		schemeQuery.setSchemeTarget("studyunit__StudyUnit");
+		schemeQuery.setMaintainableTarget("studyunit__StudyUnit");
 		schemeQuery.setStopTag("ConceptualComponent");
 
-		SchemeQueryResult result = queryScheme(schemeQuery);
+		MaintainableLabelQueryResult result = queryScheme(schemeQuery);
 		if (result.getId() == null) {
 			schemeQuery.setQuery(getQueryElementString(id, version,
 					"studyunit__StudyUnit", parentId, parentVersion, "Group"));
@@ -1049,7 +1062,7 @@ public class DdiManager {
 				parentVersion, "ConceptScheme");
 		return (text == "" ? null : ConceptDocument.Factory.parse(text));
 	}
-	
+
 	public LightXmlObjectListDocument getConceptGroupsLight(String id,
 			String version, String parentId, String parentVersion)
 			throws Exception {
@@ -1057,7 +1070,7 @@ public class DdiManager {
 		return queryLightXmlBeans(id, version, parentId, parentVersion,
 				"ConceptScheme", "ConceptGroup", null, "reusable__Label");
 	}
-	
+
 	public ConceptGroupDocument getConceptGroup(String id, String version,
 			String parentId, String parentVersion) throws Exception {
 		String text = queryElement(id, version, "ConceptGroup", parentId,
@@ -1112,14 +1125,15 @@ public class DdiManager {
 		return lightXmlObjectListDocument;
 	}
 
-	public SchemeQueryResult getQuestionSchemeLabel(String id, String version,
-			String parentId, String parentVersion) throws DDIFtpException {
-		SchemeQuery schemeQuery = new SchemeQuery();
+	public MaintainableLabelQueryResult getQuestionSchemeLabel(String id,
+			String version, String parentId, String parentVersion)
+			throws DDIFtpException {
+		MaintainableLabelQuery schemeQuery = new MaintainableLabelQuery();
 		schemeQuery.setQuery(getQueryElementString(id, version,
 				"QuestionScheme", parentId, parentVersion,
 				"datacollection__DataCollection"));
 		schemeQuery.setElementNames(new String[] { "reusable__Label" });
-		schemeQuery.setSchemeTarget("QuestionScheme");
+		schemeQuery.setMaintainableTarget("QuestionScheme");
 		schemeQuery.setStopTag("QuestionItem");
 
 		return queryScheme(schemeQuery);

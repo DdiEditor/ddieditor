@@ -1,8 +1,12 @@
 package org.ddialliance.ddieditor.persistenceaccess.maintainablelabel;
 
-public class SchemeQuery {
+/**
+ * Pojo for holding information on querying a maintainable for retrieval only of
+ * label elements
+ */
+public class MaintainableLabelQuery {
 	private String query;
-	private String schemeTarget;
+	private String maintainableTarget;
 	private String[] elementNames;
 	private String stopTag;
 
@@ -22,12 +26,12 @@ public class SchemeQuery {
 		this.elementNames = elementNames;
 	}
 
-	public String getSchemeTarget() {
-		return schemeTarget;
+	public String getMaintainableTarget() {
+		return maintainableTarget;
 	}
 
-	public void setSchemeTarget(String schemeTarget) {
-		this.schemeTarget = schemeTarget;
+	public void setMaintainableTarget(String maintainableTarget) {
+		this.maintainableTarget = maintainableTarget;
 	}
 
 	public String getStopTag() {
@@ -37,5 +41,4 @@ public class SchemeQuery {
 	public void setStopTag(String stopTag) {
 		this.stopTag = stopTag;
 	}
-	
 }
