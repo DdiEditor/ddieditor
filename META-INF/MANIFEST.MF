@@ -18,6 +18,7 @@ Export-Package:
  org.ddialliance.ddieditor.persistenceaccess,
  org.ddialliance.ddieditor.persistenceaccess.dbxml,
  org.ddialliance.ddieditor.persistenceaccess.filesystem,
+ org.ddialliance.ddieditor.persistenceaccess.maintainablelabel,
  org.ddialliance.ddieditor.persistenceaccess.namespace.ddi3,
  org.ddialliance.ddieditor.util
 Bundle-ClassPath: .,
