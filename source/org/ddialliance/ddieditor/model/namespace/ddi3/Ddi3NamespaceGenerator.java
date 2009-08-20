@@ -10,6 +10,7 @@ import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.ddialliance.ddieditor.model.DdiManager;
 import org.ddialliance.ddieditor.model.relationship.UrnRelationhipListDocument;
 import org.ddialliance.ddieditor.model.relationship.ElementDocument.Element;
 import org.ddialliance.ddieditor.model.relationship.UrnRelationhipListDocument.UrnRelationhipList;
@@ -152,15 +153,17 @@ public class Ddi3NamespaceGenerator {
 		return namespace;
 	}
 
+	/**
+	 * Retrieve the module name of a DDI name space
+	 * @param elementName
+	 * @return module name
+	 * @throws DDIFtpException
+	 */
 	public String getModuleNameByElement(String elementName)
 			throws DDIFtpException {
-		if (elementName == null || elementName.equals("")) {
-			return null;
-		}
-
-		// needs implementation
-		throw new DDIFtpException("Namespace for element: " + elementName
-				+ " is not recongnized");
+		String namespace = getNamespaceStringByElement(elementName);
+		String[] result = namespace.split(":");
+		return result[1];
 	}
 
 	/**
