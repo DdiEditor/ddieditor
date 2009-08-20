@@ -456,7 +456,7 @@ public class DdiManagerTest extends DdieditorTestCase {
 			// e.printStackTrace();
 		}
 	}
-	
+
 	@Test
 	public void getStudyLabelAsXmlText() throws Exception {
 		PersistenceManager.getInstance().setWorkingResource(
@@ -464,7 +464,14 @@ public class DdiManagerTest extends DdieditorTestCase {
 		MaintainableLabelQueryResult result = DdiManager.getInstance()
 				.getStudyLabel("dda-4755", null, "dda-4755", "1.0");
 		Assert.assertNotNull(result);
-		
+
+		try {
+			result.getSubElementAsXml("hokuspokus");
+			Assert.fail();
+		} catch (Exception e) {
+			// ok
+			// e.printStackTrace();
+		}
 		String[] xmlText = result.getSubElementAsXml("studyunit__Abstract");
 		for (int i = 0; i < xmlText.length; i++) {
 			System.out.println(xmlText[i]);
@@ -478,13 +485,13 @@ public class DdiManagerTest extends DdieditorTestCase {
 		MaintainableLabelQueryResult result = DdiManager.getInstance()
 				.getStudyLabel("dda-4755", null, "dda-4755", "1.0");
 		Assert.assertNotNull(result);
-		
+
 		XmlObject[] xmlObjs = result.getSubElement("studyunit__Abstract");
 		for (int i = 0; i < xmlObjs.length; i++) {
 			System.out.println(xmlObjs[i]);
 		}
 	}
-	
+
 	@Ignore
 	public void getConceptSchemes() throws Exception {
 		PersistenceManager.getInstance().setWorkingResource(

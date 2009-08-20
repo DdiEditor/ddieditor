@@ -912,7 +912,7 @@ public class DdiManager {
 		// # [Reference] (KindOfData) - min. 0 - max. unbounded
 		// # [Reference] (r:OtherMaterial) - min. 0 - max. unbounded
 
-		schemeQuery.setElementNames(new String[] { "Citation", "studyunit__Abstract",
+		schemeQuery.setElementNames(new String[] { "reusable__Name", "Citation", "studyunit__Abstract",
 				"reusable__UniverseReference", "SeriesStatement", "FundingInformation",
 				"studyunit__Purpose", "Coverage", "AnalysisUnit", "KindOfData",
 				"OtherMaterial" });
