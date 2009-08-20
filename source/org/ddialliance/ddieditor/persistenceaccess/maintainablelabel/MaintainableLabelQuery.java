@@ -8,7 +8,7 @@ public class MaintainableLabelQuery {
 	private String query;
 	private String maintainableTarget;
 	private String[] elementNames;
-	private String stopTag;
+	private String[] stopElementNames;
 
 	public String getQuery() {
 		return query;
@@ -34,11 +34,11 @@ public class MaintainableLabelQuery {
 		this.maintainableTarget = maintainableTarget;
 	}
 
-	public String getStopTag() {
-		return stopTag;
+	public String[] getStopElementNames() {
+		return stopElementNames;
 	}
 
-	public void setStopTag(String stopTag) {
-		this.stopTag = stopTag;
+	public void setStopElementNames(String[] stopElementNames) {
+		this.stopElementNames = stopElementNames;
 	}
 }

@@ -577,7 +577,7 @@ public class DbXmlManager implements PersistenceStorage {
 		return result;
 	}
 
-	public MaintainableLabelQueryResult queryScheme(
+	public MaintainableLabelQueryResult queryMaintainableLabel(
 			MaintainableLabelQuery schemeQuery) throws Exception {
 		queryLog.info(schemeQuery.getQuery());
 		XmlResults rs = xQuery(schemeQuery.getQuery());
@@ -691,8 +691,10 @@ public class DbXmlManager implements PersistenceStorage {
 					}
 
 					// stop read at subelements
-					if (localName.equals(schemeQuery.getStopTag())) {
-						break;
+					for (int i = 0; i < schemeQuery.getStopElementNames().length; i++) {
+						if (localName.equals(schemeQuery.getStopElementNames()[i])) {
+							break;
+						}
 					}
 				}
 
