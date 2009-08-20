@@ -5,7 +5,13 @@ import java.util.LinkedList;
 import java.util.Map;
 
 import org.apache.xmlbeans.XmlObject;
+import org.ddialliance.ddieditor.model.DdiManager;
+import org.ddialliance.ddiftp.util.DDIFtpException;
+import org.ddialliance.ddiftp.util.xml.XmlBeansUtil;
 
+/**
+ * Accessors for maintainable label query and its containing sub elements
+ */
 public class MaintainableLabelQueryResult {
 	private String id;
 	private String version;
@@ -49,24 +55,66 @@ public class MaintainableLabelQueryResult {
 		this.query = query;
 	}
 
+	/**
+	 * Retrieve a sub elements as XML
+	 * 
+	 * @param elementName
+	 *            sub element to retrieve
+	 * @return array of XML
+	 */
 	public String[] getSubElementAsXml(String elementName) {
 		return result.get(elementName).toArray(new String[] {});
 	}
 
-	public XmlObject[] getSubElement(String elementName) {
+	/**
+	 * Retrieve a sub elements as XmlObjects
+	 * 
+	 * @param elementName
+	 *            sub element to retrieve
+	 * @return array of XmlObjects
+	 * @throws DDIFtpException
+	 */
+	public XmlObject[] getSubElement(String elementName) throws DDIFtpException {
+		// guard
+		if (result.get(elementName).isEmpty()) {
+			return new XmlObject[] {};
+		}
+
+		// build class name
+		StringBuilder className = new StringBuilder(DdiManager.getInstance()
+				.getNamespaceManager().getModuleNameByElement(elementName));
+		className.append(".");
+		className.append(DdiManager.getInstance().getNamespaceManager()
+				.getCleanedElementName(elementName));
+
+		// transformation
+		int count = 0;
 		int size = result.get(elementName).size();
 		XmlObject[] xmlObjects = new XmlObject[size];
-		for (String xmlString : result.get(elementName)) {
-			// xml conersion
+		for (String xmlText : result.get(elementName)) {
+			xmlObjects[count] = XmlBeansUtil.openDDI(DdiManager.getInstance()
+					.getNamespaceManager().substitutePrefixesFromElements(
+							xmlText), null, className.toString());
+			count++;
 		}
 		return xmlObjects;
 	}
 
-	public void cleanElements() {
-		result.clear();
-	}
-
+	/**
+	 * Retrieve result of query
+	 * 
+	 * @return map with key sub element name, list of sub elements as XML
+	 */
 	public Map<String, LinkedList<String>> getResult() {
 		return result;
+	}
+	
+	@Override
+	public String toString() {
+		StringBuilder result = new StringBuilder("Map: ");
+		result.append(result);
+		result.append(", query: ");
+		result.append(query);
+		return result.toString(); 
 	}
 }
