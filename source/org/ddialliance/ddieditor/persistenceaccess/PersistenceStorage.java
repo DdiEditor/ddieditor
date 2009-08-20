@@ -22,8 +22,8 @@ public interface PersistenceStorage {
 	/**
 	 * Execute an update query against persistence storage
 	 * 
-	 * @param update query
-	 *            to execute
+	 * @param update
+	 *            query to execute
 	 * @throws Exception
 	 */
 	public void updateQuery(String query) throws Exception;
@@ -32,9 +32,9 @@ public interface PersistenceStorage {
 
 	public String querySingleString(String query) throws Exception;
 
-	public MaintainableLabelQueryResult queryScheme(MaintainableLabelQuery schemeQuery)
-	throws Exception;
-	
+	public MaintainableLabelQueryResult queryMaintainableLabel(
+			MaintainableLabelQuery maintainableLabelQuery) throws Exception;
+
 	/**
 	 * Set the the working connection of the persistence manager
 	 * 
@@ -46,16 +46,17 @@ public interface PersistenceStorage {
 	/**
 	 * Retrieve the resource path expressed in XQuery by working resource
 	 * 
-	 * @param storage 
+	 * @param storage
 	 * @return resource
 	 * @throws Exception
 	 */
-	public String getResourcePath(StorageType storage, String resource) throws Exception;
+	public String getResourcePath(StorageType storage, String resource)
+			throws Exception;
 
 	/**
 	 * Retrieve the global resource path expressed in XQuery
 	 * 
-	 * @param storage 
+	 * @param storage
 	 * @return global resource path
 	 * @throws Exception
 	 */
@@ -90,13 +91,13 @@ public interface PersistenceStorage {
 	/**
 	 * Export a resource from storage to a file
 	 * 
-	 * @param id of resource
-	 *            in storage
+	 * @param id
+	 *            of resource in storage
 	 * @param file
 	 *            in file system
 	 * @throws Exception
 	 */
-	public void exportResource(String id, File file) throws Exception; 
+	public void exportResource(String id, File file) throws Exception;
 
 	/**
 	 * Closes down storage

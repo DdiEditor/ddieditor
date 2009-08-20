@@ -135,7 +135,7 @@ public class FilesystemManager implements PersistenceStorage {
 		return null;
 	}
 
-	public MaintainableLabelQueryResult queryScheme(MaintainableLabelQuery schemeQuery)
+	public MaintainableLabelQueryResult queryMaintainableLabel(MaintainableLabelQuery schemeQuery)
 			throws Exception {
 		return null;
 	}

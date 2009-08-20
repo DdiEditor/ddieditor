@@ -2,8 +2,6 @@ package org.ddialliance.ddieditor.model;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
-import java.util.Set;
 
 import org.apache.xmlbeans.XmlException;
 import org.apache.xmlbeans.XmlObject;
@@ -20,8 +18,6 @@ import org.ddialliance.ddieditor.model.conceptual.ConceptualType;
 import org.ddialliance.ddieditor.model.lightxmlobject.LightXmlObjectListDocument;
 import org.ddialliance.ddieditor.model.lightxmlobject.LightXmlObjectType;
 import org.ddialliance.ddieditor.model.namespace.ddi3.Ddi3NamespaceHelper;
-import org.ddialliance.ddieditor.model.namespace.ddi3.Ddi3NamespacePrefix;
-import org.ddialliance.ddieditor.model.relationship.ElementDocument.Element;
 import org.ddialliance.ddieditor.persistenceaccess.ParamatizedXquery;
 import org.ddialliance.ddieditor.persistenceaccess.PersistenceManager;
 import org.ddialliance.ddieditor.persistenceaccess.XQueryInsertKeyword;
@@ -95,8 +91,7 @@ public class DdiManager {
 	public void setWorkingDocument(String docName) throws DDIFtpException {
 		PersistenceManager.getInstance().setWorkingResource(docName);
 	}
-	
-	
+
 	public Ddi3NamespaceHelper getDdi3NamespaceHelper() {
 		return this.ddi3NamespaceHelper;
 	}
@@ -718,7 +713,7 @@ public class DdiManager {
 			MaintainableLabelQuery schemeQuery) throws DDIFtpException {
 		try {
 			return PersistenceManager.getInstance().getPersistenceStorage()
-					.queryScheme(schemeQuery);
+					.queryMaintainableLabel(schemeQuery);
 		} catch (Exception e) {
 			throw new DDIFtpException("Error querying persistent storage", e);
 		}
@@ -732,8 +727,8 @@ public class DdiManager {
 		String updatePosition = "";
 		String nodeValue = "";
 		for (MaintainableLabelUpdateElement element : elements) {
-			nodeValue = getDdi3NamespaceHelper().substitutePrefixesFromElements(
-					element.getValue());
+			nodeValue = getDdi3NamespaceHelper()
+					.substitutePrefixesFromElements(element.getValue());
 			updatePosition = maintainableLabelUpdatePosition(element,
 					schemeQueryResult);
 
@@ -767,10 +762,8 @@ public class DdiManager {
 
 	private String maintainableLabelUpdatePosition(
 			MaintainableLabelUpdateElement element,
-			MaintainableLabelQueryResult schemeQueryResult)
-			throws DDIFtpException {
-		int size = schemeQueryResult.getResult().get(element.getLocalName())
-				.size();
+			MaintainableLabelQueryResult mLqueryResult) throws DDIFtpException {
+		int size = mLqueryResult.getResult().get(element.getLocalName()).size();
 
 		// guard
 		if ((size == 0 && element.getCrudValue() > 0)
@@ -787,17 +780,17 @@ public class DdiManager {
 		// implement change into query result
 		// update
 		if (element.getCrudValue() > 0) {
-			schemeQueryResult.getResult().get(element.getLocalName()).set(
+			mLqueryResult.getResult().get(element.getLocalName()).set(
 					element.getCrudValue(), element.getValue());
 		}
 		// delete
 		else if (element.getCrudValue() < 0) {
-			schemeQueryResult.getResult().get(element.getLocalName()).remove(
+			mLqueryResult.getResult().get(element.getLocalName()).remove(
 					(element.getCrudValue() * -1) - 1);
 		}
 		// new
 		else if (element.getCrudValue() == 0) {
-			schemeQueryResult.getResult().get(element.getLocalName()).addLast(
+			mLqueryResult.getResult().get(element.getLocalName()).addLast(
 					element.getValue());
 		}
 
@@ -919,12 +912,15 @@ public class DdiManager {
 		// # [Reference] (KindOfData) - min. 0 - max. unbounded
 		// # [Reference] (r:OtherMaterial) - min. 0 - max. unbounded
 
-		schemeQuery.setElementNames(new String[] { "Citation", "Abstract",
-				"UniverseReference", "SeriesStatement", "FundingInformation",
-				"Purpose", "Coverage", "AnalysisUnit", "KindOfData",
+		schemeQuery.setElementNames(new String[] { "Citation", "studyunit__Abstract",
+				"reusable__UniverseReference", "SeriesStatement", "FundingInformation",
+				"studyunit__Purpose", "Coverage", "AnalysisUnit", "KindOfData",
 				"OtherMaterial" });
 		schemeQuery.setMaintainableTarget("studyunit__StudyUnit");
-		schemeQuery.setStopTag("ConceptualComponent");
+		schemeQuery.setStopElementNames(new String[] { "ConceptualComponent",
+				"DataCollection", "logicalproduct__LogicalProduct",
+				"physicaldataproduct__PhysicalDataProduct", "PhysicalInstance",
+				"Archive", "DDIProfile", "studyunit__DDIProfileReference" });
 
 		MaintainableLabelQueryResult result = queryScheme(schemeQuery);
 		if (result.getId() == null) {
@@ -1054,7 +1050,7 @@ public class DdiManager {
 				"datacollection__DataCollection"));
 		schemeQuery.setElementNames(new String[] { "reusable__Label" });
 		schemeQuery.setMaintainableTarget("QuestionScheme");
-		schemeQuery.setStopTag("QuestionItem");
+		schemeQuery.setStopElementNames(new String[] { "QuestionItem" });
 
 		return queryScheme(schemeQuery);
 	}
