@@ -6,6 +6,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
 
+import org.apache.xmlbeans.XmlObject;
 import org.ddialliance.ddi_3_0.xml.xmlbeans.conceptualcomponent.ConceptDocument;
 import org.ddialliance.ddi_3_0.xml.xmlbeans.conceptualcomponent.ConceptGroupDocument;
 import org.ddialliance.ddi_3_0.xml.xmlbeans.datacollection.DataCollectionDocument;
@@ -474,6 +475,10 @@ public class DdiManagerTest extends DdieditorTestCase {
 			}
 		}
 		Assert.assertNotNull(result);
+		XmlObject[] xmlObjs = result.getSubElement(subElements[0]);
+		for (int i = 0; i < xmlObjs.length; i++) {
+			System.out.println(xmlObjs[i]);
+		}
 	}
 
 	@Test
