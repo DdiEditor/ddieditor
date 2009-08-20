@@ -182,6 +182,10 @@ public class DdiManager {
 		return ddi3NamespaceGenerator.getLocalSchemaName(conversionName);
 	}
 
+	public Ddi3NamespaceGenerator getNamespaceManager() {
+		return this.ddi3NamespaceGenerator;
+	}
+	
 	/**
 	 * Generates and executes a XQuery for light xml beans objects
 	 * 
