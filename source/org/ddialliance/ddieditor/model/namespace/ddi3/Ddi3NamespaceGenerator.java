@@ -1,7 +1,6 @@
 package org.ddialliance.ddieditor.model.namespace.ddi3;
 
 import java.io.File;
-import java.net.URL;
 import java.util.HashMap;
 import java.util.Properties;
 import java.util.Set;
@@ -10,7 +9,6 @@ import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.ddialliance.ddieditor.model.DdiManager;
 import org.ddialliance.ddieditor.model.relationship.UrnRelationhipListDocument;
 import org.ddialliance.ddieditor.model.relationship.ElementDocument.Element;
 import org.ddialliance.ddieditor.model.relationship.UrnRelationhipListDocument.UrnRelationhipList;
