@@ -22,9 +22,9 @@ import org.ddialliance.ddiftp.util.log.LogType;
  * Associates DDI elements to DDI modules and DDI elements to parent DDI
  * elements
  */
-public class Ddi3NamespaceGenerator {
+public class Ddi3NamespaceHelper {
 	private static Log log = LogFactory.getLog(LogType.SYSTEM,
-			Ddi3NamespaceGenerator.class);
+			Ddi3NamespaceHelper.class);
 
 	public static final String DDI_INSTANCE_URL = "resources/ddi/instance.xsd";
 
@@ -72,7 +72,7 @@ public class Ddi3NamespaceGenerator {
 	/**
 	 * Default constructor
 	 */
-	public Ddi3NamespaceGenerator() throws DDIFtpException {
+	public Ddi3NamespaceHelper() throws DDIFtpException {
 		loadDdiElements();
 	}
 

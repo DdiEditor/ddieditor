@@ -614,7 +614,7 @@ public class DbXmlManager implements PersistenceStorage {
 					localName = reader.getLocalName();
 					// maintainable attrs
 					if (localName.equals(DdiManager.getInstance()
-							.getLocalSchemaName(
+							.getDdi3NamespaceHelper().getLocalSchemaName(
 									schemeQuery.getMaintainableTarget()))) {
 						// target scheme/@id @version @agency
 						int attrs = reader.getAttributeCount();
@@ -636,7 +636,7 @@ public class DbXmlManager implements PersistenceStorage {
 					// sub elements
 					for (int h = 0; h < schemeQuery.getElementNames().length; h++) {
 						if (localName.equals(DdiManager.getInstance()
-								.getLocalSchemaName(
+								.getDdi3NamespaceHelper().getLocalSchemaName(
 										schemeQuery.getElementNames()[h]))) {
 							// extract start tag
 							StringBuffer element = new StringBuffer("<");

@@ -132,12 +132,12 @@ public class DdiSchemaIndexer {
 
 	protected DdiSchemaIndexer() throws DDIFtpException {
 		elementNamespace = FileUtil
-				.loadProperties(Ddi3NamespaceGenerator.ELEMENT_NAMESPACE);
+				.loadProperties(Ddi3NamespaceHelper.ELEMENT_NAMESPACE);
 		if (elementNamespace.isEmpty()) {
 			throw new DDIFtpException("Properties not loaded!");
 		}
 		elementIdentifiable = FileUtil
-				.loadProperties(Ddi3NamespaceGenerator.ELEMENT_IDENTIFIABLE);
+				.loadProperties(Ddi3NamespaceHelper.ELEMENT_IDENTIFIABLE);
 		if (elementIdentifiable.isEmpty()) {
 			throw new DDIFtpException("Properties not loaded!");
 		}
@@ -212,7 +212,7 @@ public class DdiSchemaIndexer {
 
 		// store to file
 		elementNamespace.putAll(elementNamespaceDuplicates);
-		FileUtil.storeProperties(Ddi3NamespaceGenerator.ELEMENT_NAMESPACE,
+		FileUtil.storeProperties(Ddi3NamespaceHelper.ELEMENT_NAMESPACE,
 				elementNamespace);
 		if (log.isDebugEnabled()) {
 			List list = new ArrayList(elementNamespaceDuplicatesDebug.keySet());
@@ -240,7 +240,7 @@ public class DdiSchemaIndexer {
 		}
 
 		// store to file
-		FileUtil.storeProperties(Ddi3NamespaceGenerator.ELEMENT_IDENTIFIABLE,
+		FileUtil.storeProperties(Ddi3NamespaceHelper.ELEMENT_IDENTIFIABLE,
 				elementIdentifiable);
 	}
 
@@ -277,11 +277,11 @@ public class DdiSchemaIndexer {
 						.iterateAttributeUses(); iterator.hasNext();) {
 					String name = iterator.next().getDecl().getName();
 					if (name.equals("isIdentifiable")) {
-						identifiableType = Ddi3NamespaceGenerator.IDENTIFIABLE_TYPE;
+						identifiableType = Ddi3NamespaceHelper.IDENTIFIABLE_TYPE;
 					} else if (name.equals("isVersionable")) {
-						identifiableType = Ddi3NamespaceGenerator.VERSIONABLE_TYPE;
+						identifiableType = Ddi3NamespaceHelper.VERSIONABLE_TYPE;
 					} else if (name.equals("isMaintainable")) {
-						identifiableType = Ddi3NamespaceGenerator.MAINTAINABLE_TYPE;
+						identifiableType = Ddi3NamespaceHelper.MAINTAINABLE_TYPE;
 					}
 				}
 
@@ -394,7 +394,7 @@ public class DdiSchemaIndexer {
 
 		// store
 		urnRelationhipListDocument
-				.save(Ddi3NamespaceGenerator.ELEMENT_URN_RELATIONSHIP);
+				.save(Ddi3NamespaceHelper.ELEMENT_URN_RELATIONSHIP);
 
 		// check
 		boolean found = false;

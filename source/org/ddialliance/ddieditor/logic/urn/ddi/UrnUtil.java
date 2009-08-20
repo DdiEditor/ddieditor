@@ -35,7 +35,9 @@ public class UrnUtil {
 	public final static String ELEMENT_BY_TOPURN = "element-by-topUrn";
 	public final static String PARENT_ELEMENT_BY_TOPURN = "parent-element-by-topurn";
 
-	public UrnUtil() {}
+	public UrnUtil() {
+	}
+
 	/**
 	 * Create the URN based on a light XML object
 	 * 
@@ -74,13 +76,14 @@ public class UrnUtil {
 		// construct parent element list
 		List<String> parentElements = new LinkedList<String>();
 		String initialParentElement = DdiManager.getInstance()
-				.getParentElementName(elementName);
+				.getDdi3NamespaceHelper().getParentElementName(elementName);
 		if (initialParentElement != null) {
 			String tmpParentElement = initialParentElement;
 			parentElements.add(tmpParentElement);
 			do {
 				tmpParentElement = DdiManager.getInstance()
-						.getParentElementName(tmpParentElement);
+						.getDdi3NamespaceHelper().getParentElementName(
+								tmpParentElement);
 				parentElements.add(tmpParentElement);
 			} while (!tmpParentElement.equals("DDIInstance"));
 		} else {
@@ -121,23 +124,22 @@ public class UrnUtil {
 					if (haystack.equals(needle)) {
 						// check if a parent is the correct eg. scheme parent
 						if (haystack.equals(initialParentElement)
-								&& tmpTopUrn.getId().equals(
-										parentId)) {
+								&& tmpTopUrn.getId().equals(parentId)) {
 							// check if it is the right version of topUrn
 							if (tmpTopUrn.getVersion() != null
-									&& !tmpTopUrn.getVersion()
-											.equals(parentVersion)) {
+									&& !tmpTopUrn.getVersion().equals(
+											parentVersion)) {
 								continue;
 							}
-							if (checkInitialTopUrn(tmpTopUrn,
-									elementName, id, version)) {
+							if (checkInitialTopUrn(tmpTopUrn, elementName, id,
+									version)) {
 								topUrn = tmpTopUrn;
 								break;
 							}
 						}
 						if (!haystack.equals(initialParentElement)) {
-							if (checkTopUrn(tmpTopUrn, elementName,
-									id, version, initialParentElement, parentId)) {
+							if (checkTopUrn(tmpTopUrn, elementName, id,
+									version, initialParentElement, parentId)) {
 								topUrn = tmpTopUrn;
 								break;
 							}
@@ -186,13 +188,14 @@ public class UrnUtil {
 		// construct parent element list
 		List<String> parentElements = new LinkedList<String>();
 		String initialParentElement = DdiManager.getInstance()
-				.getParentElementName(elementName);
+				.getDdi3NamespaceHelper().getParentElementName(elementName);
 		if (initialParentElement != null) {
 			String tmpParentElement = initialParentElement;
 			parentElements.add(tmpParentElement);
 			do {
 				tmpParentElement = DdiManager.getInstance()
-						.getParentElementName(tmpParentElement);
+						.getDdi3NamespaceHelper().getParentElementName(
+								tmpParentElement);
 				parentElements.add(tmpParentElement);
 			} while (!tmpParentElement.equals("DDIInstance"));
 		} else {
@@ -200,21 +203,22 @@ public class UrnUtil {
 			// workaround to include DDIInstance
 			elementIsTopUrn = true;
 		}
-		
+
 		UrnUtil u = new UrnUtil();
 		return u.new ParentElementList(parentElements, elementIsTopUrn);
 	}
-	
+
 	private class ParentElementList {
-		public ParentElementList(List<String> parentElements, boolean elementIsTopUrn) {
+		public ParentElementList(List<String> parentElements,
+				boolean elementIsTopUrn) {
 			this.parentElements = parentElements;
 			this.elementIsTopUrn = elementIsTopUrn;
 		}
-		
+
 		public boolean elementIsTopUrn = false;
 		public List<String> parentElements = new LinkedList<String>();
 	}
-	
+
 	/**
 	 * Check the top urn to determine if element subject to URN resolution is
 	 * part of top urn element tree
@@ -255,7 +259,7 @@ public class UrnUtil {
 				.append("declare function ddieditor:find_element($top_urn) {");
 		query.function.append(" for $parent_element in $top_urn");
 		query.function.append("/");
-		query.function.append(DdiManager.getInstance()
+		query.function.append(DdiManager.getInstance().getDdi3NamespaceHelper()
 				.addFullyQualifiedNamespaceDeclarationToElements(
 						initialParentElement));
 		query.function.append(" where $parent_element/@id='");
@@ -267,7 +271,7 @@ public class UrnUtil {
 			query.function.append("'");
 		}
 		query.function.append(" return $parent_element/");
-		query.function.append(DdiManager.getInstance()
+		query.function.append(DdiManager.getInstance().getDdi3NamespaceHelper()
 				.addFullyQualifiedNamespaceDeclarationToElements(elementName));
 		query.function.append("/@id='");
 		query.function.append(elementId);
@@ -277,7 +281,7 @@ public class UrnUtil {
 		query.query.append(" for $x in ");
 		query.query.append(PersistenceManager.getInstance().getResourcePath());
 		query.query.append("/");
-		query.query.append(DdiManager.getInstance()
+		query.query.append(DdiManager.getInstance().getDdi3NamespaceHelper()
 				.addFullyQualifiedNamespaceDeclarationToElements(
 						topUrn.getElement()));
 		query.query.append(" where $x/@id = '");
@@ -318,7 +322,7 @@ public class UrnUtil {
 		}
 
 		xQuery.setObject(1, DdiManager.FUNCTION_NS_DECLARATION);
-		xQuery.setObject(2, DdiManager.getInstance()
+		xQuery.setObject(2, DdiManager.getInstance().getDdi3NamespaceHelper()
 				.addFullyQualifiedNamespaceDeclarationToElements(elementName));
 		xQuery.setString(3, elementId);
 		int i = 4;
@@ -327,7 +331,7 @@ public class UrnUtil {
 		}
 		xQuery.setObject(i++, PersistenceManager.getInstance()
 				.getResourcePath());
-		xQuery.setObject(i++, DdiManager.getInstance()
+		xQuery.setObject(i++, DdiManager.getInstance().getDdi3NamespaceHelper()
 				.addFullyQualifiedNamespaceDeclarationToElements(
 						topUrn.getElement()));
 		xQuery.setString(i++, topUrn.getId());
@@ -357,7 +361,8 @@ public class UrnUtil {
 	public static XmlObject getXmlObjectByUrn(Urn urn) throws DDIFtpException {
 		String xmlText = getElementByUrn(urn, false);
 		StringBuilder className = new StringBuilder(DdiManager.getInstance()
-				.getModuleNameByElement(urn.getContainedElement()));
+				.getDdi3NamespaceHelper().getModuleNameByElement(
+						urn.getContainedElement()));
 		className.append(".");
 		className.append(urn.getContainedElement());
 		return XmlBeansUtil.openDDI(xmlText, null, className.toString());
@@ -377,15 +382,17 @@ public class UrnUtil {
 
 		LightXmlObjectListDocument lightXmlObjectList = null;
 		try {
-			lightXmlObjectList = (LightXmlObjectListDocument)DdiEditorRefUtil.invokeMethod(DdiManager.getInstance(),
-					methodName.toString(), false, urn.getElementId(), "", "", "");
+			lightXmlObjectList = (LightXmlObjectListDocument) DdiEditorRefUtil
+					.invokeMethod(DdiManager.getInstance(), methodName
+							.toString(), false, urn.getElementId(), "", "", "");
 		} catch (Exception e) {
 			throw new DDIFtpException("Error on get light xml object by urn", e);
 		}
 
 		// which one ?
-		ParentElementList parentElementList = getParentElementList(lightXmlObjectList.getLightXmlObjectList().getLightXmlObjectArray(0).getElement());
-		
+		ParentElementList parentElementList = getParentElementList(lightXmlObjectList
+				.getLightXmlObjectList().getLightXmlObjectArray(0).getElement());
+
 		return (LightXmlObjectType) lightXmlObjectList;
 	}
 
@@ -405,7 +412,8 @@ public class UrnUtil {
 
 		// create lookup for element with top maintainables
 		String initialParentElement = DdiManager.getInstance()
-				.getParentElementName(urn.getContainedElement());
+				.getDdi3NamespaceHelper().getParentElementName(
+						urn.getContainedElement());
 
 		List<TopURNType> topUrns = PersistenceManager.getInstance()
 				.getTopUrnsByIdAndVersionByWorkingResource(
@@ -440,13 +448,13 @@ public class UrnUtil {
 		for (TopURNType tmpTopUrn : topUrns) {
 			// element lookup
 			xQuery.clearParameters();
-			xQuery.setObject(1, DdiManager.getInstance()
+			xQuery.setObject(1, DdiManager.getInstance().getDdi3NamespaceHelper()
 					.addFullyQualifiedNamespaceDeclarationToElements(
 							urn.getContainedElement()));
 			xQuery.setString(2, urn.getElementId());
 			xQuery.setObject(3, PersistenceManager.getInstance()
 					.getResourcePath());
-			xQuery.setObject(4, DdiManager.getInstance()
+			xQuery.setObject(4, DdiManager.getInstance().getDdi3NamespaceHelper()
 					.addFullyQualifiedNamespaceDeclarationToElements(
 							tmpTopUrn.getElement()));
 			xQuery.setString(5, tmpTopUrn.getId());
@@ -469,7 +477,8 @@ public class UrnUtil {
 
 					// element version
 					if (version != null
-							&& version.equals(urn.getVersionableElementVersion())) {
+							&& version.equals(urn
+									.getVersionableElementVersion())) {
 						xmlText = xmlResult;
 						break;
 					}
@@ -548,7 +557,7 @@ public class UrnUtil {
 			vg.setDoc(xml.getBytes());
 			vg.parse(true);
 			VTDNav vn = vg.getNav();
-			
+
 			int attrIndex = vn.getAttrVal("version");
 			if (attrIndex > -1) {
 				return vn.toNormalizedString(attrIndex);

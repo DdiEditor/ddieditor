@@ -19,7 +19,7 @@ import org.ddialliance.ddieditor.model.conceptual.ConceptualElement;
 import org.ddialliance.ddieditor.model.conceptual.ConceptualType;
 import org.ddialliance.ddieditor.model.lightxmlobject.LightXmlObjectListDocument;
 import org.ddialliance.ddieditor.model.lightxmlobject.LightXmlObjectType;
-import org.ddialliance.ddieditor.model.namespace.ddi3.Ddi3NamespaceGenerator;
+import org.ddialliance.ddieditor.model.namespace.ddi3.Ddi3NamespaceHelper;
 import org.ddialliance.ddieditor.model.namespace.ddi3.Ddi3NamespacePrefix;
 import org.ddialliance.ddieditor.model.relationship.ElementDocument.Element;
 import org.ddialliance.ddieditor.persistenceaccess.ParamatizedXquery;
@@ -63,7 +63,7 @@ public class DdiManager {
 	public static final String QUERY_ELEMENT = "query-element";
 	public static final String QUERY_ELEMENT_NO_PARENT = "query-element_-";
 
-	private Ddi3NamespaceGenerator ddi3NamespaceGenerator;
+	private Ddi3NamespaceHelper ddi3NamespaceHelper;
 	private static DdiManager instance;
 
 	private DdiManager() {
@@ -75,7 +75,7 @@ public class DdiManager {
 			instance = new DdiManager();
 			// initialize the ddi3 name space generator
 			try {
-				instance.ddi3NamespaceGenerator = new Ddi3NamespaceGenerator();
+				instance.ddi3NamespaceHelper = new Ddi3NamespaceHelper();
 			} catch (Exception e) {
 				new DDIFtpException("Error on genrating namespace by elements",
 						e);
@@ -95,97 +95,12 @@ public class DdiManager {
 	public void setWorkingDocument(String docName) throws DDIFtpException {
 		PersistenceManager.getInstance().setWorkingResource(docName);
 	}
-
-	/**
-	 * Add a fully qualified name space declaration to a XPath expression
-	 * 
-	 * @param query
-	 *            XPath definition
-	 * @return fully qualified element name space declaration
-	 * @throws DDIFtpException
-	 */
-	public String addFullyQualifiedNamespaceDeclarationToElements(String query)
-			throws DDIFtpException {
-		return ddi3NamespaceGenerator
-				.addFullyQualifiedNamespaceDeclarationToElements(query);
-	}
-
-	/**
-	 * Substitute name space prefixes from a node expression with fully
-	 * qualified name space declarations
-	 * 
-	 * @param node
-	 * @return node with with fully qualified name space declarations
-	 * @throws Exception
-	 */
-	public String substitutePrefixesFromElements(String node)
-			throws DDIFtpException {
-		return ddi3NamespaceGenerator.substitutePrefixesFromElements(node);
-	}
-
-	/**
-	 * Retrieve a name space by element
-	 * 
-	 * @param elementName
-	 *            to retrieve name space upon
-	 * @return name space
-	 * @throws Exception
-	 */
-	public Ddi3NamespacePrefix getNamespaceByElement(String elementName)
-			throws DDIFtpException {
-		return ddi3NamespaceGenerator.getNamespaceObjectByElement(elementName);
-	}
-
-	public Properties getIdentifiables() {
-		return ddi3NamespaceGenerator.getIdentifiables();
-	}
-
-	/**
-	 * Retrieve the DDI module name by the name of a DDI element name
-	 * 
-	 * @param elementName
-	 * @return DDI module name
-	 * @throws DDIFtpException
-	 */
-	public String getModuleNameByElement(String elementName)
-			throws DDIFtpException {
-		return ddi3NamespaceGenerator.getModuleNameByElement(elementName);
-	}
-
-	public Set<String> getMaintainableElementsList() {
-		return ddi3NamespaceGenerator.getMaintainableElementsList();
-	}
-
-	/**
-	 * Retrieve the parent element of a DDI element
-	 * 
-	 * @param elementName
-	 *            to lookup
-	 * @return parent element name
-	 */
-	public String getParentElementName(String elementName) {
-		return ddi3NamespaceGenerator.getParentElementName(elementName);
-	}
-
-	public Element getElementParents(String elementName) {
-		return ddi3NamespaceGenerator.getElementParents(elementName);
-	}
-
-	/**
-	 * Transform the conversion name to local schema name
-	 * 
-	 * @param conversionName
-	 *            to transform
-	 * @return local schema name
-	 */
-	public String getLocalSchemaName(String conversionName) {
-		return ddi3NamespaceGenerator.getLocalSchemaName(conversionName);
-	}
-
-	public Ddi3NamespaceGenerator getNamespaceManager() {
-		return this.ddi3NamespaceGenerator;
-	}
 	
+	
+	public Ddi3NamespaceHelper getDdi3NamespaceHelper() {
+		return this.ddi3NamespaceHelper;
+	}
+
 	/**
 	 * Generates and executes a XQuery for light xml beans objects
 	 * 
@@ -224,18 +139,18 @@ public class DdiManager {
 			query
 					.setObject(
 							i++,
-							ddi3NamespaceGenerator
+							ddi3NamespaceHelper
 									.addFullyQualifiedNamespaceDeclarationToElements(childChildElement));
 			query
 					.setObject(
 							i++,
-							ddi3NamespaceGenerator
+							ddi3NamespaceHelper
 									.addFullyQualifiedNamespaceDeclarationToElements(labelElement));
 		} else {
 			query
 					.setObject(
 							i++,
-							ddi3NamespaceGenerator
+							ddi3NamespaceHelper
 									.addFullyQualifiedNamespaceDeclarationToElements(labelElement));
 		}
 
@@ -245,7 +160,7 @@ public class DdiManager {
 			query
 					.setObject(
 							i++,
-							ddi3NamespaceGenerator
+							ddi3NamespaceHelper
 									.addFullyQualifiedNamespaceDeclarationToElements(rootElement));
 			query.setString(i++, parentId);
 			if (parentVersion != null && !parentVersion.equals("")) {
@@ -260,7 +175,7 @@ public class DdiManager {
 		if (parentId == null || parentId.equals("")) {
 			query.setObject(i++, PersistenceManager.getInstance()
 					.getResourcePath());
-			query.setObject(i++, ddi3NamespaceGenerator
+			query.setObject(i++, ddi3NamespaceHelper
 					.addFullyQualifiedNamespaceDeclarationToElements("//"
 							+ rootElement));
 		}
@@ -269,7 +184,7 @@ public class DdiManager {
 			query
 					.setObject(
 							i++,
-							ddi3NamespaceGenerator
+							ddi3NamespaceHelper
 									.addFullyQualifiedNamespaceDeclarationToElements(parentChildElement));
 
 			// id and version parameters on parent child
@@ -494,14 +409,12 @@ public class DdiManager {
 				.getResourcePath());
 
 		if (parentElementType != null) {
-			xQuery
-					.setObject(
-							i++,
-							addFullyQualifiedNamespaceDeclarationToElements(parentElementType));
-			xQuery
-					.setObject(
-							i++,
-							addFullyQualifiedNamespaceDeclarationToElements(elementType));
+			xQuery.setObject(i++, getDdi3NamespaceHelper()
+					.addFullyQualifiedNamespaceDeclarationToElements(
+							parentElementType));
+			xQuery.setObject(i++, getDdi3NamespaceHelper()
+					.addFullyQualifiedNamespaceDeclarationToElements(
+							elementType));
 			// parent
 			if (parentId != null && !parentId.equals("")) {
 				whereClause.append(" $element/@id = '");
@@ -545,10 +458,9 @@ public class DdiManager {
 				whereClause.append(" empty($child/@version)");
 			}
 		} else {
-			xQuery
-					.setObject(
-							i++,
-							addFullyQualifiedNamespaceDeclarationToElements(elementType));
+			xQuery.setObject(i++, getDdi3NamespaceHelper()
+					.addFullyQualifiedNamespaceDeclarationToElements(
+							elementType));
 			if (id != null && !id.equals("")) {
 				whereClause.append(" $element/@id = '");
 				whereClause.append(id);
@@ -647,7 +559,8 @@ public class DdiManager {
 
 		// insert xml object
 		PersistenceManager.getInstance().insert(
-				substitutePrefixesFromElements(xmlObject.xmlText()),
+				getDdi3NamespaceHelper().substitutePrefixesFromElements(
+						xmlObject.xmlText()),
 				XQueryInsertKeyword.INTO,
 				xQueryCrudPosition(parentId, parentVersion, parentElementType,
 						null, null, null));
@@ -742,7 +655,7 @@ public class DdiManager {
 					.getResourcePath());
 			query.query.append("/");
 			query.query
-					.append(ddi3NamespaceGenerator
+					.append(ddi3NamespaceHelper
 							.addFullyQualifiedNamespaceDeclarationToElements(elementType));
 			query.query.append(" where $element/@id = '");
 			query.query.append(id);
@@ -764,7 +677,7 @@ public class DdiManager {
 					.append(" declare function ddieditor:child_search($parent, $id) {");
 			query.function.append(" for $child in $parent/");
 			query.function
-					.append(ddi3NamespaceGenerator
+					.append(ddi3NamespaceHelper
 							.addFullyQualifiedNamespaceDeclarationToElements(elementType));
 			query.function.append(" where $child/@id = $id");
 			if (version != null && !version.equals("")) {
@@ -782,7 +695,7 @@ public class DdiManager {
 					.getResourcePath());
 			query.query.append("/");
 			query.query
-					.append(ddi3NamespaceGenerator
+					.append(ddi3NamespaceHelper
 							.addFullyQualifiedNamespaceDeclarationToElements(parentElementType));
 			query.query.append(" where $element/@id = '");
 			query.query.append(parentId);
@@ -819,7 +732,8 @@ public class DdiManager {
 		String updatePosition = "";
 		String nodeValue = "";
 		for (MaintainableLabelUpdateElement element : elements) {
-			nodeValue = substitutePrefixesFromElements(element.getValue());
+			nodeValue = getDdi3NamespaceHelper().substitutePrefixesFromElements(
+					element.getValue());
 			updatePosition = maintainableLabelUpdatePosition(element,
 					schemeQueryResult);
 
@@ -862,7 +776,8 @@ public class DdiManager {
 		if ((size == 0 && element.getCrudValue() > 0)
 				|| (size == 0 && element.getCrudValue() < 0)) {
 			String errorLabel = "of element: '"
-					+ getLocalSchemaName(element.getLocalName()) + "["
+					+ getDdi3NamespaceHelper().getLocalSchemaName(
+							element.getLocalName()) + "["
 					+ element.getCrudValue()
 					+ "]' not posible as element does not exist";
 			throw new DDIFtpException(element.getCrudValue() > 0 ? "Update "
@@ -919,8 +834,9 @@ public class DdiManager {
 		// } else if (privious != -1) {
 		// positionQuery.append(elementNames[privious]);
 		// }
-		return addFullyQualifiedNamespaceDeclarationToElements(positionQuery
-				.toString());
+		return getDdi3NamespaceHelper()
+				.addFullyQualifiedNamespaceDeclarationToElements(
+						positionQuery.toString());
 	}
 
 	//

@@ -56,7 +56,7 @@ public class FastUrnUtil {
 		List<Urn> tmpUrnList = null;
 		List<Urn> urnList = new ArrayList<Urn>();
 		for (String maintainable : DdiManager.getInstance()
-				.getMaintainableElementsList()) {
+				.getDdi3NamespaceHelper().getMaintainableElementsList()) {
 			tmpUrnList = executeMantainableQuery(maintainable, validUrnsOnly,
 					true);
 			if (!tmpUrnList.isEmpty()) {
@@ -70,7 +70,7 @@ public class FastUrnUtil {
 			boolean validUrnsOnly, boolean clearNodeRecord) throws Exception {
 		// build query
 		String query = "/"
-				+ DdiManager.getInstance()
+				+ DdiManager.getInstance().getDdi3NamespaceHelper()
 						.addFullyQualifiedNamespaceDeclarationToElements(
 								localName);
 

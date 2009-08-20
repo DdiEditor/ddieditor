@@ -17,13 +17,14 @@ public class Ddi3NamespaceGeneratorTest {
 
 		// create indices for identifiables
 		for (Iterator<Object> iterator = DdiManager.getInstance()
-				.getIdentifiables().keySet().iterator(); iterator.hasNext();) {
+				.getDdi3NamespaceHelper().getIdentifiables().keySet().iterator(); iterator
+				.hasNext();) {
 			element = (String) iterator.next();
 
 			// check for missing elements in element ~ namespace list
 			try {
-				namespace = DdiManager.getInstance().getNamespaceByElement(
-						element).getNamespace();
+				namespace = DdiManager.getInstance().getDdi3NamespaceHelper()
+						.getNamespaceObjectByElement(element).getNamespace();
 			} catch (Exception e) {
 				errorList.add(element);
 				continue;

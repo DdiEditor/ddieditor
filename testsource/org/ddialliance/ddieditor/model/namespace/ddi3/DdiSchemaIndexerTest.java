@@ -20,7 +20,7 @@ public class DdiSchemaIndexerTest {
 				new File(
 						"/home/ddajvj/app/ddi3/3.0-20080428/XMLSchema/instance.xsd"));
 		indexer.index();
-		Properties properties = FileUtil.loadProperties(Ddi3NamespaceGenerator.ELEMENT_NAMESPACE);
+		Properties properties = FileUtil.loadProperties(Ddi3NamespaceHelper.ELEMENT_NAMESPACE);
 		Assert.assertEquals(512, properties.size());
 	}
 	

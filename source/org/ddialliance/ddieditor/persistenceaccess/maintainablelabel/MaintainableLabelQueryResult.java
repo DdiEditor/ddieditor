@@ -82,9 +82,9 @@ public class MaintainableLabelQueryResult {
 
 		// build class name
 		StringBuilder className = new StringBuilder(DdiManager.getInstance()
-				.getNamespaceManager().getModuleNameByElement(elementName));
+				.getDdi3NamespaceHelper().getModuleNameByElement(elementName));
 		className.append(".");
-		className.append(DdiManager.getInstance().getNamespaceManager()
+		className.append(DdiManager.getInstance().getDdi3NamespaceHelper()
 				.getCleanedElementName(elementName));
 
 		// transformation
@@ -93,7 +93,7 @@ public class MaintainableLabelQueryResult {
 		XmlObject[] xmlObjects = new XmlObject[size];
 		for (String xmlText : result.get(elementName)) {
 			xmlObjects[count] = XmlBeansUtil.openDDI(DdiManager.getInstance()
-					.getNamespaceManager().substitutePrefixesFromElements(
+					.getDdi3NamespaceHelper().substitutePrefixesFromElements(
 							xmlText), null, className.toString());
 			count++;
 		}
