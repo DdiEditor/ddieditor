@@ -1,7 +1,9 @@
 package org.ddialliance.ddieditor.persistenceaccess.maintainablelabel;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.xmlbeans.XmlObject;
@@ -62,8 +64,29 @@ public class MaintainableLabelQueryResult {
 	 *            sub element to retrieve
 	 * @return array of XML
 	 */
-	public String[] getSubElementAsXml(String elementName) {
-		return result.get(elementName).toArray(new String[] {});
+	public String[] getSubElementAsXml(String elementName)
+			throws DDIFtpException {
+		List<String> list = result.get(elementName);
+
+		// null exception handling
+		if (list == null) {
+			StringBuilder use = new StringBuilder();
+			for (Iterator<String> iterator = result.keySet().iterator(); iterator
+					.hasNext();) {
+				String key = iterator.next();
+				use.append("'");
+				use.append(key);
+				use.append("'");
+				if (iterator.hasNext()) {
+					use.append(", ");
+				}
+			}
+			throw new DDIFtpException("Sub element: '" + elementName
+					+ "' does not exist. The following sub elements exists: "
+					+ use.toString(), new Throwable());
+		}
+
+		return list.toArray(new String[] {});
 	}
 
 	/**
@@ -108,13 +131,13 @@ public class MaintainableLabelQueryResult {
 	public Map<String, LinkedList<String>> getResult() {
 		return result;
 	}
-	
+
 	@Override
 	public String toString() {
 		StringBuilder result = new StringBuilder("Map: ");
 		result.append(result);
 		result.append(", query: ");
 		result.append(query);
-		return result.toString(); 
+		return result.toString();
 	}
 }
