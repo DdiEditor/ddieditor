@@ -612,6 +612,7 @@ public class DbXmlManager implements PersistenceStorage {
 				int type = reader.next();
 				if (type == XmlEventReader.StartElement) {
 					localName = reader.getLocalName();
+
 					// maintainable attrs
 					if (localName.equals(DdiManager.getInstance()
 							.getDdi3NamespaceHelper().getLocalSchemaName(
@@ -691,10 +692,21 @@ public class DbXmlManager implements PersistenceStorage {
 					}
 
 					// stop read at subelements
+					boolean end = false;
 					for (int i = 0; i < schemeQuery.getStopElementNames().length; i++) {
-						if (localName.equals(schemeQuery.getStopElementNames()[i])) {
+						// this.queryLog.debug("localName: " + localName + " ~ "
+						// + schemeQuery.getStopElementNames()[i]);
+						if (localName.equals(DdiManager.getInstance()
+								.getDdi3NamespaceHelper()
+								.getCleanedElementName(
+										schemeQuery.getStopElementNames()[i]))) {
+							end = true;
 							break;
 						}
+					}
+					if (end) {
+						// this.queryLog.debug("Stop at: " + localName);
+						break;
 					}
 				}
 
