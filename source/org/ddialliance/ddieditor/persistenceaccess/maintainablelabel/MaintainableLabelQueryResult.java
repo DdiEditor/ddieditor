@@ -18,9 +18,20 @@ public class MaintainableLabelQueryResult {
 	private String id;
 	private String version;
 	private String agency;
-
+	/** Map of local element name ~ conversion element name **/
+	private Map<String, String> localNamesToConversionLocalNames = new HashMap<String, String>();
 	private String query;
+	/** Map of local element name ~ list of XML **/
 	private Map<String, LinkedList<String>> result = new HashMap<String, LinkedList<String>>();
+
+	public Map<String, String> getLocalNamesToConversionLocalNames() {
+		return localNamesToConversionLocalNames;
+	}
+
+	public void setLocalNamesToConversionLocalNames(
+			Map<String, String> localNamesToConversionLocalNames) {
+		this.localNamesToConversionLocalNames = localNamesToConversionLocalNames;
+	}
 
 	public MaintainableLabelQueryResult() {
 	}
@@ -105,7 +116,8 @@ public class MaintainableLabelQueryResult {
 
 		// build class name
 		StringBuilder className = new StringBuilder(DdiManager.getInstance()
-				.getDdi3NamespaceHelper().getModuleNameByElement(elementName));
+				.getDdi3NamespaceHelper().getModuleNameByElement(
+						localNamesToConversionLocalNames.get(elementName)));
 		className.append(".");
 		className.append(DdiManager.getInstance().getDdi3NamespaceHelper()
 				.getCleanedElementName(elementName));

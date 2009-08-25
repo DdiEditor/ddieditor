@@ -30,11 +30,6 @@ public class MaintainableLabelUpdateElement {
 		return localName;
 	}
 
-	/**
-	 * Local name of element
-	 * 
-	 * @param localName
-	 */
 	public void setLocalName(String localName) {
 		this.localName = localName;
 	}

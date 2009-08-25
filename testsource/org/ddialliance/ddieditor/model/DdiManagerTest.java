@@ -407,7 +407,7 @@ public class DdiManagerTest extends DdieditorTestCase {
 				test.getSubElement(localName).length);
 	}
 
-	@Ignore
+	@Test
 	public void queryMaintainableLabelWithNoLabel() throws Exception {
 		PersistenceManager.getInstance().setWorkingResource(
 				DdieditorTestCase.FULLY_DECLARED_NS_DOC);
@@ -416,20 +416,20 @@ public class DdiManagerTest extends DdieditorTestCase {
 		String query = "for $element in doc('dbxml:/big-doc.dbxml/big-doc.xml')//*[namespace-uri()='ddi:logicalproduct:3_0' and local-name()='LogicalProduct'] for $child in $element//*[namespace-uri()='ddi:logicalproduct:3_0' and local-name()='CategoryScheme']  where $element/@id = 'lp_1' and $child/@id = 'cats_7' and empty($child/@version) return $child";
 		MaintainableLabelQuery schemeQuery = new MaintainableLabelQuery();
 		schemeQuery.setQuery(query);
-		schemeQuery.setElementNames(new String[] { "reusable__Label" });
+		schemeQuery
+				.setElementConversionNames(new String[] { "reusable__Label" });
 		schemeQuery.setMaintainableTarget("CategoryScheme");
 		schemeQuery.setStopElementNames(new String[] { "Category" });
 
 		// result
 		MaintainableLabelQueryResult result = DdiManager.getInstance()
-				.queryScheme(schemeQuery);
+				.queryMaintainableLabel(schemeQuery);
 		Assert.assertEquals("cats_7", result.getId());
-		Assert.assertEquals(0,
-				result.getSubElementAsXml("reusable__Label").length);
+		Assert.assertEquals(0, result.getSubElementAsXml("Label").length);
 
 		// update
 		MaintainableLabelUpdateElement crud = new MaintainableLabelUpdateElement();
-		crud.setLocalName("reusable__Label");
+		crud.setLocalName("Label");
 		String updateValue = "godspeed";
 		crud.setValue("<r:Label xml:lang='da'>" + updateValue + "</r:Label>");
 		crud.setCrudValue(1);
@@ -437,6 +437,7 @@ public class DdiManagerTest extends DdieditorTestCase {
 		elements.add(crud);
 
 		try {
+			// error on noting to update on
 			DdiManager.getInstance().updateMaintainableLabel(result, elements);
 			Assert.fail();
 		} catch (DDIFtpException e) {
@@ -444,11 +445,21 @@ public class DdiManagerTest extends DdieditorTestCase {
 			// e.printStackTrace();
 		}
 
-		// delete
-		elements.clear();
 		crud.setCrudValue(-1);
 		elements.add(crud);
 		try {
+			// error on no element to delete
+			DdiManager.getInstance().updateMaintainableLabel(result, elements);
+			Assert.fail();
+		} catch (DDIFtpException e) {
+			// ok
+			// e.printStackTrace();
+		}
+
+		try {
+			// error on wrong element to update on
+			elements.get(0).setLocalName("hokuspokus");
+			elements.get(0).setCrudValue(1);
 			DdiManager.getInstance().updateMaintainableLabel(result, elements);
 			Assert.fail();
 		} catch (DDIFtpException e) {
@@ -457,7 +468,7 @@ public class DdiManagerTest extends DdieditorTestCase {
 		}
 	}
 
-	@Test
+	@Ignore
 	public void getStudyLabelAsXmlText() throws Exception {
 		PersistenceManager.getInstance().setWorkingResource(
 				FULLY_DECLARED_NS_DOC);
@@ -465,6 +476,7 @@ public class DdiManagerTest extends DdieditorTestCase {
 				.getStudyLabel("dda-4755", null, "dda-4755", "1.0");
 		Assert.assertNotNull(result);
 
+		// test exception on get non sub element
 		try {
 			result.getSubElementAsXml("hokuspokus");
 			Assert.fail();
@@ -472,10 +484,30 @@ public class DdiManagerTest extends DdieditorTestCase {
 			// ok
 			// e.printStackTrace();
 		}
-		String[] xmlText = result.getSubElementAsXml("studyunit__Abstract");
-		for (int i = 0; i < xmlText.length; i++) {
-			System.out.println(xmlText[i]);
+
+		// test all sub element are present
+		for (String key : result.getResult().keySet()) {
+			Assert.assertTrue("Empty result for: " + key, !result.getResult()
+					.get(key).isEmpty());
+			// System.out.println(key + ": " + result.getResult().get(key) +
+			// "\n");
 		}
+
+		// update
+		List<MaintainableLabelUpdateElement> elements = new ArrayList<MaintainableLabelUpdateElement>();
+		for (String key : result.getResult().keySet()) {
+			int count = 0;
+			for (String xml : result.getResult().get(key)) {
+				MaintainableLabelUpdateElement crud = new MaintainableLabelUpdateElement();
+				crud.setCrudValue(count);
+				crud.setLocalName(result.getLocalNamesToConversionLocalNames()
+						.get(key));
+				crud.setValue(xml);
+				elements.add(crud);
+				count++;
+			}
+		}
+		DdiManager.getInstance().updateMaintainableLabel(result, elements);
 	}
 
 	@Test
@@ -486,9 +518,15 @@ public class DdiManagerTest extends DdieditorTestCase {
 				.getStudyLabel("dda-4755", null, "dda-4755", "1.0");
 		Assert.assertNotNull(result);
 
-		XmlObject[] xmlObjs = result.getSubElement("studyunit__Abstract");
-		for (int i = 0; i < xmlObjs.length; i++) {
-			System.out.println(xmlObjs[i]);
+		try {
+			XmlObject[] xmlObjs = null;
+			for (String key : result.getResult().keySet()) {
+				xmlObjs = result.getSubElement(key);
+				Assert.assertNotNull(xmlObjs);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;
 		}
 	}
 

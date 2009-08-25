@@ -32,8 +32,9 @@ public interface PersistenceStorage {
 
 	public String querySingleString(String query) throws Exception;
 
-	public MaintainableLabelQueryResult queryMaintainableLabel(
-			MaintainableLabelQuery maintainableLabelQuery) throws Exception;
+	public MaintainableLabelQueryResult queryMaintainableLabel(MaintainableLabelQuery maintainableLabelQuery, 
+			MaintainableLabelQueryResult maintainableLabelQueryResult)
+			throws Exception;
 
 	/**
 	 * Set the the working connection of the persistence manager

@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Scanner;
 import java.util.Vector;
+import java.util.Map.Entry;
 
 import org.ddialliance.ddieditor.model.relationship.UrnRelationhipListDocument;
 import org.ddialliance.ddieditor.model.relationship.ElementDocument.Element;
@@ -45,7 +46,8 @@ import com.sun.xml.xsom.parser.XSOMParser;
 public class DdiSchemaIndexer {
 	private static final Log log = LogFactory.getLog(LogType.SYSTEM,
 			DdiSchemaIndexer.class.getName());
-
+	public static File ELEMENT_NAMESPACE_INDEX_POST_ADD = new File("resources"
+			+ File.separator + "element-namespace-post-index-add.properties");
 	/**
 	 * Delimiter used for separation of short namespece and element
 	 */
@@ -210,6 +212,14 @@ public class DdiSchemaIndexer {
 			}
 		}
 
+		// post index add
+		// Properties indexpostAdd = FileUtil
+		// .loadProperties(ELEMENT_NAMESPACE_INDEX_POST_ADD);
+		// for (Entry<Object, Object> entry : indexpostAdd.entrySet()) {
+		// insertElement(entry.getKey().toString(), entry.getValue()
+		// .toString(), elementNamespace, elementNamespaceDuplicates);
+		// }
+
 		// store to file
 		elementNamespace.putAll(elementNamespaceDuplicates);
 		FileUtil.storeProperties(Ddi3NamespaceHelper.ELEMENT_NAMESPACE,
@@ -256,6 +266,7 @@ public class DdiSchemaIndexer {
 		Iterator<XSElementDecl> itr = xSschema.iterateElementDecls();
 		while (itr.hasNext()) {
 			XSElementDecl xsElementDecl = itr.next();
+			log.debug("Indexing: " + xsElementDecl.getName());
 			insertElement(xsElementDecl.getName(), namespace, elementNamespace,
 					elementNamespaceDuplicates);
 		}
@@ -410,14 +421,16 @@ public class DdiSchemaIndexer {
 				}
 			}
 			if (!found) {
-				notFoundIdentifiables.add(type+" in schema: "+elementNamespace.getProperty(type));
+				notFoundIdentifiables.add(type + " in schema: "
+						+ elementNamespace.getProperty(type));
 			}
 		}
 		if (!notFoundIdentifiables.isEmpty()) {
 			if (log.isDebugEnabled()) {
 				log.debug("Not found identifiables: " + notFoundIdentifiables);
 			}
-			throw new DDIFtpException("Identifiables nedding URN relationship coding!");
+			throw new DDIFtpException(
+					"Identifiables nedding URN relationship coding!");
 		}
 	}
 
@@ -441,7 +454,7 @@ public class DdiSchemaIndexer {
 			} else {
 				// blank line, do nothing
 				return;
-				//throw new DDIFtpException("Empty line", new Throwable());
+				// throw new DDIFtpException("Empty line", new Throwable());
 			}
 
 			// additional parents

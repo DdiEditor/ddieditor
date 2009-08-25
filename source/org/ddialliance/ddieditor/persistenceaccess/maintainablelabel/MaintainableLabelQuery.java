@@ -7,7 +7,8 @@ package org.ddialliance.ddieditor.persistenceaccess.maintainablelabel;
 public class MaintainableLabelQuery {
 	private String query;
 	private String maintainableTarget;
-	private String[] elementNames;
+	/** Holding values of conversion element names */
+	private String[] elementConversionNames;
 	private String[] stopElementNames;
 
 	public String getQuery() {
@@ -18,12 +19,12 @@ public class MaintainableLabelQuery {
 		this.query = query;
 	}
 
-	public String[] getElementNames() {
-		return elementNames;
+	public String[] getElementConversionNames() {
+		return elementConversionNames;
 	}
 
-	public void setElementNames(String[] elementNames) {
-		this.elementNames = elementNames;
+	public void setElementConversionNames(String[] elementConversionNames) {
+		this.elementConversionNames = elementConversionNames;
 	}
 
 	public String getMaintainableTarget() {

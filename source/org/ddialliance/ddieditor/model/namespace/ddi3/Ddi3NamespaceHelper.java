@@ -12,6 +12,7 @@ import java.util.regex.Pattern;
 import org.ddialliance.ddieditor.model.relationship.UrnRelationhipListDocument;
 import org.ddialliance.ddieditor.model.relationship.ElementDocument.Element;
 import org.ddialliance.ddieditor.model.relationship.UrnRelationhipListDocument.UrnRelationhipList;
+import org.ddialliance.ddieditor.persistenceaccess.maintainablelabel.MaintainableLabelQuery;
 import org.ddialliance.ddiftp.util.DDIFtpException;
 import org.ddialliance.ddiftp.util.FileUtil;
 import org.ddialliance.ddiftp.util.log.Log;
@@ -432,5 +433,21 @@ public class Ddi3NamespaceHelper {
 			return conversionName.substring(index + 2);
 		} else
 			return conversionName;
+	}
+	
+	/**
+	 * Transform all conversion names in a array to local schema names
+	 * 
+	 * @param conversionNames
+	 *            to transform
+	 * @return local schema names
+	 */
+	public String[] getLocalSchemaNames(String[] conversionNames) {
+		String[] localElementNames = new String[conversionNames.length];
+		for (int i = 0; i < conversionNames.length; i++) {
+			localElementNames[i] = getLocalSchemaName(
+					conversionNames[i]);
+		}
+		return localElementNames;
 	}
 }

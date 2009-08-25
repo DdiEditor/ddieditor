@@ -1,7 +1,11 @@
 package org.ddialliance.ddieditor.model;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import org.apache.xmlbeans.XmlException;
 import org.apache.xmlbeans.XmlObject;
@@ -709,13 +713,35 @@ public class DdiManager {
 		return query;
 	}
 
-	public MaintainableLabelQueryResult queryScheme(
+	public MaintainableLabelQueryResult queryMaintainableLabel(
 			MaintainableLabelQuery schemeQuery) throws DDIFtpException {
+		// conversion names to local element names
+		Map<String, String> conversionToLocalName = new HashMap<String, String>();
+		for (int i = 0; i < schemeQuery.getElementConversionNames().length; i++) {
+			conversionToLocalName.put(getDdi3NamespaceHelper()
+					.getLocalSchemaName(
+							schemeQuery.getElementConversionNames()[i]),
+					schemeQuery.getElementConversionNames()[i]);
+		}
+
+		// result
+		MaintainableLabelQueryResult result = new MaintainableLabelQueryResult();
+		result.setLocalNamesToConversionLocalNames(conversionToLocalName);
+		result.setQuery(schemeQuery.getQuery());
+
+		// prepare result list
+		for (String key : conversionToLocalName.keySet()) {
+			result.getResult().put(key, new LinkedList<String>());
+		}
+
+		// query
 		try {
 			return PersistenceManager.getInstance().getPersistenceStorage()
-					.queryMaintainableLabel(schemeQuery);
+					.queryMaintainableLabel(schemeQuery, result);
 		} catch (Exception e) {
-			throw new DDIFtpException("Error querying persistent storage", e);
+			throw new DDIFtpException(
+					"Error querying persistent storage on maintainable label",
+					e);
 		}
 	}
 
@@ -729,7 +755,7 @@ public class DdiManager {
 		for (MaintainableLabelUpdateElement element : elements) {
 			nodeValue = getDdi3NamespaceHelper()
 					.substitutePrefixesFromElements(element.getValue());
-			updatePosition = maintainableLabelUpdatePosition(element,
+			updatePosition = getMaintainableLabelCrudPosition(element,
 					schemeQueryResult);
 
 			// delete
@@ -760,17 +786,35 @@ public class DdiManager {
 		}
 	}
 
-	private String maintainableLabelUpdatePosition(
+	private String getMaintainableLabelCrudPosition(
 			MaintainableLabelUpdateElement element,
 			MaintainableLabelQueryResult mLqueryResult) throws DDIFtpException {
-		int size = mLqueryResult.getResult().get(element.getLocalName()).size();
+		String localName = null;
+		for (Entry<String, String> entry : mLqueryResult
+				.getLocalNamesToConversionLocalNames().entrySet()) {
+			if (entry.getKey().equals(element.getLocalName())) {
+				localName = entry.getKey();
+			}
+		}
+
+		// guard
+		if (localName == null) {
+			throw new DDIFtpException("Element: '" + element.getLocalName()
+					+ "[" + element.getCrudValue()
+					+ "]' does not exist in result", new Throwable());
+		}
+
+		int size = 0;
+		try {
+			size = mLqueryResult.getResult().get(localName).size();
+		} catch (NullPointerException e) {
+			// ok
+		}
 
 		// guard
 		if ((size == 0 && element.getCrudValue() > 0)
 				|| (size == 0 && element.getCrudValue() < 0)) {
-			String errorLabel = "of element: '"
-					+ getDdi3NamespaceHelper().getLocalSchemaName(
-							element.getLocalName()) + "["
+			String errorLabel = "of element: '" + localName + "["
 					+ element.getCrudValue()
 					+ "]' not posible as element does not exist";
 			throw new DDIFtpException(element.getCrudValue() > 0 ? "Update "
@@ -780,23 +824,23 @@ public class DdiManager {
 		// implement change into query result
 		// update
 		if (element.getCrudValue() > 0) {
-			mLqueryResult.getResult().get(element.getLocalName()).set(
+			mLqueryResult.getResult().get(localName).set(
 					element.getCrudValue(), element.getValue());
 		}
 		// delete
 		else if (element.getCrudValue() < 0) {
-			mLqueryResult.getResult().get(element.getLocalName()).remove(
+			mLqueryResult.getResult().get(localName).remove(
 					(element.getCrudValue() * -1) - 1);
 		}
 		// new
 		else if (element.getCrudValue() == 0) {
-			mLqueryResult.getResult().get(element.getLocalName()).addLast(
-					element.getValue());
+			mLqueryResult.getResult().get(localName)
+					.addLast(element.getValue());
 		}
 
 		// compute insert position
 		StringBuilder positionQuery = new StringBuilder();
-		positionQuery.append("//");
+		positionQuery.append("/");
 
 		// update
 		if (element.getCrudValue() > 0) {
@@ -895,43 +939,39 @@ public class DdiManager {
 	public MaintainableLabelQueryResult getStudyLabel(String id,
 			String version, String parentId, String parentVersion)
 			throws DDIFtpException {
-		MaintainableLabelQuery schemeQuery = new MaintainableLabelQuery();
-		schemeQuery
+		MaintainableLabelQuery maintainableLabelQuery = new MaintainableLabelQuery();
+		maintainableLabelQuery
 				.setQuery(getQueryElementString(id, version,
 						"studyunit__StudyUnit", parentId, parentVersion,
 						"DDIInstance"));
 
-		// # [Reference] (r:Citation)
-		// # [Reference] (Abstract) - max. unbounded
-		// # [Reference] (r:UniverseReference) - max. unbounded
-		// # [Reference] (r:SeriesStatement) - min. 0
-		// # [Reference] (r:FundingInformation) - min. 0 - max. unbounded
-		// # [Reference] (Purpose) - max. unbounded
-		// # [Reference] (r:Coverage) - min. 0
-		// # [Reference] (r:AnalysisUnit) - min. 0 - max. unbounded
-		// # [Reference] (KindOfData) - min. 0 - max. unbounded
-		// # [Reference] (r:OtherMaterial) - min. 0 - max. unbounded
+		maintainableLabelQuery.setElementConversionNames(new String[] {
+				"reusable__Name", "Citation", "studyunit__Abstract",
+				"reusable__UniverseReference", "SeriesStatement",
+				"FundingInformation", "studyunit__Purpose", "Coverage", "Note",
+				"OtherMaterial", "AnalysisUnit",
+				// "AnalysisUnitsCovered",
+				// left out because of potential bug on declaration in schema
+				// studyunit.xsd
+				// Bug notice mailed to DDI::TIC on 20090824
+				"KindOfData" });
 
-		schemeQuery.setElementNames(new String[] { "reusable__Name", "Citation", "studyunit__Abstract",
-				"reusable__UniverseReference", "SeriesStatement", "FundingInformation",
-				"studyunit__Purpose", "Coverage", "AnalysisUnit", "KindOfData",
-				"OtherMaterial" });
-		schemeQuery.setMaintainableTarget("studyunit__StudyUnit");
-		schemeQuery.setStopElementNames(new String[] { "ConceptualComponent",
-				"DataCollection", "logicalproduct__LogicalProduct",
-				"physicaldataproduct__PhysicalDataProduct", "PhysicalInstance",
-				"Archive", "DDIProfile", "studyunit__DDIProfileReference" });
+		maintainableLabelQuery.setMaintainableTarget("studyunit__StudyUnit");
+		maintainableLabelQuery.setStopElementNames(new String[] {
+				"ConceptualComponent", "DataCollection", "LogicalProduct",
+				"PhysicalDataProduct", "PhysicalInstance", "Archive",
+				"DDIProfile", "DDIProfileReference" });
 
-		MaintainableLabelQueryResult result = queryScheme(schemeQuery);
+		MaintainableLabelQueryResult result = queryMaintainableLabel(maintainableLabelQuery);
 		if (result.getId() == null) {
-			schemeQuery.setQuery(getQueryElementString(id, version,
+			maintainableLabelQuery.setQuery(getQueryElementString(id, version,
 					"studyunit__StudyUnit", parentId, parentVersion, "Group"));
-			result = queryScheme(schemeQuery);
+			result = queryMaintainableLabel(maintainableLabelQuery);
 		}
 		if (result.getId() == null) {
-			schemeQuery.setQuery(getQueryElementString(id, version,
+			maintainableLabelQuery.setQuery(getQueryElementString(id, version,
 					"studyunit__StudyUnit", parentId, parentVersion, null));
-			result = queryScheme(schemeQuery);
+			result = queryMaintainableLabel(maintainableLabelQuery);
 		}
 		return result;
 	}
@@ -1048,11 +1088,12 @@ public class DdiManager {
 		schemeQuery.setQuery(getQueryElementString(id, version,
 				"QuestionScheme", parentId, parentVersion,
 				"datacollection__DataCollection"));
-		schemeQuery.setElementNames(new String[] { "reusable__Label" });
+		schemeQuery
+				.setElementConversionNames(new String[] { "reusable__Label" });
 		schemeQuery.setMaintainableTarget("QuestionScheme");
 		schemeQuery.setStopElementNames(new String[] { "QuestionItem" });
 
-		return queryScheme(schemeQuery);
+		return queryMaintainableLabel(schemeQuery);
 	}
 
 	@Profiled(tag = "getQuestionScheme")

@@ -7,7 +7,6 @@ import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 
 import org.ddialliance.ddieditor.model.DdiManager;
@@ -577,68 +576,73 @@ public class DbXmlManager implements PersistenceStorage {
 		return result;
 	}
 
-	public MaintainableLabelQueryResult queryMaintainableLabel(
-			MaintainableLabelQuery schemeQuery) throws Exception {
-		queryLog.info(schemeQuery.getQuery());
-		XmlResults rs = xQuery(schemeQuery.getQuery());
-		if (rs.isNull()) {
+	public MaintainableLabelQueryResult queryMaintainableLabel(MaintainableLabelQuery maintainableLabelQuery, 
+			MaintainableLabelQueryResult maintainableLabelQueryResult)
+			throws Exception {
+		// query
+		queryLog.info(maintainableLabelQuery.getQuery());
+		XmlResults rs = xQuery(maintainableLabelQueryResult.getQuery());
+
+		if (rs.isNull()) { // guard
 			throw new DDIFtpException("No results for query: "
-					+ schemeQuery.getQuery());
+					+ maintainableLabelQueryResult.getQuery());
 		}
 
-		// result
-		MaintainableLabelQueryResult result = new MaintainableLabelQueryResult();
-		result.setQuery(schemeQuery.getQuery());
-		for (int i = 0; i < schemeQuery.getElementNames().length; i++) {
-			result.getResult().put(schemeQuery.getElementNames()[i],
-					new LinkedList<String>());
-		}
-
-		// guard
+		// init value
 		XmlValue xmlValue = rs.next();
-		if (xmlValue == null) {
+		if (xmlValue == null) { // guard
 			rs.delete();
 			rs = null;
 			commitTransaction();
-			return result;
+			return maintainableLabelQueryResult;
 		}
 
 		// populate result
 		String localName;
+		String localMaintainableName = DdiManager.getInstance()
+				.getDdi3NamespaceHelper().getLocalSchemaName(
+						maintainableLabelQuery.getMaintainableTarget());
+
 		if (xmlValue.isNode()) {
 			XmlEventReader reader = xmlValue.asEventReader();
-
 			while (reader.hasNext()) {
 				int type = reader.next();
 				if (type == XmlEventReader.StartElement) {
 					localName = reader.getLocalName();
 
 					// maintainable attrs
-					if (localName.equals(DdiManager.getInstance()
-							.getDdi3NamespaceHelper().getLocalSchemaName(
-									schemeQuery.getMaintainableTarget()))) {
+					if (localName.equals(localMaintainableName)) {
 						// target scheme/@id @version @agency
 						int attrs = reader.getAttributeCount();
 						for (int i = 0; i < attrs; i++) {
 							if (reader.getAttributeLocalName(i).equals("id")) {
-								result.setId(reader.getAttributeValue(i));
+								maintainableLabelQueryResult.setId(reader
+										.getAttributeValue(i));
 							}
 							if (reader.getAttributeLocalName(i).equals(
 									"version")) {
-								result.setVersion(reader.getAttributeValue(i));
+								maintainableLabelQueryResult.setVersion(reader
+										.getAttributeValue(i));
 							}
 							if (reader.getAttributeLocalName(i)
 									.equals("agency")) {
-								result.setAgency(reader.getAttributeValue(i));
+								maintainableLabelQueryResult.setAgency(reader
+										.getAttributeValue(i));
 							}
 						}
 					}
 
 					// sub elements
-					for (int h = 0; h < schemeQuery.getElementNames().length; h++) {
-						if (localName.equals(DdiManager.getInstance()
-								.getDdi3NamespaceHelper().getLocalSchemaName(
-										schemeQuery.getElementNames()[h]))) {
+					for (String queryLocalName : maintainableLabelQueryResult.getResult().keySet()) {						
+						if (localName.equals(queryLocalName)) {
+
+							// hack to only get first occurrence of element name
+							if (localName.equals("Name")
+									&& !maintainableLabelQueryResult
+											.getResult().get("Name").isEmpty()) {
+								break;
+							}
+
 							// extract start tag
 							StringBuffer element = new StringBuffer("<");
 							String prefix = reader.getPrefix();
@@ -681,41 +685,35 @@ public class DbXmlManager implements PersistenceStorage {
 
 							// add to result
 							String insertKey = null;
-							for (String key : result.getResult().keySet()) {
+							for (String key : maintainableLabelQueryResult
+									.getResult().keySet()) {
 								if (key.indexOf(localName) > -1) {
 									insertKey = key;
 								}
 							}
-							result.getResult().get(insertKey).addLast(
-									element.toString());
+							maintainableLabelQueryResult.getResult().get(
+									localName).addLast(element.toString());
 						}
 					}
 
 					// stop read at subelements
 					boolean end = false;
-					for (int i = 0; i < schemeQuery.getStopElementNames().length; i++) {
-						// this.queryLog.debug("localName: " + localName + " ~ "
-						// + schemeQuery.getStopElementNames()[i]);
-						if (localName.equals(DdiManager.getInstance()
-								.getDdi3NamespaceHelper()
-								.getCleanedElementName(
-										schemeQuery.getStopElementNames()[i]))) {
+					for (int i = 0; i < maintainableLabelQuery.getStopElementNames().length; i++) {
+						if (localName
+								.equals(maintainableLabelQuery.getStopElementNames()[i])) {
 							end = true;
 							break;
 						}
 					}
 					if (end) {
-						// this.queryLog.debug("Stop at: " + localName);
 						break;
 					}
 				}
 
-				// stop read at end element of target scheme
-				else if (type == XmlEventReader.EndElement) {
-					localName = reader.getLocalName();
-					if (localName.equals(schemeQuery.getMaintainableTarget())) {
-						break;
-					}
+				// stop read at end element of target maintainable
+				else if (type == XmlEventReader.EndElement
+						&& reader.getLocalName().equals(localMaintainableName)) {
+					break;
 				}
 			}
 			reader.close();
@@ -723,7 +721,7 @@ public class DbXmlManager implements PersistenceStorage {
 		rs.delete();
 		rs = null;
 		commitTransaction();
-		return result;
+		return maintainableLabelQueryResult;
 	}
 
 	private void extractSubelementsOfSchemeQuery(StringBuffer element,
