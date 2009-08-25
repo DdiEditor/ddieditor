@@ -8,7 +8,7 @@ import org.ddialliance.ddieditor.model.DdiManager;
 import org.junit.Assert;
 import org.junit.Test;
 
-public class Ddi3NamespaceGeneratorTest {
+public class Ddi3NamespaceHelperTest {
 	@Test
 	public void namespaceLookup() throws Exception {
 		String namespace = null;
