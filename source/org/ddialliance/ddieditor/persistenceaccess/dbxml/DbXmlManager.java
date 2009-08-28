@@ -602,6 +602,7 @@ public class DbXmlManager implements PersistenceStorage {
 		String localMaintainableName = DdiManager.getInstance()
 				.getDdi3NamespaceHelper().getLocalSchemaName(
 						maintainableLabelQuery.getMaintainableTarget());
+		String prevLocalName = ""; 
 
 		if (xmlValue.isNode()) {
 			XmlEventReader reader = xmlValue.asEventReader();
@@ -632,17 +633,16 @@ public class DbXmlManager implements PersistenceStorage {
 						}
 					}
 
-					// sub elements
-					for (String queryLocalName : maintainableLabelQueryResult.getResult().keySet()) {						
+					// sub elements 
+					for (String queryLocalName : maintainableLabelQueryResult.getResult().keySet()) {
+						// extract only name element below maintainable target
 						if (localName.equals(queryLocalName)) {
-
-							// hack to only get first occurrence of element name
-							if (localName.equals("Name")
-									&& !maintainableLabelQueryResult
-											.getResult().get("Name").isEmpty()) {
-								break;
+							if (localName.equals("Name")){
+								if (!prevLocalName.equals(localMaintainableName)) {
+									continue;
+								}
 							}
-
+							
 							// extract start tag
 							StringBuffer element = new StringBuffer("<");
 							String prefix = reader.getPrefix();
@@ -695,6 +695,7 @@ public class DbXmlManager implements PersistenceStorage {
 									localName).addLast(element.toString());
 						}
 					}
+					prevLocalName = localName;
 
 					// stop read at subelements
 					boolean end = false;
