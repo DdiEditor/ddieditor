@@ -825,7 +825,7 @@ public class DdiManager {
 		// update
 		if (element.getCrudValue() > 0) {
 			mLqueryResult.getResult().get(localName).set(
-					element.getCrudValue(), element.getValue());
+					element.getCrudValue() - 1, element.getValue());
 		}
 		// delete
 		else if (element.getCrudValue() < 0) {
@@ -841,32 +841,27 @@ public class DdiManager {
 		// compute insert position
 		StringBuilder positionQuery = new StringBuilder();
 		positionQuery.append("/");
-
+		positionQuery.append(mLqueryResult
+				.getLocalNamesToConversionLocalNames().get(
+						element.getLocalName()));
+		positionQuery.append("[");
+		
 		// update
 		if (element.getCrudValue() > 0) {
-			positionQuery.append(element.getLocalName());
-			positionQuery.append("[");
-			// update value
 			positionQuery.append(element.getCrudValue());
-			positionQuery.append("]");
 		}
 		// new
 		if (element.getCrudValue() == 0) {
 			if (size > 0) {
-				positionQuery.append(element.getLocalName());
-				positionQuery.append("[");
 				positionQuery.append(size);
-				positionQuery.append("]");
 			}
 		}
 		// delete
 		if (element.getCrudValue() < 0) {
-			positionQuery.append(element.getLocalName());
-			positionQuery.append("[");
-			// update value
 			positionQuery.append(element.getCrudValue() * -1);
-			positionQuery.append("]");
 		}
+		positionQuery.append("]");
+		
 		// marked for deletion
 		// } else if (privious != -1) {
 		// positionQuery.append(elementNames[privious]);
