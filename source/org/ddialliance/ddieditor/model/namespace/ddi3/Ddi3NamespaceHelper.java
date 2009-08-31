@@ -147,7 +147,7 @@ public class Ddi3NamespaceHelper {
 		String namespace = elementNamespace.getProperty(elementName);
 		if (namespace == null) {
 			throw new DDIFtpException("Namespace for element: " + elementName
-					+ " is not recongnized", new Throwable());
+					+ " is not recongnized", new Throwable(), true);
 		}
 		return namespace;
 	}
