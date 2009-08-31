@@ -12,6 +12,12 @@ public class MaintainableLabelUpdateElement {
 	public MaintainableLabelUpdateElement() {
 	}
 
+	/**
+	 * Constructor with arguments
+	 * @param localName
+	 * @param value
+	 * @param crudValue
+	 */
 	public MaintainableLabelUpdateElement(String localName, String value,
 			Integer crudValue) {
 		super();

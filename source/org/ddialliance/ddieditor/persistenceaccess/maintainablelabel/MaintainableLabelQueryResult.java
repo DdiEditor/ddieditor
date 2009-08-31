@@ -2,6 +2,7 @@ package org.ddialliance.ddieditor.persistenceaccess.maintainablelabel;
 
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -19,17 +20,17 @@ public class MaintainableLabelQueryResult {
 	private String version;
 	private String agency;
 	/** Map of local element name ~ conversion element name **/
-	private Map<String, String> localNamesToConversionLocalNames = new HashMap<String, String>();
+	private LinkedHashMap<String, String> localNamesToConversionLocalNames = new LinkedHashMap<String, String>();
 	private String query;
 	/** Map of local element name ~ list of XML **/
 	private Map<String, LinkedList<String>> result = new HashMap<String, LinkedList<String>>();
 
-	public Map<String, String> getLocalNamesToConversionLocalNames() {
+	public LinkedHashMap<String, String> getLocalNamesToConversionLocalNames() {
 		return localNamesToConversionLocalNames;
 	}
 
 	public void setLocalNamesToConversionLocalNames(
-			Map<String, String> localNamesToConversionLocalNames) {
+			LinkedHashMap<String, String> localNamesToConversionLocalNames) {
 		this.localNamesToConversionLocalNames = localNamesToConversionLocalNames;
 	}
 

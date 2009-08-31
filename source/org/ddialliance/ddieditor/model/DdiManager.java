@@ -1,10 +1,9 @@
 package org.ddialliance.ddieditor.model;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.xmlbeans.XmlException;
@@ -716,7 +715,7 @@ public class DdiManager {
 	public MaintainableLabelQueryResult queryMaintainableLabel(
 			MaintainableLabelQuery schemeQuery) throws DDIFtpException {
 		// conversion names to local element names
-		Map<String, String> conversionToLocalName = new HashMap<String, String>();
+		LinkedHashMap<String, String> conversionToLocalName = new LinkedHashMap<String, String>();
 		for (int i = 0; i < schemeQuery.getElementConversionNames().length; i++) {
 			conversionToLocalName.put(getDdi3NamespaceHelper()
 					.getLocalSchemaName(
@@ -799,9 +798,9 @@ public class DdiManager {
 
 	private String getMaintainableLabelCrudPosition(
 			MaintainableLabelUpdateElement element,
-			MaintainableLabelQueryResult mLqueryResult) throws DDIFtpException {
+			MaintainableLabelQueryResult result) throws DDIFtpException {
 		String localName = null;
-		for (Entry<String, String> entry : mLqueryResult
+		for (Entry<String, String> entry : result
 				.getLocalNamesToConversionLocalNames().entrySet()) {
 			if (entry.getKey().equals(element.getLocalName())) {
 				localName = entry.getKey();
@@ -817,7 +816,7 @@ public class DdiManager {
 
 		int size = 0;
 		try {
-			size = mLqueryResult.getResult().get(localName).size();
+			size = result.getResult().get(localName).size();
 		} catch (NullPointerException e) {
 			// ok
 		}
@@ -832,46 +831,82 @@ public class DdiManager {
 					+ errorLabel : "Deletion " + errorLabel, new Throwable());
 		}
 
+		// compute insert position
+		StringBuilder positionQuery = new StringBuilder();
+		positionQuery.append("/");
+
+		// update - delete
+		if (element.getCrudValue() != 0) {
+			positionQuery.append(result.getLocalNamesToConversionLocalNames()
+					.get(element.getLocalName()));
+			positionQuery.append("[");
+			if (element.getCrudValue() < 0) {
+				positionQuery.append(element.getCrudValue() * -1);
+			} else {
+				positionQuery.append(element.getCrudValue());
+			}
+			positionQuery.append("]");
+		}
+
+		// new
+		if (element.getCrudValue() == 0) {
+			// other element exists
+			if (size > 0) {
+				positionQuery.append(result
+						.getLocalNamesToConversionLocalNames().get(
+								element.getLocalName()));
+				positionQuery.append("[");
+				positionQuery.append(size);
+				positionQuery.append("]");
+			} else {
+				// flashing new - compute previous element
+				String[] localNames = new String[] {};
+				String localNameNewPosition = null;
+				localNames = result.getLocalNamesToConversionLocalNames()
+						.keySet().toArray(localNames);
+				
+				for (int i = 0, count = 0; i < localNames.length; i++) {
+					count = i;
+					if (localName.equals(localNames[i])
+							&& !(result.getResult().get(localNames[i])
+									.isEmpty())) {
+						localNameNewPosition = localNames[i];
+						break;
+					} else {
+						count--;
+						while (count > -1 || localNameNewPosition != null) {
+							if (!result.getResult().get(localNames[count])
+									.isEmpty()) {
+								localNameNewPosition = localNames[count];
+							}
+							count--;
+						}
+						break;
+					}
+				}
+				if (localNameNewPosition != null) {
+					positionQuery.append(result
+							.getLocalNamesToConversionLocalNames().get(
+									localNameNewPosition));
+				}
+			}
+		}
+
 		// implement change into query result
 		// update
 		if (element.getCrudValue() > 0) {
-			mLqueryResult.getResult().get(localName).set(
-					element.getCrudValue() - 1, element.getValue());
+			result.getResult().get(localName).set(element.getCrudValue() - 1,
+					element.getValue());
 		}
 		// delete
 		else if (element.getCrudValue() < 0) {
-			mLqueryResult.getResult().get(localName).remove(
+			result.getResult().get(localName).remove(
 					(element.getCrudValue() * -1) - 1);
 		}
 		// new
 		else if (element.getCrudValue() == 0) {
-			mLqueryResult.getResult().get(localName)
-					.addLast(element.getValue());
+			result.getResult().get(localName).addLast(element.getValue());
 		}
-
-		// compute insert position
-		StringBuilder positionQuery = new StringBuilder();
-		positionQuery.append("/");
-		positionQuery.append(mLqueryResult
-				.getLocalNamesToConversionLocalNames().get(
-						element.getLocalName()));
-		positionQuery.append("[");
-
-		// update
-		if (element.getCrudValue() > 0) {
-			positionQuery.append(element.getCrudValue());
-		}
-		// new
-		if (element.getCrudValue() == 0) {
-			if (size > 0) {
-				positionQuery.append(size);
-			}
-		}
-		// delete
-		if (element.getCrudValue() < 0) {
-			positionQuery.append(element.getCrudValue() * -1);
-		}
-		positionQuery.append("]");
 
 		return getDdi3NamespaceHelper()
 				.addFullyQualifiedNamespaceDeclarationToElements(
@@ -950,13 +985,14 @@ public class DdiManager {
 		maintainableLabelQuery.setElementConversionNames(new String[] {
 				"reusable__Name", "Citation", "studyunit__Abstract",
 				"reusable__UniverseReference", "SeriesStatement",
-				"FundingInformation", "studyunit__Purpose", "Coverage", "Note",
-				"OtherMaterial", "AnalysisUnit",
+				"FundingInformation", "studyunit__Purpose", "Coverage",
+				"AnalysisUnit",
+				// TODO
 				// "AnalysisUnitsCovered",
 				// left out because of potential bug on declaration in schema
 				// studyunit.xsd
 				// Bug notice mailed to DDI::TIC on 20090824
-				"KindOfData", "Embargo" });
+				"KindOfData", "OtherMaterial", "Note", "Embargo" });
 
 		maintainableLabelQuery.setMaintainableTarget("studyunit__StudyUnit");
 		maintainableLabelQuery.setStopElementNames(new String[] {
