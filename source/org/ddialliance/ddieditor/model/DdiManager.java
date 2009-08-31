@@ -753,8 +753,22 @@ public class DdiManager {
 		String updatePosition = "";
 		String nodeValue = "";
 		for (MaintainableLabelUpdateElement element : elements) {
-			nodeValue = getDdi3NamespaceHelper()
-					.substitutePrefixesFromElements(element.getValue());
+			// guard
+			if (element.getCrudValue() == null) {
+				throw new DDIFtpException("Update value not specified for: "
+						+ element, new Throwable());
+			}
+
+			if ((element.getCrudValue() > 0 || element.getCrudValue() == 0)
+					&& element.getValue() == null) {
+				throw new DDIFtpException(
+						"Value not specified for: " + element, new Throwable());
+			}
+
+			if (element.getValue() != null) {
+				nodeValue = getDdi3NamespaceHelper()
+						.substitutePrefixesFromElements(element.getValue());
+			}
 			updatePosition = getMaintainableLabelCrudPosition(element,
 					schemeQueryResult);
 
@@ -779,10 +793,7 @@ public class DdiManager {
 			}
 
 			// not specified
-			if (element.getCrudValue() == null) {
-				throw new DDIFtpException("Update value not specified for: "
-						+ element, new Throwable());
-			}
+
 		}
 	}
 
@@ -845,7 +856,7 @@ public class DdiManager {
 				.getLocalNamesToConversionLocalNames().get(
 						element.getLocalName()));
 		positionQuery.append("[");
-		
+
 		// update
 		if (element.getCrudValue() > 0) {
 			positionQuery.append(element.getCrudValue());
@@ -861,11 +872,7 @@ public class DdiManager {
 			positionQuery.append(element.getCrudValue() * -1);
 		}
 		positionQuery.append("]");
-		
-		// marked for deletion
-		// } else if (privious != -1) {
-		// positionQuery.append(elementNames[privious]);
-		// }
+
 		return getDdi3NamespaceHelper()
 				.addFullyQualifiedNamespaceDeclarationToElements(
 						positionQuery.toString());
@@ -949,7 +956,7 @@ public class DdiManager {
 				// left out because of potential bug on declaration in schema
 				// studyunit.xsd
 				// Bug notice mailed to DDI::TIC on 20090824
-				"KindOfData" });
+				"KindOfData", "Embargo" });
 
 		maintainableLabelQuery.setMaintainableTarget("studyunit__StudyUnit");
 		maintainableLabelQuery.setStopElementNames(new String[] {
