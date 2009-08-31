@@ -576,7 +576,8 @@ public class DbXmlManager implements PersistenceStorage {
 		return result;
 	}
 
-	public MaintainableLabelQueryResult queryMaintainableLabel(MaintainableLabelQuery maintainableLabelQuery, 
+	public MaintainableLabelQueryResult queryMaintainableLabel(
+			MaintainableLabelQuery maintainableLabelQuery,
 			MaintainableLabelQueryResult maintainableLabelQueryResult)
 			throws Exception {
 		// query
@@ -602,7 +603,7 @@ public class DbXmlManager implements PersistenceStorage {
 		String localMaintainableName = DdiManager.getInstance()
 				.getDdi3NamespaceHelper().getLocalSchemaName(
 						maintainableLabelQuery.getMaintainableTarget());
-		String prevLocalName = ""; 
+		String prevLocalName = "";
 
 		if (xmlValue.isNode()) {
 			XmlEventReader reader = xmlValue.asEventReader();
@@ -633,16 +634,18 @@ public class DbXmlManager implements PersistenceStorage {
 						}
 					}
 
-					// sub elements 
-					for (String queryLocalName : maintainableLabelQueryResult.getResult().keySet()) {
+					// sub elements
+					for (String queryLocalName : maintainableLabelQueryResult
+							.getResult().keySet()) {
 						// extract only name element below maintainable target
 						if (localName.equals(queryLocalName)) {
-							if (localName.equals("Name")){
-								if (!prevLocalName.equals(localMaintainableName)) {
+							if (localName.equals("Name")) {
+								if (!prevLocalName
+										.equals(localMaintainableName)) {
 									continue;
 								}
 							}
-							
+
 							// extract start tag
 							StringBuffer element = new StringBuffer("<");
 							String prefix = reader.getPrefix();
@@ -695,13 +698,21 @@ public class DbXmlManager implements PersistenceStorage {
 									localName).addLast(element.toString());
 						}
 					}
-					prevLocalName = localName;
+					
+					// reset prev local name to target maintainable name   
+					if (localName.equals("Name")
+							&& prevLocalName.equals(localMaintainableName)) {
+						prevLocalName = localMaintainableName;
+					} else {
+						prevLocalName = localName;
+					}
 
 					// stop read at subelements
 					boolean end = false;
-					for (int i = 0; i < maintainableLabelQuery.getStopElementNames().length; i++) {
-						if (localName
-								.equals(maintainableLabelQuery.getStopElementNames()[i])) {
+					for (int i = 0; i < maintainableLabelQuery
+							.getStopElementNames().length; i++) {
+						if (localName.equals(maintainableLabelQuery
+								.getStopElementNames()[i])) {
 							end = true;
 							break;
 						}
