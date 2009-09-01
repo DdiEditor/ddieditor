@@ -26,8 +26,8 @@ public class MaintainableLabelUpdateElement {
 		this.crudValue = crudValue;
 	}
 
-	public MaintainableLabelUpdateElement(XmlObject element, Integer crudValue) {
-		this.localName = element.getDomNode().getLocalName();
+	public MaintainableLabelUpdateElement(XmlObject element, Integer crudValue) {		
+		this.localName = element.schemaType().getDocumentElementName().getLocalPart();
 		this.value = element.xmlText();
 		this.crudValue = crudValue;
 	}

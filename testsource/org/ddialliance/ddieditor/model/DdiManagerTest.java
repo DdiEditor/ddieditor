@@ -2,6 +2,7 @@ package org.ddialliance.ddieditor.model;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
@@ -15,7 +16,10 @@ import org.ddialliance.ddi_3_0.xml.xmlbeans.datacollection.QuestionItemType;
 import org.ddialliance.ddi_3_0.xml.xmlbeans.datacollection.QuestionSchemeDocument;
 import org.ddialliance.ddi_3_0.xml.xmlbeans.logicalproduct.CategorySchemeDocument;
 import org.ddialliance.ddi_3_0.xml.xmlbeans.logicalproduct.CodeSchemeDocument;
+import org.ddialliance.ddi_3_0.xml.xmlbeans.reusable.DateType;
 import org.ddialliance.ddi_3_0.xml.xmlbeans.reusable.InternationalStringType;
+import org.ddialliance.ddi_3_0.xml.xmlbeans.reusable.impl.CitationDocumentImpl;
+import org.ddialliance.ddi_3_0.xml.xmlbeans.reusable.impl.CitationTypeImpl;
 import org.ddialliance.ddi_3_0.xml.xmlbeans.reusable.impl.NameDocumentImpl;
 import org.ddialliance.ddieditor.DdieditorTestCase;
 import org.ddialliance.ddieditor.model.conceptual.ConceptualElement;
@@ -26,7 +30,9 @@ import org.ddialliance.ddieditor.persistenceaccess.maintainablelabel.Maintainabl
 import org.ddialliance.ddieditor.persistenceaccess.maintainablelabel.MaintainableLabelQueryResult;
 import org.ddialliance.ddieditor.persistenceaccess.maintainablelabel.MaintainableLabelUpdateElement;
 import org.ddialliance.ddiftp.util.DDIFtpException;
+import org.ddialliance.ddiftp.util.Translator;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class DdiManagerTest extends DdieditorTestCase {
@@ -587,23 +593,44 @@ public class DdiManagerTest extends DdieditorTestCase {
 	}
 
 	@Test
-	public void getStudyLabelAsXmlObject() throws Exception {
+	public void getStudyLabelAsXmlObjectPlusUpdate() throws Exception {
 		PersistenceManager.getInstance().setWorkingResource(
 				FULLY_DECLARED_NS_DOC);
 		MaintainableLabelQueryResult result = DdiManager.getInstance()
 				.getStudyLabel("dda-4755", null, "dda-4755", "1.0");
 		Assert.assertNotNull(result);
-
-		try {
-			XmlObject[] xmlObjs = null;
-			for (String key : result.getResult().keySet()) {
-				xmlObjs = result.getSubElement(key);
-				Assert.assertNotNull(xmlObjs);
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-			throw e;
+		XmlObject[] xmlObjs = null;
+		for (String key : result.getResult().keySet()) {
+			xmlObjs = result.getSubElement(key);
+			Assert.assertNotNull(xmlObjs);
 		}
+
+		// update
+		List<MaintainableLabelUpdateElement> list = new ArrayList<MaintainableLabelUpdateElement>();
+		for (String key : result.getResult().keySet()) {
+			list.add(new MaintainableLabelUpdateElement(result
+					.getSubElement(key)[0], 1));
+		}
+		DdiManager.getInstance().updateMaintainableLabel(result, list);
+	}
+
+	@Test
+	public void getStudyLabelCitationTest() throws Exception {
+		PersistenceManager.getInstance().setWorkingResource(
+				FULLY_DECLARED_NS_DOC);
+		MaintainableLabelQueryResult result = DdiManager.getInstance()
+				.getStudyLabel("dda-4755", null, "dda-4755", "1.0");
+
+		CitationDocumentImpl citation = (CitationDocumentImpl) result
+				.getSubElement("Citation")[0];
+		DateType date = citation.getCitation().addNewPublicationDate();
+		date.setSimpleDate(Translator.formatIso8601DateTime(System
+				.currentTimeMillis()));
+		
+		// update
+		List<MaintainableLabelUpdateElement> list = new ArrayList<MaintainableLabelUpdateElement>();
+		list.add(new MaintainableLabelUpdateElement(citation, 1));
+		DdiManager.getInstance().updateMaintainableLabel(result, list);
 	}
 
 	@Test
