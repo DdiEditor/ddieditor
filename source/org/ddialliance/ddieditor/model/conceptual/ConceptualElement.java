@@ -1,15 +1,9 @@
-/**
- * 
- */
 package org.ddialliance.ddieditor.model.conceptual;
-
-import java.util.List;
 
 import org.ddialliance.ddieditor.model.lightxmlobject.LightXmlObjectType;
 
 /**
- * @author ddajvj
- * 
+ * Conceptual element
  */
 public class ConceptualElement {
 	private ConceptualType type;
