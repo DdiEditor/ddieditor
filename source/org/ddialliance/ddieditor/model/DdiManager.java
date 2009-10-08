@@ -1,6 +1,7 @@
 package org.ddialliance.ddieditor.model;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -11,7 +12,10 @@ import org.apache.xmlbeans.XmlObject;
 import org.ddialliance.ddi_3_0.xml.xmlbeans.conceptualcomponent.ConceptDocument;
 import org.ddialliance.ddi_3_0.xml.xmlbeans.conceptualcomponent.ConceptGroupDocument;
 import org.ddialliance.ddi_3_0.xml.xmlbeans.conceptualcomponent.ConceptSchemeDocument;
+import org.ddialliance.ddi_3_0.xml.xmlbeans.datacollection.ControlConstructDocument;
+import org.ddialliance.ddi_3_0.xml.xmlbeans.datacollection.ControlConstructSchemeDocument;
 import org.ddialliance.ddi_3_0.xml.xmlbeans.datacollection.DataCollectionDocument;
+import org.ddialliance.ddi_3_0.xml.xmlbeans.datacollection.InstrumentDocument;
 import org.ddialliance.ddi_3_0.xml.xmlbeans.datacollection.QuestionItemDocument;
 import org.ddialliance.ddi_3_0.xml.xmlbeans.datacollection.QuestionSchemeDocument;
 import org.ddialliance.ddi_3_0.xml.xmlbeans.logicalproduct.CategorySchemeDocument;
@@ -27,6 +31,7 @@ import org.ddialliance.ddieditor.persistenceaccess.XQueryInsertKeyword;
 import org.ddialliance.ddieditor.persistenceaccess.maintainablelabel.MaintainableLabelQuery;
 import org.ddialliance.ddieditor.persistenceaccess.maintainablelabel.MaintainableLabelQueryResult;
 import org.ddialliance.ddieditor.persistenceaccess.maintainablelabel.MaintainableLabelUpdateElement;
+import org.ddialliance.ddieditor.persistenceaccess.maintainablelabel.MaintainableLightLabelQueryResult;
 import org.ddialliance.ddieditor.util.DdiEditorRefUtil;
 import org.ddialliance.ddiftp.util.DDIFtpException;
 import org.ddialliance.ddiftp.util.log.Log;
@@ -790,9 +795,6 @@ public class DdiManager {
 				PersistenceManager.getInstance().insert(nodeValue,
 						insertKeyword, queryString + updatePosition);
 			}
-
-			// not specified
-
 		}
 	}
 
@@ -864,7 +866,7 @@ public class DdiManager {
 				String localNameNewPosition = null;
 				localNames = result.getLocalNamesToConversionLocalNames()
 						.keySet().toArray(localNames);
-				
+
 				for (int i = 0, count = 0; i < localNames.length; i++) {
 					count = i;
 					if (localName.equals(localNames[i])
@@ -913,6 +915,48 @@ public class DdiManager {
 						positionQuery.toString());
 	}
 
+	public MaintainableLightLabelQueryResult queryMaintainableLightLabel(
+			MaintainableLabelQuery schemeQuery) throws DDIFtpException {
+		// conversion names to local element names
+		LinkedHashMap<String, String> conversionToLocalName = new LinkedHashMap<String, String>();
+		for (int i = 0; i < schemeQuery.getElementConversionNames().length; i++) {
+			conversionToLocalName.put(getDdi3NamespaceHelper()
+					.getLocalSchemaName(
+							schemeQuery.getElementConversionNames()[i]),
+					schemeQuery.getElementConversionNames()[i]);
+		}
+
+		// result
+		MaintainableLightLabelQueryResult result = new MaintainableLightLabelQueryResult();
+		result.setMaintainableTarget(schemeQuery.getMaintainableTarget());
+
+		// prepare result list
+		for (String key : conversionToLocalName.keySet()) {
+			result.getResult().put(key, new LinkedList<LightXmlObjectType>());
+		}
+		// query
+		MaintainableLightLabelQueryResult maintainableLightLabelQueryResult;
+		try {
+			maintainableLightLabelQueryResult = PersistenceManager
+					.getInstance().getPersistenceStorage()
+					.queryMaintainableLightLabel(schemeQuery, result);
+		} catch (Exception e) {
+			throw new DDIFtpException(
+					"Error querying persistent storage on maintainable label light",
+					e);
+		}
+		// clean result of empty lists
+		for (Iterator<Entry<String, LinkedList<LightXmlObjectType>>> iterator = maintainableLightLabelQueryResult
+				.getResult().entrySet().iterator(); iterator.hasNext();) {
+			Entry<String, LinkedList<LightXmlObjectType>> entry = iterator
+					.next();
+			if (entry.getValue().isEmpty()) {
+				iterator.remove();
+			}
+		}
+		return maintainableLightLabelQueryResult;
+	}
+
 	//
 	// ui overview
 	//
@@ -950,7 +994,12 @@ public class DdiManager {
 		}
 
 		// - instumentation
-		// TODO
+		lightDoc = getInstumentOverview();
+		for (LightXmlObjectType lightElement : lightDoc.getLightXmlObjectList()
+				.getLightXmlObjectList()) {
+			result.add(new ConceptualElement(
+					ConceptualType.LOGIC_instumentation, lightElement));
+		}
 
 		return result;
 	}
@@ -1157,6 +1206,112 @@ public class DdiManager {
 		String text = queryElement(id, version, "QuestionItem", parentId,
 				parentVersion, "QuestionScheme");
 		return (text == "" ? null : QuestionItemDocument.Factory.parse(text));
+	}
+
+	public InstrumentDocument getInstrument(String id, String version,
+			String parentId, String parentVersion) throws Exception {
+		String text = queryElement(id, version, "Instrument", parentId,
+				parentVersion, "datacollection__DataCollection");
+		return (text == "" ? null : InstrumentDocument.Factory.parse(text));
+	}
+
+	public LightXmlObjectListDocument getInstumentOverview() throws Exception {
+		// instument
+		LightXmlObjectListDocument result = getInstrumentsLight(null, null,
+				null, null);
+
+		// control construct scheme
+		LightXmlObjectListDocument controlConstructs = getControlConstructSchemesLight(
+				null, null, null, null);
+		result.getLightXmlObjectList().getLightXmlObjectList().addAll(
+				controlConstructs.getLightXmlObjectList()
+						.getLightXmlObjectList());
+		return result;
+	}
+
+	public MaintainableLightLabelQueryResult getInstrumentLabel(String id,
+			String version, String parentId, String parentVersion)
+			throws DDIFtpException {
+		MaintainableLabelQuery query = new MaintainableLabelQuery();
+		query.setQuery(getQueryElementString(id, version,
+				"ControlConstructScheme", parentId, parentVersion,
+				"datacollection__DataCollection"));
+
+		String[] elements = { "ControlConstructScheme",
+
+		// controls
+				"IfThenElse", "RepeatUntil", "RepeatWhile", "Loop",
+
+				// sequence
+				"Sequence",
+
+				"ComputationItem", "StatementItem",
+
+				// question construct
+				"QuestionConstruct" };
+		query.setElementConversionNames(elements);
+
+		query.setMaintainableTarget("ControlConstructScheme");
+		query.setStopElementNames(new String[] { "LogicalProduct",
+				"PhysicalDataProduct", "PhysicalInstance", "Archive",
+				"DDIProfile", "DDIProfileReference" });
+
+		MaintainableLightLabelQueryResult maLightLabelQueryResult = queryMaintainableLightLabel(query);
+
+		// add instrument
+		LightXmlObjectListDocument lightDoc = null;
+		try {
+			lightDoc = getInstrumentsLight(id, version, parentId, parentVersion);
+		} catch (Exception e) {
+			throw new DDIFtpException(e);
+		}
+		maLightLabelQueryResult.getResult().put(
+				"Instrument",
+				new LinkedList<LightXmlObjectType>(lightDoc
+						.getLightXmlObjectList().getLightXmlObjectList()));
+		return maLightLabelQueryResult;
+	}
+
+	public LightXmlObjectListDocument getInstrumentsLight(String id,
+			String version, String parentId, String parentVersion)
+			throws Exception {
+		return queryLightXmlBeans(id, version, parentId, parentVersion,
+				"datacollection__DataCollection", "Instrument", null,
+				"reusable__Name");
+	}
+
+	public ControlConstructSchemeDocument getControlConstructScheme(String id,
+			String version, String parentId, String parentVersion)
+			throws Exception {
+		String text = queryElement(id, version, "ControlConstructScheme",
+				parentId, parentVersion, "datacollection__DataCollection");
+		return (text == "" ? null : ControlConstructSchemeDocument.Factory
+				.parse(text));
+	}
+
+	public LightXmlObjectListDocument getControlConstructSchemesLight(
+			String id, String version, String parentId, String parentVersion)
+			throws Exception {
+		return queryLightXmlBeans(id, version, parentId, parentVersion,
+				"datacollection__DataCollection", "ControlConstructScheme",
+				null, "reusable__Name");
+	}
+
+	public ControlConstructDocument getQuestionConstruct(String id,
+			String version, String parentId, String parentVersion)
+			throws Exception {
+		String text = queryElement(id, version, "QuestionConstruct", parentId,
+				parentVersion, "ControlConstructScheme");
+		return (text == "" ? null : ControlConstructDocument.Factory
+				.parse(text));
+	}
+
+	public LightXmlObjectListDocument getQuestionConstructsLight(String id,
+			String version, String parentId, String parentVersion)
+			throws Exception {
+		return queryLightXmlBeans(id, version, parentId, parentVersion,
+				"ControlConstructScheme", "QuestionConstruct", null,
+				"reusable__Name");
 	}
 
 	//

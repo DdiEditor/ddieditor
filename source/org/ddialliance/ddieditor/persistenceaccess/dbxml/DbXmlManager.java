@@ -10,17 +10,21 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.ddialliance.ddieditor.model.DdiManager;
+import org.ddialliance.ddieditor.model.lightxmlobject.LabelType;
+import org.ddialliance.ddieditor.model.lightxmlobject.LightXmlObjectType;
 import org.ddialliance.ddieditor.model.namespace.ddi3.Ddi3NamespacePrefix;
 import org.ddialliance.ddieditor.model.resource.StorageType;
 import org.ddialliance.ddieditor.persistenceaccess.PersistenceManager;
 import org.ddialliance.ddieditor.persistenceaccess.PersistenceStorage;
 import org.ddialliance.ddieditor.persistenceaccess.maintainablelabel.MaintainableLabelQuery;
 import org.ddialliance.ddieditor.persistenceaccess.maintainablelabel.MaintainableLabelQueryResult;
+import org.ddialliance.ddieditor.persistenceaccess.maintainablelabel.MaintainableLightLabelQueryResult;
 import org.ddialliance.ddieditor.util.DdiEditorConfig;
 import org.ddialliance.ddiftp.util.DDIFtpException;
 import org.ddialliance.ddiftp.util.log.Log;
 import org.ddialliance.ddiftp.util.log.LogFactory;
 import org.ddialliance.ddiftp.util.log.LogType;
+import org.ddialliance.ddiftp.util.xml.XmlBeansUtil;
 import org.perf4j.aop.Profiled;
 
 import com.sleepycat.db.Environment;
@@ -698,8 +702,8 @@ public class DbXmlManager implements PersistenceStorage {
 									localName).addLast(element.toString());
 						}
 					}
-					
-					// reset prev local name to target maintainable name   
+
+					// reset prev local name to target maintainable name
 					if (localName.equals("Name")
 							&& prevLocalName.equals(localMaintainableName)) {
 						prevLocalName = localMaintainableName;
@@ -812,6 +816,230 @@ public class DbXmlManager implements PersistenceStorage {
 				break;
 			}
 			}
+		}
+	}
+
+	public MaintainableLightLabelQueryResult queryMaintainableLightLabel(
+			MaintainableLabelQuery maintainableLabelQuery,
+			MaintainableLightLabelQueryResult maintainableLightLabelQueryResult)
+			throws Exception {
+
+		// query
+		queryLog.info(maintainableLabelQuery.getQuery());
+		XmlResults rs = xQuery(maintainableLabelQuery.getQuery());
+
+		if (rs.isNull()) { // guard
+			throw new DDIFtpException("No results for query: "
+					+ maintainableLabelQuery.getQuery());
+		}
+
+		// init value
+		XmlValue xmlValue = rs.next();
+		if (xmlValue == null) { // guard
+			rs.delete();
+			rs = null;
+			commitTransaction();
+			return maintainableLightLabelQueryResult;
+		}
+
+		// populate result
+		String localName;
+		String localMaintainableName = DdiManager.getInstance()
+				.getDdi3NamespaceHelper().getLocalSchemaName(
+						maintainableLabelQuery.getMaintainableTarget());
+
+		boolean end = false;
+		String prevLocalName = "";
+		LightXmlObjectType lightXmlObject = null;
+
+		if (xmlValue.isNode()) {
+			XmlEventReader reader = xmlValue.asEventReader();
+			while (reader.hasNext()) {
+				int type = reader.next();
+				if (type == XmlEventReader.StartElement) {
+					localName = reader.getLocalName();
+
+					// maintainable attrs
+					if (localName.equals(localMaintainableName)) {
+						// target maintainable/@id @version @agency
+						int attrs = reader.getAttributeCount();
+						for (int i = 0; i < attrs; i++) {
+							if (reader.getAttributeLocalName(i).equals("id")) {
+								maintainableLightLabelQueryResult.setId(reader
+										.getAttributeValue(i));
+							}
+							if (reader.getAttributeLocalName(i).equals(
+									"version")) {
+								maintainableLightLabelQueryResult
+										.setVersion(reader.getAttributeValue(i));
+							}
+							if (reader.getAttributeLocalName(i)
+									.equals("agency")) {
+								maintainableLightLabelQueryResult
+										.setAgency(reader.getAttributeValue(i));
+							}
+						}
+						// insert
+						// skip sub elements of maintainable target
+						continue;
+						// TODO include maintainable target light element!
+					}
+
+					// sub elements
+					for (String queryLocalName : maintainableLightLabelQueryResult
+							.getResult().keySet()) {
+						if (queryLocalName.equals(localName)) {
+
+							// init light xml object
+							// lightXmlObject = LightXmlObjectType.Factory
+							// .newInstance();
+							// lightXmlObject
+							// .setParentId(maintainableLightLabelQueryResult
+							// .getId());
+							// lightXmlObject
+							// .setParentVersion(maintainableLightLabelQueryResult
+							// .getVersion());
+							// lightXmlObject.setElement(localName);
+
+							// attributes
+							// int attrs = reader.getAttributeCount();
+							// for (int i = 0; i < attrs; i++) {
+							// if (reader.getAttributeLocalName(i)
+							// .equals("id")) {
+							// lightXmlObject.setId(reader
+							// .getAttributeValue(i));
+							// }
+							// if (reader.getAttributeLocalName(i).equals(
+							// "version")) {
+							// lightXmlObject.setVersion(reader
+							// .getAttributeValue(i));
+							// }
+							// }
+
+							// labels
+							// setLabelsOnMaintainableLightSubelement(reader,
+							// lightXmlObject);
+
+							// insert
+							lightXmlObject = extractLightXmlObject(localName, reader,
+									maintainableLightLabelQueryResult); 
+							maintainableLightLabelQueryResult.getResult().get(
+									localName).addLast(
+									lightXmlObject);
+							break;
+						}
+					}
+
+					// stop read at stop elements
+					for (int i = 0; i < maintainableLabelQuery
+							.getStopElementNames().length; i++) {
+						if (localName.equals(maintainableLabelQuery
+								.getStopElementNames()[i])) {
+							end = true;
+							break;
+						}
+					}
+					if (end) {
+						break;
+					}
+
+					// stop read at end element of target maintainable
+					// else if (type == XmlEventReader.EndElement
+					// && reader.getLocalName().equals(
+					// localMaintainableName)) {
+					// break;
+					// }
+				}
+			}
+		}
+		rs.delete();
+		rs = null;
+		commitTransaction();
+		return maintainableLightLabelQueryResult;
+	}
+
+	private LightXmlObjectType extractLightXmlObject(String localName,
+			XmlEventReader reader,
+			MaintainableLightLabelQueryResult maintainableLightLabelQueryResult)
+			throws Exception {
+
+		// init light xml object
+		LightXmlObjectType lightXmlObject = LightXmlObjectType.Factory
+				.newInstance();
+		lightXmlObject.setParentId(maintainableLightLabelQueryResult.getId());
+		lightXmlObject.setParentVersion(maintainableLightLabelQueryResult
+				.getVersion());
+		lightXmlObject.setElement(localName);
+
+		// attributes
+		int attrs = reader.getAttributeCount();
+		for (int i = 0; i < attrs; i++) {
+			if (reader.getAttributeLocalName(i).equals("id")) {
+				lightXmlObject.setId(reader.getAttributeValue(i));
+			}
+			if (reader.getAttributeLocalName(i).equals("version")) {
+				lightXmlObject.setVersion(reader.getAttributeValue(i));
+			}
+		}
+
+		// labels
+		setLabelsOnMaintainableLightSubelement(reader, lightXmlObject);
+		return lightXmlObject;
+	}
+
+	private void setLabelsOnMaintainableLightSubelement(XmlEventReader reader,
+			LightXmlObjectType lightXmlObject) throws Exception {
+		String localName;
+		LabelType label = null;
+		List<LabelType> tmpNameLabels = new ArrayList<LabelType>();
+		String attrLang = "lang";
+		String[] labelLocalNames = { "Name", "Label" }; // Label takes
+		// precedence over name
+		Integer labelLocalNameCount = null;
+
+		// scan xml
+		while (reader.hasNext()) {
+			int type = reader.next();
+			if (type == XmlEventReader.StartElement) {
+				localName = reader.getLocalName();
+				for (int i = 0; i < labelLocalNames.length; i++) {
+					if (localName.equals(labelLocalNames[i])) {
+						labelLocalNameCount = i;
+						label = LabelType.Factory.newInstance();
+
+						// set attributes
+						for (int h = 0; h < reader.getAttributeCount(); h++) {
+							if (reader.getAttributeLocalName(h)
+									.equals(attrLang)) {
+								label.setLang(reader.getAttributeValue(h));
+							}
+						}
+					}
+				}
+			} else if (label != null && type == XmlEventReader.Characters) {
+				// set text on light label
+				XmlBeansUtil.setTextOnMixedElement(label, reader.getValue());
+
+				// label
+				if (labelLocalNameCount.intValue() == 1) {
+					lightXmlObject.getLabelList().add(label);
+				}
+				// name
+				else {
+					tmpNameLabels.add(label);
+				}
+				label = null;
+				labelLocalNameCount = null;
+			} else if (type == XmlEventReader.EndElement) {
+				if (reader.getLocalName().equals(lightXmlObject.getElement())) {
+					break;
+				}
+			}
+		}
+
+		// enforce label over name rule
+		if (lightXmlObject.getLabelList().isEmpty()) {
+			lightXmlObject.getLabelList().addAll(tmpNameLabels);
 		}
 	}
 

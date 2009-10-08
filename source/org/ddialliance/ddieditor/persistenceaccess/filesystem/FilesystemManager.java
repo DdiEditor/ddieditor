@@ -15,6 +15,7 @@ import org.ddialliance.ddieditor.persistenceaccess.PersistenceStorage;
 import org.ddialliance.ddieditor.persistenceaccess.dbxml.DbXmlManager;
 import org.ddialliance.ddieditor.persistenceaccess.maintainablelabel.MaintainableLabelQuery;
 import org.ddialliance.ddieditor.persistenceaccess.maintainablelabel.MaintainableLabelQueryResult;
+import org.ddialliance.ddieditor.persistenceaccess.maintainablelabel.MaintainableLightLabelQueryResult;
 import org.ddialliance.ddiftp.util.DDIFtpException;
 import org.ddialliance.ddiftp.util.FileUtil;
 import org.ddialliance.ddiftp.util.log.Log;
@@ -142,9 +143,6 @@ public class FilesystemManager implements PersistenceStorage {
 		return null;
 	}
 
-	// public void rollbackTransaction() throws Exception {
-	// }
-
 	public void setWorkingConnection(StorageType storage) throws Exception {
 		// TODO Auto-generated method stub
 
@@ -167,6 +165,14 @@ public class FilesystemManager implements PersistenceStorage {
 
 	public void removeResource(String id) throws Exception {
 		// TODO Auto-generated method stub
+	}
 
+	@Override
+	public MaintainableLightLabelQueryResult queryMaintainableLightLabel(
+			MaintainableLabelQuery maintainableLabelQuery,
+			MaintainableLightLabelQueryResult maintainableLightLabelQueryResult)
+			throws Exception {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

@@ -6,6 +6,7 @@ import java.util.List;
 import org.ddialliance.ddieditor.model.resource.StorageType;
 import org.ddialliance.ddieditor.persistenceaccess.maintainablelabel.MaintainableLabelQuery;
 import org.ddialliance.ddieditor.persistenceaccess.maintainablelabel.MaintainableLabelQueryResult;
+import org.ddialliance.ddieditor.persistenceaccess.maintainablelabel.MaintainableLightLabelQueryResult;
 
 public interface PersistenceStorage {
 
@@ -32,8 +33,14 @@ public interface PersistenceStorage {
 
 	public String querySingleString(String query) throws Exception;
 
-	public MaintainableLabelQueryResult queryMaintainableLabel(MaintainableLabelQuery maintainableLabelQuery, 
+	public MaintainableLabelQueryResult queryMaintainableLabel(
+			MaintainableLabelQuery maintainableLabelQuery,
 			MaintainableLabelQueryResult maintainableLabelQueryResult)
+			throws Exception;
+
+	public MaintainableLightLabelQueryResult queryMaintainableLightLabel(
+			MaintainableLabelQuery maintainableLabelQuery,
+			MaintainableLightLabelQueryResult maintainableLightLabelQueryResult)
 			throws Exception;
 
 	/**
