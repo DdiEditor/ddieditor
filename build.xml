@@ -109,8 +109,8 @@
 				<include name="relaxngDatatype/${version.relaxngDatatype}/*.jar" />
 				<include name="xsom/${version.xsom}/*.jar" />
 			</fileset>
-			<fileset dir="${ddi_3_0-xml-xmlbeans}">
-				<include name="*20080428*.jar" />
+			<fileset dir="${basedir}/../ddi-3-xmlbeans/xmllib">
+				<include name="*.jar" />
 			</fileset>
 			<fileset dir="${lib.dir}/build">
 				<include name="org.ddialliance.ddiftp.util/${version.ddiftp.util}/*.jar" />
@@ -165,7 +165,7 @@
 
 		<mkdir dir="${build.classes.dir}/resources/ddi" />
 		<copy todir="${build.classes.dir}/resources/ddi" overwrite="yes">
-			<fileset dir="../org.ddialliance.ddi_3_0.xml.xmlbeans/build/ddi/${ddi.dir.name}">
+			<fileset dir="${basedir}/../ddi-3-xmlbeans/build/ddi/${ddi.dir.name}">
 				<include name="**/*.*" />
 				<exclude name="**/*.zip" />
 			</fileset>
@@ -220,14 +220,14 @@
 		</copy>
 		<mkdir dir="${build.deploy.dir}/lib/ddi/${ddi.version}" />
 		<copy todir="${build.deploy.dir}/lib/ddi/${ddi.version}">
-			<fileset dir="${ddi_3_0-xml-xmlbeans}">
-				<include name="*20080428*.jar" />
+			<fileset dir="${basedir}/../ddi-3-xmlbeans/xmllib">
+				<include name="*.jar" />
 			</fileset>
 		</copy>
 
 		<mkdir dir="${build.deploy.dir}/lib/" />
 		<copy todir="${build.deploy.dir}/lib/ddieditor-xmlbeans">
-			<fileset dir="../ddieditor-xmlbeans/xmllib">
+			<fileset dir="${basedir}/../ddieditor-xmlbeans/xmllib">
 				<include name="*.jar" />
 			</fileset>
 		</copy>
