@@ -1,26 +1,31 @@
 package org.ddialliance.ddieditor.model;
 
+import static org.junit.Assert.*;
+
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
 
 import org.apache.xmlbeans.XmlObject;
-import org.ddialliance.ddi_3_0.xml.xmlbeans.conceptualcomponent.ConceptDocument;
-import org.ddialliance.ddi_3_0.xml.xmlbeans.conceptualcomponent.ConceptGroupDocument;
-import org.ddialliance.ddi_3_0.xml.xmlbeans.datacollection.DataCollectionDocument;
-import org.ddialliance.ddi_3_0.xml.xmlbeans.datacollection.QuestionItemDocument;
-import org.ddialliance.ddi_3_0.xml.xmlbeans.datacollection.QuestionItemType;
-import org.ddialliance.ddi_3_0.xml.xmlbeans.datacollection.QuestionSchemeDocument;
-import org.ddialliance.ddi_3_0.xml.xmlbeans.logicalproduct.CategorySchemeDocument;
-import org.ddialliance.ddi_3_0.xml.xmlbeans.logicalproduct.CodeSchemeDocument;
-import org.ddialliance.ddi_3_0.xml.xmlbeans.reusable.DateType;
-import org.ddialliance.ddi_3_0.xml.xmlbeans.reusable.InternationalStringType;
-import org.ddialliance.ddi_3_0.xml.xmlbeans.reusable.impl.CitationDocumentImpl;
-import org.ddialliance.ddi_3_0.xml.xmlbeans.reusable.impl.CitationTypeImpl;
-import org.ddialliance.ddi_3_0.xml.xmlbeans.reusable.impl.NameDocumentImpl;
+import org.ddialliance.ddi3.xml.xmlbeans.conceptualcomponent.ConceptDocument;
+import org.ddialliance.ddi3.xml.xmlbeans.conceptualcomponent.ConceptGroupDocument;
+import org.ddialliance.ddi3.xml.xmlbeans.datacollection.ControlConstructDocument;
+import org.ddialliance.ddi3.xml.xmlbeans.datacollection.ControlConstructSchemeDocument;
+import org.ddialliance.ddi3.xml.xmlbeans.datacollection.DataCollectionDocument;
+import org.ddialliance.ddi3.xml.xmlbeans.datacollection.InstrumentDocument;
+import org.ddialliance.ddi3.xml.xmlbeans.datacollection.QuestionItemDocument;
+import org.ddialliance.ddi3.xml.xmlbeans.datacollection.QuestionItemType;
+import org.ddialliance.ddi3.xml.xmlbeans.datacollection.QuestionSchemeDocument;
+import org.ddialliance.ddi3.xml.xmlbeans.instance.DDIInstanceDocument;
+import org.ddialliance.ddi3.xml.xmlbeans.logicalproduct.CategorySchemeDocument;
+import org.ddialliance.ddi3.xml.xmlbeans.logicalproduct.CodeSchemeDocument;
+import org.ddialliance.ddi3.xml.xmlbeans.reusable.CitationType;
+import org.ddialliance.ddi3.xml.xmlbeans.reusable.DateType;
+import org.ddialliance.ddi3.xml.xmlbeans.reusable.InternationalStringType;
+import org.ddialliance.ddi3.xml.xmlbeans.reusable.impl.CitationDocumentImpl;
+import org.ddialliance.ddi3.xml.xmlbeans.reusable.impl.NameDocumentImpl;
 import org.ddialliance.ddieditor.DdieditorTestCase;
 import org.ddialliance.ddieditor.model.conceptual.ConceptualElement;
 import org.ddialliance.ddieditor.model.lightxmlobject.LightXmlObjectListDocument;
@@ -29,6 +34,7 @@ import org.ddialliance.ddieditor.persistenceaccess.PersistenceManager;
 import org.ddialliance.ddieditor.persistenceaccess.maintainablelabel.MaintainableLabelQuery;
 import org.ddialliance.ddieditor.persistenceaccess.maintainablelabel.MaintainableLabelQueryResult;
 import org.ddialliance.ddieditor.persistenceaccess.maintainablelabel.MaintainableLabelUpdateElement;
+import org.ddialliance.ddieditor.persistenceaccess.maintainablelabel.MaintainableLightLabelQueryResult;
 import org.ddialliance.ddiftp.util.DDIFtpException;
 import org.ddialliance.ddiftp.util.Translator;
 import org.junit.Assert;
@@ -73,7 +79,7 @@ public class DdiManagerTest extends DdieditorTestCase {
 		QuestionItemDocument questionItem = DdiManager.getInstance()
 				.getQuestionItem("qi_8", "", "qs_", "");
 		InternationalStringType internationalString = questionItem
-				.getQuestionItem().addNewName();
+				.getQuestionItem().addNewQuestionItemName();
 		internationalString.setStringValue("test");
 		DdiManager.getInstance().updateElement(questionItem, "qi_8", "");
 
@@ -99,7 +105,7 @@ public class DdiManagerTest extends DdieditorTestCase {
 		questionItem = DdiManager.getInstance().getQuestionItem("qi_8", "",
 				"qs_", "");
 		InternationalStringType internationalString = questionItem
-				.getQuestionItem().addNewName();
+				.getQuestionItem().addNewQuestionItemName();
 		internationalString.setStringValue("test");
 		DdiManager.getInstance().updateElement(questionItem, "qi_8", "");
 
@@ -626,11 +632,16 @@ public class DdiManagerTest extends DdieditorTestCase {
 		DateType date = citation.getCitation().addNewPublicationDate();
 		date.setSimpleDate(Translator.formatIso8601DateTime(System
 				.currentTimeMillis()));
-		
+		citation.getCitation().setLanguage("da");
+
 		// update
 		List<MaintainableLabelUpdateElement> list = new ArrayList<MaintainableLabelUpdateElement>();
 		list.add(new MaintainableLabelUpdateElement(citation, 1));
 		DdiManager.getInstance().updateMaintainableLabel(result, list);
+
+		// export
+		PersistenceManager.getInstance().exportResoure(FULLY_DECLARED_NS_DOC,
+				new File("test-citation.xml"));
 	}
 
 	@Test
@@ -652,5 +663,61 @@ public class DdiManagerTest extends DdieditorTestCase {
 		for (ConceptualElement conceptualElement : list) {
 			System.out.println(conceptualElement);
 		}
+	}
+
+	@Test
+	public void getInstrument() throws Exception {
+		PersistenceManager.getInstance().setWorkingResource(
+				FULLY_DECLARED_NS_DOC);
+		InstrumentDocument instrument = DdiManager.getInstance().getInstrument(
+				"i", null, "dd", null);
+		Assert.assertNotNull(instrument);
+	}
+
+	@Test
+	public void getInstrumentsLight() throws Exception {
+		PersistenceManager.getInstance().setWorkingResource(
+				DdieditorTestCase.FULLY_DECLARED_NS_DOC);
+		LightXmlObjectListDocument listDoc = DdiManager.getInstance()
+				.getInstrumentsLight("i", null, "dd", null);
+		Assert.assertTrue("No label!", !listDoc.getLightXmlObjectList()
+				.getLightXmlObjectList().get(0).getLabelList().isEmpty());
+	}
+
+	@Test
+	public void getInstrumentLabel() throws Exception {
+		PersistenceManager.getInstance().setWorkingResource(
+				DdieditorTestCase.FULLY_DECLARED_NS_DOC);
+		MaintainableLightLabelQueryResult result = DdiManager.getInstance()
+				.getInstrumentLabel(null, null, null, null);
+		System.out.println(result);
+	}
+
+	@Test
+	public void getControlConstructScheme() throws Exception {
+		PersistenceManager.getInstance().setWorkingResource(
+				FULLY_DECLARED_NS_DOC);
+		ControlConstructSchemeDocument instrument = DdiManager.getInstance()
+				.getControlConstructScheme("ctrl", null, "dd", null);
+		Assert.assertNotNull(instrument);
+	}
+
+	@Test
+	public void getControlConstructSchemeLight() throws Exception {
+		PersistenceManager.getInstance().setWorkingResource(
+				DdieditorTestCase.FULLY_DECLARED_NS_DOC);
+		LightXmlObjectListDocument listDoc = DdiManager.getInstance()
+				.getControlConstructSchemesLight("ctrl", null, "dd", null);
+		Assert.assertTrue("No label!", !listDoc.getLightXmlObjectList()
+				.getLightXmlObjectList().get(0).getLabelList().isEmpty());
+	}
+
+	@Test
+	public void getControlConstruct() throws Exception {
+		PersistenceManager.getInstance().setWorkingResource(
+				FULLY_DECLARED_NS_DOC);
+		ControlConstructDocument instrument = DdiManager.getInstance()
+				.getQuestionConstruct("qc_1", null, "ctrl", null);
+		Assert.assertNotNull("Not found!", instrument);
 	}
 }

@@ -2,7 +2,7 @@ package org.ddialliance.ddieditor.persistenceaccess.dbxml;
 
 import java.io.File;
 
-import org.ddialliance.ddi_3_0.xml.xmlbeans.instance.DDIInstanceDocument;
+import org.ddialliance.ddi3.xml.xmlbeans.instance.DDIInstanceDocument;
 import org.ddialliance.ddieditor.DdieditorTestCase;
 import org.ddialliance.ddieditor.model.DdiManager;
 import org.ddialliance.ddieditor.persistenceaccess.PersistenceManager;
