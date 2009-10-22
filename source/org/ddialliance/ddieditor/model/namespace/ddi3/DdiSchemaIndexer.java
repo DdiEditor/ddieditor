@@ -426,8 +426,11 @@ public class DdiSchemaIndexer {
 			}
 		}
 		if (!notFoundIdentifiables.isEmpty()) {
-			if (log.isDebugEnabled()) {
-				log.debug("Not found identifiables: " + notFoundIdentifiables);
+			if (log.isErrorEnabled()) {
+				log.warn("Not found identifiables: ");
+				for (String notFound : notFoundIdentifiables) {
+					log.error(notFound);
+				}
 			}
 			throw new DDIFtpException(
 					"Identifiables nedding URN relationship coding!");
