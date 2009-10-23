@@ -35,6 +35,9 @@ public class Ddi3NamespaceHelper {
 	public static File ELEMENT_IDENTIFIABLE = new File("resources"
 			+ File.separator + "element-identifiable.properties");
 
+	public static File ELEMENT_NAME_LABEL = new File("resources"
+			+ File.separator + "element-name-label.properties");
+
 	public static File ELEMENT_URN_RELATIONSHIP = new File("resources"
 			+ File.separator + "element-urn-relationship.xml");
 
@@ -42,6 +45,7 @@ public class Ddi3NamespaceHelper {
 
 	private Properties elementNamespace = new Properties();
 	private Properties elementIdentifiable = new Properties();
+	private Properties elementNameLabels = new Properties();
 
 	public static final String MAINTAINABLE_TYPE = "M";
 	public static final String VERSIONABLE_TYPE = "V";
@@ -80,7 +84,8 @@ public class Ddi3NamespaceHelper {
 	private void loadDdiElements() throws DDIFtpException {
 		// inspect file status
 		if (!ELEMENT_IDENTIFIABLE.exists() || !ELEMENT_NAMESPACE.exists()
-				|| !ELEMENT_URN_RELATIONSHIP.exists()) {
+				|| !ELEMENT_URN_RELATIONSHIP.exists()
+				|| !ELEMENT_NAME_LABEL.exists()) {
 			try {
 				DdiSchemaIndexer ddiSchemaIndexer = new DdiSchemaIndexer(
 						new File(DDI_INSTANCE_URL));
@@ -94,6 +99,7 @@ public class Ddi3NamespaceHelper {
 		// load
 		elementNamespace = FileUtil.loadProperties(ELEMENT_NAMESPACE);
 		elementIdentifiable = FileUtil.loadProperties(ELEMENT_IDENTIFIABLE);
+		elementNameLabels = FileUtil.loadProperties(ELEMENT_NAME_LABEL);		
 		try {
 			urnRelationhipList = UrnRelationhipListDocument.Factory.parse(
 					ELEMENT_URN_RELATIONSHIP).getUrnRelationhipList();
@@ -154,6 +160,7 @@ public class Ddi3NamespaceHelper {
 
 	/**
 	 * Retrieve the module name of a DDI name space
+	 * 
 	 * @param elementName
 	 * @return module name
 	 * @throws DDIFtpException
@@ -375,13 +382,14 @@ public class Ddi3NamespaceHelper {
 					}
 					namespace = namespaceStr;
 				}
-//				if (prevNamespace != null && prevNamespace.equals(namespace)) {
-//					//
-//				} else {
-//					element.insert(elementMacher.end(), " xmlns=\"" + namespace
-//							+ "\"");
-//				}
-//				prevNamespace = namespace;
+				// if (prevNamespace != null && prevNamespace.equals(namespace))
+				// {
+				// //
+				// } else {
+				// element.insert(elementMacher.end(), " xmlns=\"" + namespace
+				// + "\"");
+				// }
+				// prevNamespace = namespace;
 
 				element.insert(elementMacher.end(), " xmlns=\"" + namespace
 						+ "\"");
@@ -434,7 +442,7 @@ public class Ddi3NamespaceHelper {
 		} else
 			return conversionName;
 	}
-	
+
 	/**
 	 * Transform all conversion names in a array to local schema names
 	 * 
@@ -445,9 +453,12 @@ public class Ddi3NamespaceHelper {
 	public String[] getLocalSchemaNames(String[] conversionNames) {
 		String[] localElementNames = new String[conversionNames.length];
 		for (int i = 0; i < conversionNames.length; i++) {
-			localElementNames[i] = getLocalSchemaName(
-					conversionNames[i]);
+			localElementNames[i] = getLocalSchemaName(conversionNames[i]);
 		}
 		return localElementNames;
+	}
+	
+	public Set<Object> getLocalNameLabelNames() {
+		return elementNameLabels.keySet();
 	}
 }

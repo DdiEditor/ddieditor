@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Scanner;
 import java.util.Vector;
-import java.util.Map.Entry;
 
 import org.ddialliance.ddieditor.model.relationship.UrnRelationhipListDocument;
 import org.ddialliance.ddieditor.model.relationship.ElementDocument.Element;
@@ -57,6 +56,7 @@ public class DdiSchemaIndexer {
 	private Properties elementNamespaceDuplicates = new Properties();
 	private Properties elementNamespaceDuplicatesDebug = new Properties();
 
+	private Properties elementNameLabels = new Properties();
 	private Properties elementIdentifiable = new Properties();
 
 	private XSSchemaSet xssSchemaSet;
@@ -236,6 +236,21 @@ public class DdiSchemaIndexer {
 					+ "elementNamespaceDuplicates-debug.properties"),
 					elementNamespaceDuplicatesDebug);
 		}
+
+		// index name and label
+		String[] nameLabels = { "Name", "Label" };
+		String nonSetValue = "non-set-value";
+		for (Object key : elementNamespace.keySet()) {
+			for (int i = 0; i < nameLabels.length; i++) {
+				if (((String) key).indexOf(nameLabels[i]) > -1) {
+					elementNameLabels.put(key, nonSetValue);
+				}
+			}
+		}
+
+		// store to file
+		FileUtil.storeProperties(Ddi3NamespaceHelper.ELEMENT_NAME_LABEL,
+				elementNameLabels);
 
 		// index ddi identifiables
 		Iterator<XSSchema> itr2 = xssSchemaSet.iterateSchema();
