@@ -1335,7 +1335,7 @@ public class DdiManager {
 			throws Exception {
 		return queryLightXmlBeans(id, version, parentId, parentVersion,
 				"ControlConstructScheme", "StatementItem", null,
-				"reusable__Name");
+				"ConstructName");
 	}
 	
 	public ComputationItemDocument getComputationItem(String id,
