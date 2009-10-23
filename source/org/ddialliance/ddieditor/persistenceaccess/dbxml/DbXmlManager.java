@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import org.ddialliance.ddieditor.model.DdiManager;
 import org.ddialliance.ddieditor.model.lightxmlobject.LabelType;
@@ -921,11 +922,10 @@ public class DbXmlManager implements PersistenceStorage {
 							// lightXmlObject);
 
 							// insert
-							lightXmlObject = extractLightXmlObject(localName, reader,
-									maintainableLightLabelQueryResult); 
+							lightXmlObject = extractLightXmlObject(localName,
+									reader, maintainableLightLabelQueryResult);
 							maintainableLightLabelQueryResult.getResult().get(
-									localName).addLast(
-									lightXmlObject);
+									localName).addLast(lightXmlObject);
 							break;
 						}
 					}
@@ -992,19 +992,22 @@ public class DbXmlManager implements PersistenceStorage {
 		String localName;
 		LabelType label = null;
 		List<LabelType> tmpNameLabels = new ArrayList<LabelType>();
-		String attrLang = "lang";
-		String[] labelLocalNames = { "Name", "Label" }; // Label takes
-		// precedence over name
-		Integer labelLocalNameCount = null;
+		String attrLang = "lang", labelPrecedence = "Name";
+		
+		// *Name takes precedence over *Label
+		boolean isName = false;
 
 		// scan xml
 		while (reader.hasNext()) {
 			int type = reader.next();
 			if (type == XmlEventReader.StartElement) {
 				localName = reader.getLocalName();
-				for (int i = 0; i < labelLocalNames.length; i++) {
-					if (localName.equals(labelLocalNames[i])) {
-						labelLocalNameCount = i;
+				for (Object localNameLabelName : DdiManager.getInstance()
+						.getDdi3NamespaceHelper().getLocalNameLabelNames()) {
+					if (localName.equals(localNameLabelName)) {
+						if (localName.indexOf(labelPrecedence)>-1) {
+							isName = true;
+						}
 						label = LabelType.Factory.newInstance();
 
 						// set attributes
@@ -1020,16 +1023,16 @@ public class DbXmlManager implements PersistenceStorage {
 				// set text on light label
 				XmlBeansUtil.setTextOnMixedElement(label, reader.getValue());
 
-				// label
-				if (labelLocalNameCount.intValue() == 1) {
+				// name
+				if (isName) {
 					lightXmlObject.getLabelList().add(label);
 				}
-				// name
+				// label
 				else {
 					tmpNameLabels.add(label);
 				}
 				label = null;
-				labelLocalNameCount = null;
+				isName = false;
 			} else if (type == XmlEventReader.EndElement) {
 				if (reader.getLocalName().equals(lightXmlObject.getElement())) {
 					break;
@@ -1037,7 +1040,7 @@ public class DbXmlManager implements PersistenceStorage {
 			}
 		}
 
-		// enforce label over name rule
+		// enforce name over label rule
 		if (lightXmlObject.getLabelList().isEmpty()) {
 			lightXmlObject.getLabelList().addAll(tmpNameLabels);
 		}
