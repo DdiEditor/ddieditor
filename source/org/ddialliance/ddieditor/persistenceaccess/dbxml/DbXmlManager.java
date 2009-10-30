@@ -177,10 +177,10 @@ public class DbXmlManager implements PersistenceStorage {
 			// environmentConfig.setDsyncDatabases(true);
 			// error stream
 			// change to property definition of dbxml log level
-			XmlManager.setLogLevel(XmlManager.LEVEL_ALL, true);
-			XmlManager.setLogCategory(XmlManager.CATEGORY_CONTAINER
-					| XmlManager.CATEGORY_MANAGER | XmlManager.CATEGORY_QUERY,
-					true);
+//			XmlManager.setLogLevel(XmlManager.LEVEL_ALL, true);
+//			XmlManager.setLogCategory(XmlManager.CATEGORY_CONTAINER
+//					| XmlManager.CATEGORY_MANAGER | XmlManager.CATEGORY_QUERY,
+//					true);
 			// be aware of log level may affect execution to hang!
 			// environmentConfig.setErrorStream(new Log4jLogOutputStream(
 			// logPersistence, LogLevel.INFO));
