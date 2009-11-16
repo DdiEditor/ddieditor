@@ -88,7 +88,7 @@ public class FastUrnUtil {
 		int attrIndex = -1;
 		while ((nr.iterate()) != -1) {
 			urn = new Urn();
-			urn.setSchemaVersion("3.0");
+			urn.setSchemaVersion("3.1");
 			urn.setMaintainableElement(localName);
 
 			// id
