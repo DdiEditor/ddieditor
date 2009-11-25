@@ -1039,8 +1039,8 @@ public class DdiManager {
 						"DDIInstance"));
 
 		maintainableLabelQuery.setElementConversionNames(new String[] {
-				"reusable__Name", "Citation", "studyunit__Abstract",
-				"reusable__UniverseReference", "SeriesStatement",
+				"Citation", "studyunit__Abstract",
+				"UniverseReference", "SeriesStatement",
 				"FundingInformation", "studyunit__Purpose", "Coverage",
 				"AnalysisUnit",
 				// TODO
