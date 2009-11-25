@@ -12,6 +12,8 @@ import org.apache.xmlbeans.XmlObject;
 import org.ddialliance.ddi3.xml.xmlbeans.conceptualcomponent.ConceptDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.conceptualcomponent.ConceptGroupDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.conceptualcomponent.ConceptSchemeDocument;
+import org.ddialliance.ddi3.xml.xmlbeans.conceptualcomponent.UniverseDocument;
+import org.ddialliance.ddi3.xml.xmlbeans.conceptualcomponent.UniverseSchemeDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.datacollection.ComputationItemDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.datacollection.ControlConstructDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.datacollection.ControlConstructSchemeDocument;
@@ -1437,6 +1439,30 @@ public class DdiManager {
 		return queryLightXmlBeans(id, version, parentId, parentVersion,
 				"ControlConstructScheme", "Loop", null,
 				"reusable__Name");
+	}
+
+	public UniverseSchemeDocument getUniverseScheme(String id, String version, String parentId, String parentVersion)
+			throws Exception {
+		String text = queryElement(id, version, "UniverseScheme", parentId, parentVersion, "ConceptualComponent");
+		return (text == "" ? null : UniverseSchemeDocument.Factory.parse(text));
+	}
+
+	public LightXmlObjectListDocument getUniverseSchemesLight(String id, String version, String parentId,
+			String parentVersion) throws Exception {
+		return queryLightXmlBeans(id, version, parentId, parentVersion, "ConceptualComponent", "UniverseScheme", null,
+				"reusable__Label");
+	}
+
+	public UniverseDocument getUniverse(String id, String version, String parentId, String parentVersion)
+			throws Exception {
+		String text = queryElement(id, version, "Universe", parentId, parentVersion, "UniverseScheme");
+		return (text == "" ? null : UniverseDocument.Factory.parse(text));
+	}
+
+	public LightXmlObjectListDocument getUniversesLight(String id, String version, String parentId, String parentVersion)
+			throws Exception {
+		return queryLightXmlBeans(id, version, parentId, parentVersion, "UniverseScheme", "Universe", null,
+				"HumanReadable");
 	}
 
 	//
