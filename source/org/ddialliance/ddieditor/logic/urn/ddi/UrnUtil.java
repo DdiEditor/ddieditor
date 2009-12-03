@@ -167,18 +167,16 @@ public class UrnUtil {
 		Urn urn = new Urn();
 		urn.setContainedElement(elementName);
 		if (!elementIsTopUrn) {
-			urn.setVersionableElementId(id);
+			urn.setContainedElementId(id);
 		}
 		if (!elementIsTopUrn && version != null && !version.equals("")) {
-			urn.setVersionableElementVersion(version);
+			urn.setContainedElementVersion(version);
 		} else if (!elementIsTopUrn) {
-			urn.setVersionableElementVersion(topUrn.getVersion());
+			urn.setContainedElementVersion(topUrn.getVersion());
 		}
 		urn.setIdentifingAgency(topUrn.getAgency());
 		urn.setMaintainableId(topUrn.getId());
 		urn.setMaintainableVersion(topUrn.getVersion());
-		urn.setPrefix("ddi");
-		urn.setSchemaVersion(topUrn.getDdi().toString());
 		return urn;
 	}
 
@@ -384,7 +382,7 @@ public class UrnUtil {
 		try {
 			lightXmlObjectList = (LightXmlObjectListDocument) DdiEditorRefUtil
 					.invokeMethod(DdiManager.getInstance(), methodName
-							.toString(), false, urn.getElementId(), "", "", "");
+							.toString(), false, urn.getContainedElementId(), "", "", "");
 		} catch (Exception e) {
 			throw new DDIFtpException("Error on get light xml object by urn", e);
 		}
@@ -406,7 +404,7 @@ public class UrnUtil {
 			// fetch ddiinstance
 			// return ddiinstance
 		}
-		if (urn.getElementId() == null || urn.getElementId().equals("")) {
+		if (urn.getContainedElementId() == null || urn.getContainedElementId().equals("")) {
 			// fetch maintainable
 		}
 
@@ -451,7 +449,7 @@ public class UrnUtil {
 			xQuery.setObject(1, DdiManager.getInstance().getDdi3NamespaceHelper()
 					.addFullyQualifiedNamespaceDeclarationToElements(
 							urn.getContainedElement()));
-			xQuery.setString(2, urn.getElementId());
+			xQuery.setString(2, urn.getContainedElementId());
 			xQuery.setObject(3, PersistenceManager.getInstance()
 					.getResourcePath());
 			xQuery.setObject(4, DdiManager.getInstance().getDdi3NamespaceHelper()
@@ -469,7 +467,7 @@ public class UrnUtil {
 					version = getVersion(xmlResult);
 					// no version on element- inherit from topUrn
 					if (version == null
-							&& urn.getVersionableElementVersion().equals(
+							&& urn.getContainedElementVersion().equals(
 									urn.getMaintainableVersion())) {
 						xmlText = xmlResult;
 						break;
@@ -478,7 +476,7 @@ public class UrnUtil {
 					// element version
 					if (version != null
 							&& version.equals(urn
-									.getVersionableElementVersion())) {
+									.getContainedElementVersion())) {
 						xmlText = xmlResult;
 						break;
 					}
