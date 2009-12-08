@@ -5,7 +5,6 @@
 	<classpathentry kind="src" path="source"/>
 	<classpathentry kind="src" path="testsource"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/util"/>
-	<classpathentry kind="lib" path="/ddieditor-xmlbeans/xmllib/org.ddialliance.ddieditor.model.xmlbeans.jar"/>
 	<classpathentry kind="lib" path="/lib-java/aspectj/1.6.1/aspectjrt.jar"/>
 	<classpathentry kind="lib" path="/lib-java/aspectj/1.6.1/aspectjweaver.jar"/>
 	<classpathentry kind="lib" path="/lib-java/commons/jexl/1.1/commons-jexl.jar"/>
@@ -28,11 +27,12 @@
 	<classpathentry kind="lib" path="/lib-java/xmlbeans/2.4.0/xmlpublic.jar"/>
 	<classpathentry kind="lib" path="/lib-java/xsom/20060901/xsom.jar"/>
 	<classpathentry kind="lib" path="/lib-java/xsom/20060901/xsom14.jar"/>
-	<classpathentry kind="lib" path="/ddi-3-xmlbeans/xmllib/ddi-3-xmlbeans.jar"/>
 	<classpathentry kind="lib" path="/lib-java/bdbxml/2.5.13/db.jar"/>
 	<classpathentry kind="lib" path="/lib-java/bdbxml/2.5.13/dbxml.jar"/>
 	<classpathentry kind="lib" path="/lib-java/commons/logging/1.1.1/commons-logging-1.1.1.jar"/>
 	<classpathentry kind="lib" path="/lib-java/perf4j/0.9.12/perf4j-0.9.12.jar"/>
 	<classpathentry kind="lib" path="/lib-java/vtd-xml/2.6/vtd-xml.jar"/>
+	<classpathentry kind="lib" path="/lib-java/generated/ddi-3-xmlbeans.jar"/>
+	<classpathentry kind="lib" path="/lib-java/generated/org.ddialliance.ddieditor.model.xmlbeans.jar"/>
 	<classpathentry kind="output" path="build"/>
 </classpath>
