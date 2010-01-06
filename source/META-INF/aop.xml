@@ -17,8 +17,12 @@
 			Here is where we specify the classes to be woven. You can specify
 			package names like com.company.project.*
 		-->		
-		<!--include within="org.ddialliance.ddieditor.persistenceaccess.PersistenceManager" /-->
+		
+		
+		<!--include within="org.ddialliance.ddieditor.model.DdiManager" /-->
+		<include within="org.ddialliance.ddieditor.model.PerformanceRun" />
 		<include within="org.ddialliance.ddieditor.persistenceaccess.dbxml.DbXmlManager" />
-		<include within="org.ddialliance.ddieditor.model.DdiManager" />
+		<include within="org.ddialliance.ddieditor.persistenceaccess.PersistenceManager" />
+		<include within="org.ddialliance.ddieditor.model.namespace.ddi3.Ddi3NamespaceHelper" />
 	</weaver>
 </aspectj>
