@@ -417,7 +417,6 @@ public class PersistenceManager {
 	 * @return result list
 	 * @throws DDIFtpException
 	 */
-	@Profiled(tag = "query query_{$0} tt/n/n")
 	public List<String> query(String query) throws DDIFtpException {
 		queryLog.info(query);
 		try {
@@ -427,7 +426,6 @@ public class PersistenceManager {
 		}
 	}
 
-	@Profiled(tag = "updateQuery query_{$0}")
 	public void updateQuery(String query) throws DDIFtpException {
 		queryLog.info(query);
 		try {

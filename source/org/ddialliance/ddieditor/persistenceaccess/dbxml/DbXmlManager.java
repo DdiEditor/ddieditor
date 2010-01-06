@@ -308,6 +308,7 @@ public class DbXmlManager implements PersistenceStorage {
 		}
 	}
 
+	@Profiled(tag = "getTransaction")
 	protected synchronized XmlTransaction getTransaction() throws Exception {
 		if (transaction.get() == null) {
 			TransactionConfig tc = new TransactionConfig();
@@ -322,6 +323,7 @@ public class DbXmlManager implements PersistenceStorage {
 		return transaction.get();
 	}
 
+	@Profiled(tag = "commitTransaction")
 	protected synchronized void commitTransaction() throws Exception {
 		if (transaction.get() != null) {
 			if (System.getProperty("ddieditor.test") != null
@@ -479,7 +481,7 @@ public class DbXmlManager implements PersistenceStorage {
 		return documents;
 	}
 
-	@Profiled(tag = "dbxml-query")
+	@Profiled(tag = "query_{$0}")
 	public List<String> query(String query) throws Exception {
 		XmlResults rs = xQuery(query);
 		List<String> result = new ArrayList<String>();
@@ -491,7 +493,7 @@ public class DbXmlManager implements PersistenceStorage {
 		return result;
 	}
 
-	@Profiled(tag = "dbxml-updatequery")
+	@Profiled(tag = "updateQuery_{$0}")
 	public void updateQuery(String query) throws Exception {
 		XmlResults rs = null;
 		XmlQueryContext xmlQueryContext = xmlManager.createQueryContext(
