@@ -18,6 +18,7 @@ import org.ddialliance.ddiftp.util.FileUtil;
 import org.ddialliance.ddiftp.util.log.Log;
 import org.ddialliance.ddiftp.util.log.LogFactory;
 import org.ddialliance.ddiftp.util.log.LogType;
+import org.perf4j.aop.Profiled;
 
 /**
  * Associates DDI elements to DDI modules and DDI elements to parent DDI
@@ -198,6 +199,7 @@ public class Ddi3NamespaceHelper {
 	 * @return fully qualified element name space declaration
 	 * @throws Exception
 	 */
+	@Profiled(tag = "addFullyQualifiedNamespaceDeclarationToElements")
 	public String addFullyQualifiedNamespaceDeclarationToElements(String query)
 			throws DDIFtpException {
 		String cacheResult = qualifiedNsCache.get(query);
