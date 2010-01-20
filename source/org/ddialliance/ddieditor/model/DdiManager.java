@@ -936,13 +936,14 @@ public class DdiManager {
 		}
 
 		// result
-		MaintainableLightLabelQueryResult result = new MaintainableLightLabelQueryResult();
-		result.setMaintainableTarget(schemeQuery.getMaintainableTarget());
+		MaintainableLightLabelQueryResult result = new MaintainableLightLabelQueryResult(
+				schemeQuery);
 
 		// prepare result list
 		for (String key : conversionToLocalName.keySet()) {
 			result.getResult().put(key, new LinkedList<LightXmlObjectType>());
 		}
+		
 		// query
 		MaintainableLightLabelQueryResult maintainableLightLabelQueryResult;
 		try {
@@ -954,6 +955,7 @@ public class DdiManager {
 					"Error querying persistent storage on maintainable label light",
 					e);
 		}
+		
 		// clean result of empty lists
 		for (Iterator<Entry<String, LinkedList<LightXmlObjectType>>> iterator = maintainableLightLabelQueryResult
 				.getResult().entrySet().iterator(); iterator.hasNext();) {
@@ -1034,17 +1036,17 @@ public class DdiManager {
 	public MaintainableLabelQueryResult getStudyLabel(String id,
 			String version, String parentId, String parentVersion)
 			throws DDIFtpException {
-		MaintainableLabelQuery maintainableLabelQuery = new MaintainableLabelQuery();
+		MaintainableLabelQuery maintainableLabelQuery = new MaintainableLabelQuery(
+				parentId, parentVersion, null);
 		maintainableLabelQuery
 				.setQuery(getQueryElementString(id, version,
 						"studyunit__StudyUnit", parentId, parentVersion,
 						"DDIInstance"));
 
 		maintainableLabelQuery.setElementConversionNames(new String[] {
-				"Citation", "studyunit__Abstract",
-				"UniverseReference", "SeriesStatement",
-				"FundingInformation", "studyunit__Purpose", "Coverage",
-				"AnalysisUnit",
+				"Citation", "studyunit__Abstract", "UniverseReference",
+				"SeriesStatement", "FundingInformation", "studyunit__Purpose",
+				"Coverage", "AnalysisUnit",
 				// TODO
 				// "AnalysisUnitsCovered",
 				// left out because of potential bug on declaration in schema
@@ -1180,7 +1182,8 @@ public class DdiManager {
 	public MaintainableLabelQueryResult getQuestionSchemeLabel(String id,
 			String version, String parentId, String parentVersion)
 			throws DDIFtpException {
-		MaintainableLabelQuery schemeQuery = new MaintainableLabelQuery();
+		MaintainableLabelQuery schemeQuery = new MaintainableLabelQuery(
+				parentId, parentVersion, null);
 		schemeQuery.setQuery(getQueryElementString(id, version,
 				"QuestionScheme", parentId, parentVersion,
 				"datacollection__DataCollection"));
@@ -1205,8 +1208,7 @@ public class DdiManager {
 			String version, String parentId, String parentVersion)
 			throws Exception {
 		return queryLightXmlBeans(id, version, parentId, parentVersion,
-				"QuestionScheme", "QuestionItem", null,
-				"QuestionItemName");
+				"QuestionScheme", "QuestionItem", null, "QuestionItemName");
 	}
 
 	@Profiled(tag = "getQuestionItem")
@@ -1234,7 +1236,8 @@ public class DdiManager {
 	public MaintainableLightLabelQueryResult getInstrumentLabel(String id,
 			String version, String parentId, String parentVersion)
 			throws DDIFtpException {
-		MaintainableLabelQuery query = new MaintainableLabelQuery();
+		MaintainableLabelQuery query = new MaintainableLabelQuery(parentId,
+				parentVersion, null);
 		query.setQuery(getQueryElementString(id, version,
 				"ControlConstructScheme", parentId, parentVersion,
 				"datacollection__DataCollection"));
@@ -1261,16 +1264,16 @@ public class DdiManager {
 		MaintainableLightLabelQueryResult maLightLabelQueryResult = queryMaintainableLightLabel(query);
 
 		// add instrument
-		LightXmlObjectListDocument lightDoc = null;
-		try {
-			lightDoc = getInstrumentsLight(id, version, parentId, parentVersion);
-		} catch (Exception e) {
-			throw new DDIFtpException(e);
-		}
-		maLightLabelQueryResult.getResult().put(
-				"Instrument",
-				new LinkedList<LightXmlObjectType>(lightDoc
-						.getLightXmlObjectList().getLightXmlObjectList()));
+		// LightXmlObjectListDocument lightDoc = null;
+		// try {
+		// lightDoc = getInstrumentsLight(id, version, parentId, parentVersion);
+		// } catch (Exception e) {
+		// throw new DDIFtpException(e);
+		// }
+		// maLightLabelQueryResult.getResult().put(
+		// "Instrument",
+		// new LinkedList<LightXmlObjectType>(lightDoc
+		// .getLightXmlObjectList().getLightXmlObjectList()));
 		return maLightLabelQueryResult;
 	}
 
@@ -1323,15 +1326,13 @@ public class DdiManager {
 				"reusable__Name");
 	}
 
-	public StatementItemDocument getStatementItem(String id,
-			String version, String parentId, String parentVersion)
-			throws Exception {
+	public StatementItemDocument getStatementItem(String id, String version,
+			String parentId, String parentVersion) throws Exception {
 		String text = queryElement(id, version, "StatementItem", parentId,
 				parentVersion, "ControlConstructScheme");
-		return (text == "" ? null : StatementItemDocument.Factory
-				.parse(text));
+		return (text == "" ? null : StatementItemDocument.Factory.parse(text));
 	}
-	
+
 	public LightXmlObjectListDocument getStatementItemsLight(String id,
 			String version, String parentId, String parentVersion)
 			throws Exception {
@@ -1339,16 +1340,15 @@ public class DdiManager {
 				"ControlConstructScheme", "StatementItem", null,
 				"ConstructName");
 	}
-	
+
 	public ComputationItemDocument getComputationItem(String id,
 			String version, String parentId, String parentVersion)
 			throws Exception {
 		String text = queryElement(id, version, "ComputationItem", parentId,
 				parentVersion, "ControlConstructScheme");
-		return (text == "" ? null : ComputationItemDocument.Factory
-				.parse(text));
+		return (text == "" ? null : ComputationItemDocument.Factory.parse(text));
 	}
-	
+
 	public LightXmlObjectListDocument getComputationItemsLight(String id,
 			String version, String parentId, String parentVersion)
 			throws Exception {
@@ -1356,113 +1356,103 @@ public class DdiManager {
 				"ControlConstructScheme", "ComputationItem", null,
 				"reusable__Name");
 	}
-	public SequenceDocument getSequence(String id,
-			String version, String parentId, String parentVersion)
-			throws Exception {
+
+	public SequenceDocument getSequence(String id, String version,
+			String parentId, String parentVersion) throws Exception {
 		String text = queryElement(id, version, "Sequence", parentId,
 				parentVersion, "ControlConstructScheme");
-		return (text == "" ? null : SequenceDocument.Factory
-				.parse(text));
+		return (text == "" ? null : SequenceDocument.Factory.parse(text));
 	}
-	
+
 	public LightXmlObjectListDocument getSequencesLight(String id,
 			String version, String parentId, String parentVersion)
 			throws Exception {
 		return queryLightXmlBeans(id, version, parentId, parentVersion,
-				"ControlConstructScheme", "Sequence", null,
-				"reusable__Name");
+				"ControlConstructScheme", "Sequence", null, "reusable__Name");
 	}
-	
-	public IfThenElseDocument getIfThenElse(String id,
-			String version, String parentId, String parentVersion)
-			throws Exception {
+
+	public IfThenElseDocument getIfThenElse(String id, String version,
+			String parentId, String parentVersion) throws Exception {
 		String text = queryElement(id, version, "IfThenElse", parentId,
 				parentVersion, "ControlConstructScheme");
-		return (text == "" ? null : IfThenElseDocument.Factory
-				.parse(text));
+		return (text == "" ? null : IfThenElseDocument.Factory.parse(text));
 	}
-	
+
 	public LightXmlObjectListDocument getIfThenElsesLight(String id,
 			String version, String parentId, String parentVersion)
 			throws Exception {
 		return queryLightXmlBeans(id, version, parentId, parentVersion,
-				"ControlConstructScheme", "IfThenElse", null,
-				"reusable__Name");
+				"ControlConstructScheme", "IfThenElse", null, "reusable__Name");
 	}
-	
-	public RepeatUntilDocument getRepeatUntil(String id,
-			String version, String parentId, String parentVersion)
-			throws Exception {
+
+	public RepeatUntilDocument getRepeatUntil(String id, String version,
+			String parentId, String parentVersion) throws Exception {
 		String text = queryElement(id, version, "RepeatUntil", parentId,
 				parentVersion, "ControlConstructScheme");
-		return (text == "" ? null : RepeatUntilDocument.Factory
-				.parse(text));
+		return (text == "" ? null : RepeatUntilDocument.Factory.parse(text));
 	}
-	
+
 	public LightXmlObjectListDocument getRepeatUntilsLight(String id,
 			String version, String parentId, String parentVersion)
 			throws Exception {
 		return queryLightXmlBeans(id, version, parentId, parentVersion,
-				"ControlConstructScheme", "RepeatUntil", null,
-				"reusable__Name");
+				"ControlConstructScheme", "RepeatUntil", null, "reusable__Name");
 	}
 
-	public RepeatWhileDocument getRepeatWhile(String id,
-			String version, String parentId, String parentVersion)
-			throws Exception {
+	public RepeatWhileDocument getRepeatWhile(String id, String version,
+			String parentId, String parentVersion) throws Exception {
 		String text = queryElement(id, version, "RepeatWhile", parentId,
 				parentVersion, "ControlConstructScheme");
-		return (text == "" ? null : RepeatWhileDocument.Factory
-				.parse(text));
+		return (text == "" ? null : RepeatWhileDocument.Factory.parse(text));
 	}
-	
+
 	public LightXmlObjectListDocument getRepeatWhilesLight(String id,
 			String version, String parentId, String parentVersion)
 			throws Exception {
 		return queryLightXmlBeans(id, version, parentId, parentVersion,
-				"ControlConstructScheme", "RepeatWhile", null,
-				"reusable__Name");
-	}
-	
-	public LoopDocument getLoop(String id,
-			String version, String parentId, String parentVersion)
-			throws Exception {
-		String text = queryElement(id, version, "Loop", parentId,
-				parentVersion, "ControlConstructScheme");
-		return (text == "" ? null : LoopDocument.Factory
-				.parse(text));
-	}
-	
-	public LightXmlObjectListDocument getLoopsLight(String id,
-			String version, String parentId, String parentVersion)
-			throws Exception {
-		return queryLightXmlBeans(id, version, parentId, parentVersion,
-				"ControlConstructScheme", "Loop", null,
-				"reusable__Name");
+				"ControlConstructScheme", "RepeatWhile", null, "reusable__Name");
 	}
 
-	public UniverseSchemeDocument getUniverseScheme(String id, String version, String parentId, String parentVersion)
-			throws Exception {
-		String text = queryElement(id, version, "UniverseScheme", parentId, parentVersion, "ConceptualComponent");
+	public LoopDocument getLoop(String id, String version, String parentId,
+			String parentVersion) throws Exception {
+		String text = queryElement(id, version, "Loop", parentId,
+				parentVersion, "ControlConstructScheme");
+		return (text == "" ? null : LoopDocument.Factory.parse(text));
+	}
+
+	public LightXmlObjectListDocument getLoopsLight(String id, String version,
+			String parentId, String parentVersion) throws Exception {
+		return queryLightXmlBeans(id, version, parentId, parentVersion,
+				"ControlConstructScheme", "Loop", null, "reusable__Name");
+	}
+
+	public UniverseSchemeDocument getUniverseScheme(String id, String version,
+			String parentId, String parentVersion) throws Exception {
+		String text = queryElement(id, version, "UniverseScheme", parentId,
+				parentVersion, "ConceptualComponent");
 		return (text == "" ? null : UniverseSchemeDocument.Factory.parse(text));
 	}
 
-	public LightXmlObjectListDocument getUniverseSchemesLight(String id, String version, String parentId,
-			String parentVersion) throws Exception {
-		return queryLightXmlBeans(id, version, parentId, parentVersion, "ConceptualComponent", "UniverseScheme", null,
+	public LightXmlObjectListDocument getUniverseSchemesLight(String id,
+			String version, String parentId, String parentVersion)
+			throws Exception {
+		return queryLightXmlBeans(id, version, parentId, parentVersion,
+				"ConceptualComponent", "UniverseScheme", null,
 				"reusable__Label");
 	}
 
-	public UniverseDocument getUniverse(String id, String version, String parentId, String parentVersion)
-			throws Exception {
-		String text = queryElement(id, version, "Universe", parentId, parentVersion, "UniverseScheme");
+	public UniverseDocument getUniverse(String id, String version,
+			String parentId, String parentVersion) throws Exception {
+		String text = queryElement(id, version, "Universe", parentId,
+				parentVersion, "UniverseScheme");
 		return (text == "" ? null : UniverseDocument.Factory.parse(text));
 	}
 
-	public LightXmlObjectListDocument getUniversesLight(String id, String version, String parentId, String parentVersion)
+	public LightXmlObjectListDocument getUniversesLight(String id,
+			String version, String parentId, String parentVersion)
 			throws Exception {
-		return queryLightXmlBeans(id, version, parentId, parentVersion, "UniverseScheme", "Universe", null,
-				"HumanReadable");
+		return queryLightXmlBeans(id, version, parentId, parentVersion,
+				"UniverseScheme", "Universe", null, "HumanReadable");
 	}
 
 	//
