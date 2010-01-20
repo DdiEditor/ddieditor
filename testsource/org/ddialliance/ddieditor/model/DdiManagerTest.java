@@ -427,7 +427,7 @@ public class DdiManagerTest extends DdieditorTestCase {
 
 		// test setup
 		String query = "for $element in doc('dbxml:/big-doc.dbxml/big-doc.xml')//*[namespace-uri()='ddi:logicalproduct:3_0' and local-name()='LogicalProduct'] for $child in $element//*[namespace-uri()='ddi:logicalproduct:3_0' and local-name()='CategoryScheme']  where $element/@id = 'lp_1' and $child/@id = 'cats_7' and empty($child/@version) return $child";
-		MaintainableLabelQuery schemeQuery = new MaintainableLabelQuery();
+		MaintainableLabelQuery schemeQuery = new MaintainableLabelQuery("", "", "");
 		schemeQuery.setQuery(query);
 		schemeQuery
 				.setElementConversionNames(new String[] { "reusable__Label" });
@@ -719,5 +719,18 @@ public class DdiManagerTest extends DdieditorTestCase {
 		ControlConstructDocument instrument = DdiManager.getInstance()
 				.getQuestionConstruct("qc_1", null, "ctrl", null);
 		Assert.assertNotNull("Not found!", instrument);
+	}
+	
+	@Test
+	
+	public void getStatementItemLight() throws Exception {
+		PersistenceManager.getInstance().setWorkingResource(
+				DdieditorTestCase.FULLY_DECLARED_NS_DOC);
+		LightXmlObjectListDocument listDoc = DdiManager.getInstance()
+				.getStatementItemsLight("si_998-1", null, "ctrl", null);
+		System.out.println(listDoc.getLightXmlObjectList()
+				.getLightXmlObjectList().get(0));
+		Assert.assertTrue("No label!", !listDoc.getLightXmlObjectList()
+				.getLightXmlObjectList().get(0).getLabelList().isEmpty());
 	}
 }
