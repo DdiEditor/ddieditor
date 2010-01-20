@@ -12,8 +12,16 @@ public class MaintainableLightLabelQueryResult {
 	private String id;
 	private String version;
 	private String agency;
+	private String parentId, parentVersion;
 	private Map<String, LinkedList<LightXmlObjectType>> result = new HashMap<String, LinkedList<LightXmlObjectType>>();
 
+	public MaintainableLightLabelQueryResult(MaintainableLabelQuery query) {
+		this.setMaintainableTarget(query.getMaintainableTarget());
+		this.setParentId(query.getParentId());
+		this.setParentVersion(query.getParentVersion());
+		this.setAgency(query.getAgency());
+	}
+	
 	public String getId() {
 		return id;
 	}
@@ -44,6 +52,22 @@ public class MaintainableLightLabelQueryResult {
 
 	public void setMaintainableTarget(String maintainableTarget) {
 		this.maintainableTarget = maintainableTarget;
+	}
+
+	public String getParentId() {
+		return parentId;
+	}
+
+	public void setParentId(String parentId) {
+		this.parentId = parentId;
+	}
+
+	public String getParentVersion() {
+		return parentVersion;
+	}
+
+	public void setParentVersion(String parentVersion) {
+		this.parentVersion = parentVersion;
 	}
 
 	/**
