@@ -1,7 +1,6 @@
 package org.ddialliance.ddieditor.logic.identification;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.ddialliance.ddi3.xml.xmlbeans.reusable.AbstractIdentifiableType;
@@ -21,6 +20,7 @@ public class IdentificationManager {
 	private static Log log = LogFactory.getLog(LogType.SYSTEM,
 			IdentificationManager.class);
 	private static IdentificationManager instance;
+	private String deleimiter = ".";
 	private IdentificationGenerator idGenerator = null;
 	private ReferenceGenerator refGenerator = null;
 	private Map<String, String> properties;
@@ -179,14 +179,25 @@ public class IdentificationManager {
 			VersionChangeType versionChange) throws DDIFtpException {
 		checkPolicy();
 		// TODO apply version rules
+		
+		// guard
 		if (oldVeresion == null) {
 			return "1.0.0";
 		}
+		
+		// add change
 		String[] versionSplit = oldVeresion.split("\\.");
-		for (int i = 0; i < versionSplit.length; i++) {
-			log.debug(versionSplit[i]);
-		}
-		return null;
+		int version = Integer.parseInt(versionSplit[versionChange.ordinal()]);
+		versionSplit[versionChange.ordinal()] = "" + ++version;
+
+		// result
+		StringBuilder result = new StringBuilder(versionSplit[0]);
+		result.append(deleimiter);
+		result.append(versionSplit[1]);
+		result.append(deleimiter);
+		result.append(versionSplit[2]);
+		
+		return result.toString();
 	}
 
 	private void addAgency(AbstractMaintainableType abstractMaintainable) {
@@ -206,6 +217,7 @@ public class IdentificationManager {
 	 */
 	public ReferenceType addReferenceInformation(ReferenceType reference,
 			LightXmlObjectType lightXmlObject) throws DDIFtpException {
+		// TODO apply reference rules
 		return refGenerator.addReferenceInformation(reference, lightXmlObject,
 				null);
 	}
