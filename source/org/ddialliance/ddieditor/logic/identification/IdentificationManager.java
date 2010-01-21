@@ -24,7 +24,7 @@ public class IdentificationManager {
 	private IdentificationGenerator idGenerator = null;
 	private ReferenceGenerator refGenerator = null;
 	private Map<String, String> properties;
-	
+
 	enum PolicyType {
 		ID("id"), VERSION("version"), AGENCY("agency");
 
@@ -52,6 +52,7 @@ public class IdentificationManager {
 
 	/**
 	 * Access singleton instance
+	 * 
 	 * @return identification manager
 	 */
 	public static synchronized IdentificationManager getInstance() {
@@ -66,28 +67,29 @@ public class IdentificationManager {
 	 * Initialize the identification manager with policy
 	 * 
 	 * identification.implementation.id = class-name-of-id-implementation<br>
-	 * * identification.implementation.ref = class-name-of-reference-implementation<br>
+	 * * identification.implementation.ref =
+	 * class-name-of-reference-implementation<br>
 	 * identification.agency identification.policy.id = allways_add<br>
 	 * identification.policy.version = minimal<br>
-	 * identification.policy.agency = never
-	 * ...
+	 * identification.policy.agency = never ...
 	 */
 	public void reloadPolicy(Map<String, String> properties) {
 		// dynamically class load implementations
 		idGenerator = new DefaultIdGenerator();
 		refGenerator = new DefaultReferenceGenereator();
-		
+
 		// setup rules and preferences for agency etc
 	}
 
 	private void checkPolicy() throws DDIFtpException {
 		if (idGenerator == null) {
-			throw new DDIFtpException("Identification implementaion not initialized",
+			throw new DDIFtpException(
+					"Identification implementaion not initialized",
 					new Throwable());
 		}
 		if (refGenerator == null) {
-			throw new DDIFtpException("Reference implementaion not initialized",
-					new Throwable());
+			throw new DDIFtpException(
+					"Reference implementaion not initialized", new Throwable());
 		}
 
 		// TODO apply check on rules too
@@ -95,27 +97,35 @@ public class IdentificationManager {
 
 	/**
 	 * Add ID information
-	 * @param abstractIdentifiable to apply ID on
-	 * @param prefix id prefix
-	 * @param postfix id postfix
+	 * 
+	 * @param abstractIdentifiable
+	 *            to apply ID on
+	 * @param prefix
+	 *            id prefix
+	 * @param postfix
+	 *            id postfix
 	 * @throws DDIFtpException
 	 */
 	public void addIdentification(
-			AbstractIdentifiableType abstractIdentifiable, String prefix, String postfix)
-			throws DDIFtpException {
+			AbstractIdentifiableType abstractIdentifiable, String prefix,
+			String postfix) throws DDIFtpException {
 		abstractIdentifiable.setId(idGenerator.generateId(prefix, postfix));
-		
+
 		// agency
 		if (abstractIdentifiable instanceof AbstractMaintainableType) {
-			addAgency((AbstractMaintainableType)abstractIdentifiable);
-		}		
+			addAgency((AbstractMaintainableType) abstractIdentifiable);
+		}
 	}
 
 	/**
 	 * Add version information
-	 * @param abstractVersionable to apply version information on
-	 * @param versionChange degree of change
-	 * @param versionRationale version rationale in human readable text
+	 * 
+	 * @param abstractVersionable
+	 *            to apply version information on
+	 * @param versionChange
+	 *            degree of change
+	 * @param versionRationale
+	 *            version rationale in human readable text
 	 * @throws DDIFtpException
 	 */
 	public void addVersionInformation(
@@ -124,7 +134,7 @@ public class IdentificationManager {
 			throws DDIFtpException {
 		// version change
 		String oldVersion = abstractVersionable.getVersion();
-		String version = genereteVersion(oldVersion, versionChange);
+		String version = generateVersion(oldVersion, versionChange);
 		abstractVersionable.setVersion(version);
 
 		// user id
@@ -154,10 +164,10 @@ public class IdentificationManager {
 			changeInfo.append(versionRationale);
 		}
 		str.setStringValue(changeInfo.toString());
-		
+
 		// agency
 		if (abstractVersionable instanceof AbstractMaintainableType) {
-			addAgency((AbstractMaintainableType)abstractVersionable);
+			addAgency((AbstractMaintainableType) abstractVersionable);
 		}
 	}
 
@@ -165,7 +175,7 @@ public class IdentificationManager {
 		MAJOR, MINIOR, MINOR_MINOR;
 	}
 
-	private String genereteVersion(String oldVeresion,
+	private String generateVersion(String oldVeresion,
 			VersionChangeType versionChange) throws DDIFtpException {
 		checkPolicy();
 		// TODO apply version rules
@@ -178,17 +188,34 @@ public class IdentificationManager {
 		}
 		return null;
 	}
-	
+
 	private void addAgency(AbstractMaintainableType abstractMaintainable) {
 		// TODO apply agency rules
 		abstractMaintainable.setAgency(properties.get("agency"));
 	}
-	
-	public void addReferenceInformation(ReferenceType reference, LightXmlObjectType lightXmlObject) {
-		
+
+	/**
+	 * Add reference information
+	 * 
+	 * @param reference
+	 *            reference to add to, if NULL a new reference is created
+	 * @param lightXmlObject
+	 *            reference to add from
+	 * @return changed reference
+	 * @throws DDIFtpException
+	 */
+	public ReferenceType addReferenceInformation(ReferenceType reference,
+			LightXmlObjectType lightXmlObject) throws DDIFtpException {
+		return refGenerator.addReferenceInformation(reference, lightXmlObject,
+				null);
 	}
-	
+
+	/**
+	 * Creates a reference
+	 * 
+	 * @return created reference
+	 */
 	public ReferenceType createReferenceType() {
-		return null;
+		return refGenerator.createReference();
 	}
 }
