@@ -1,11 +1,8 @@
 package org.ddialliance.ddieditor.logic.identification;
 
-import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.xmlbeans.XmlOptions;
-import org.ddialliance.ddi3.xml.xmlbeans.logicalproduct.CodeSchemeReferenceDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.reusable.AbstractIdentifiableType;
 import org.ddialliance.ddi3.xml.xmlbeans.reusable.AbstractMaintainableType;
 import org.ddialliance.ddi3.xml.xmlbeans.reusable.AbstractVersionableType;
