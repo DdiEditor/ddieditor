@@ -14,23 +14,15 @@ public class DefaultReferenceGenereator implements ReferenceGenerator {
 	public ReferenceType addReferenceInformation(ReferenceType reference,
 			LightXmlObjectType lightXmlObject, List rules)
 			throws DDIFtpException {
-		if (reference == null) {
-			reference = createReference();
-		}
-
-		if (reference.getIDList().isEmpty()) {
-			reference.addNewID();
-		}
-
+		applyReferenceElements(reference);
 		reference.getIDList().get(0).setStringValue(lightXmlObject.getId());
 		return reference;
 	}
 
 	@Override
-	public ReferenceType createReference() {
-		ReferenceType type = ReferenceType.Factory.newInstance();
-		type.addNewID();
-
-		return type;
+	public void applyReferenceElements(ReferenceType reference) {
+		if (reference.getIDList().isEmpty()) {
+			reference.addNewID();
+		}
 	}
 }

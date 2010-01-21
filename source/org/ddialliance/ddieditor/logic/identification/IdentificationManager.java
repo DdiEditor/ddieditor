@@ -1,15 +1,21 @@
 package org.ddialliance.ddieditor.logic.identification;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.xmlbeans.XmlOptions;
+import org.ddialliance.ddi3.xml.xmlbeans.logicalproduct.CodeSchemeReferenceDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.reusable.AbstractIdentifiableType;
 import org.ddialliance.ddi3.xml.xmlbeans.reusable.AbstractMaintainableType;
 import org.ddialliance.ddi3.xml.xmlbeans.reusable.AbstractVersionableType;
 import org.ddialliance.ddi3.xml.xmlbeans.reusable.InternationalStringType;
 import org.ddialliance.ddi3.xml.xmlbeans.reusable.ReferenceType;
+import org.ddialliance.ddieditor.model.DdiManager;
 import org.ddialliance.ddieditor.model.lightxmlobject.LightXmlObjectType;
+import org.ddialliance.ddiftp.util.Config;
 import org.ddialliance.ddiftp.util.DDIFtpException;
+import org.ddialliance.ddiftp.util.ReflectionUtil;
 import org.ddialliance.ddiftp.util.Translator;
 import org.ddialliance.ddiftp.util.log.Log;
 import org.ddialliance.ddiftp.util.log.LogFactory;
@@ -179,12 +185,12 @@ public class IdentificationManager {
 			VersionChangeType versionChange) throws DDIFtpException {
 		checkPolicy();
 		// TODO apply version rules
-		
+
 		// guard
 		if (oldVeresion == null) {
 			return "1.0.0";
 		}
-		
+
 		// add change
 		String[] versionSplit = oldVeresion.split("\\.");
 		int version = Integer.parseInt(versionSplit[versionChange.ordinal()]);
@@ -196,7 +202,7 @@ public class IdentificationManager {
 		result.append(versionSplit[1]);
 		result.append(deleimiter);
 		result.append(versionSplit[2]);
-		
+
 		return result.toString();
 	}
 
@@ -217,17 +223,45 @@ public class IdentificationManager {
 	 */
 	public ReferenceType addReferenceInformation(ReferenceType reference,
 			LightXmlObjectType lightXmlObject) throws DDIFtpException {
+		if (reference == null) {
+			reference = createReferenceByReflection(lightXmlObject);
+		}
+
 		// TODO apply reference rules
 		return refGenerator.addReferenceInformation(reference, lightXmlObject,
 				null);
 	}
 
-	/**
-	 * Creates a reference
-	 * 
-	 * @return created reference
-	 */
-	public ReferenceType createReferenceType() {
-		return refGenerator.createReference();
+	private ReferenceType createReferenceByReflection(
+			LightXmlObjectType lightXmlObject) throws DDIFtpException {
+		StringBuilder clazz = new StringBuilder(Config
+				.get(Config.DDI3_XMLBEANS_BASEPACKAGE));
+		clazz.append(DdiManager.getInstance().getDdi3NamespaceHelper()
+				.getModuleNameByElement(lightXmlObject.getElement()));
+		clazz.append(".");
+		clazz.append(lightXmlObject.getElement());
+		clazz.append("ReferenceDocument");
+		clazz.append("$Factory");
+
+		if (log.isDebugEnabled()) {
+			log.debug("Classname: " + clazz.toString());
+		}
+
+		Object result = null;
+		try {
+			Object obj = ReflectionUtil.invokeStaticMethod(clazz.toString(),
+					"newInstance");
+			ReflectionUtil.invokeMethod(obj, "addNew"
+					+ lightXmlObject.getElement() + "Reference", false, null);
+			
+			result =  ReflectionUtil.invokeMethod(obj, "get"
+					+ lightXmlObject.getElement() + "Reference", false, null);
+		} catch (Exception e) {
+			DDIFtpException wrapedException = new DDIFtpException(
+					"xmlbeanutil.open.error", lightXmlObject);
+			wrapedException.setRealThrowable(e);
+			throw wrapedException;
+		}
+		return (ReferenceType) result;
 	}
 }

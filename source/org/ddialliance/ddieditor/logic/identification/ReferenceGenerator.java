@@ -22,8 +22,8 @@ public interface ReferenceGenerator {
 			LightXmlObjectType lightXmlObject, List rules) throws DDIFtpException;
 
 	/**
-	 * Creates a reference
-	 * @return created reference
+	 * Create needed elements on the reference e.g. ID, URN etc
+	 * @param reference to create elements on
 	 */
-	public ReferenceType createReference();
+	public void applyReferenceElements(ReferenceType reference);
 }
