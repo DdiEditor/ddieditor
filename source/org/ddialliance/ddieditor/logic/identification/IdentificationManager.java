@@ -169,6 +169,7 @@ public class IdentificationManager {
 		str.setStringValue(changeInfo.toString());
 
 		// agency
+		// TODO apply agency rules
 		if (abstractVersionable instanceof AbstractMaintainableType) {
 			addAgency((AbstractMaintainableType) abstractVersionable);
 		}
