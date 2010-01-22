@@ -11,9 +11,14 @@ public class DefaultIdGenerator implements IdentificationGenerator {
 		StringBuffer id = new StringBuffer();
 		if (prefix != null) {
 			id.append(prefix);
+			id.append(delimiter);
 		}
-		id.append(delimiter);
 		id.append(generateId());
+		
+		if (postfix!=null) {
+			id.append(delimiter);
+			id.append(postfix);
+		}
 		return id.toString();
 	}
 
