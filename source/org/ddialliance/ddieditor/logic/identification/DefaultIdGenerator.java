@@ -4,18 +4,18 @@ import org.ddialliance.ddiftp.util.DDIFtpException;
 
 public class DefaultIdGenerator implements IdentificationGenerator {
 	private String delimiter = "-";
-	
+
 	@Override
 	public String generateId(String prefix, String postfix)
 			throws DDIFtpException {
 		StringBuffer id = new StringBuffer();
-		if (prefix != null) {
+		if (prefix != null && !prefix.equals("")) {
 			id.append(prefix);
 			id.append(delimiter);
 		}
 		id.append(generateId());
-		
-		if (postfix!=null) {
+
+		if (postfix != null && !postfix.equals("")) {
 			id.append(delimiter);
 			id.append(postfix);
 		}
