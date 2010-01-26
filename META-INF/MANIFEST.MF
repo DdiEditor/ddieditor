@@ -10,6 +10,7 @@ Export-Package:
  org.ddialliance.ddieditor,
  org.ddialliance.ddieditor.controller,
  org.ddialliance.ddieditor.logic.urn.ddi,
+ org.ddialliance.ddieditor.logic.identification,
  org.ddialliance.ddieditor.logic.validation,
  org.ddialliance.ddieditor.model,
  org.ddialliance.ddieditor.model.conceptual,
@@ -26,7 +27,7 @@ Bundle-ClassPath: .,
 Require-Bundle: lib-java;bundle-version="1.0.0",
  org.eclipse.osgi;bundle-version="3.5.0",
  util;bundle-version="1.0.0"
-Import-Package:  
+Import-Package: 
  com.sleepycat.db,
  com.sleepycat.dbxml,
  com.sun.xml.xsom,
