@@ -1,7 +1,5 @@
 package org.ddialliance.ddieditor.model;
 
-import static org.junit.Assert.*;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -18,10 +16,10 @@ import org.ddialliance.ddi3.xml.xmlbeans.datacollection.InstrumentDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.datacollection.QuestionItemDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.datacollection.QuestionItemType;
 import org.ddialliance.ddi3.xml.xmlbeans.datacollection.QuestionSchemeDocument;
-import org.ddialliance.ddi3.xml.xmlbeans.instance.DDIInstanceDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.logicalproduct.CategorySchemeDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.logicalproduct.CodeSchemeDocument;
-import org.ddialliance.ddi3.xml.xmlbeans.reusable.CitationType;
+import org.ddialliance.ddi3.xml.xmlbeans.logicalproduct.VariableDocument;
+import org.ddialliance.ddi3.xml.xmlbeans.logicalproduct.VariableSchemeDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.reusable.DateType;
 import org.ddialliance.ddi3.xml.xmlbeans.reusable.InternationalStringType;
 import org.ddialliance.ddi3.xml.xmlbeans.reusable.impl.CitationDocumentImpl;
@@ -258,6 +256,44 @@ public class DdiManagerTest extends DdieditorTestCase {
 	}
 
 	@Test
+	public void getVariableScheme() throws Exception {
+		PersistenceManager.getInstance().setWorkingResource(
+				DdieditorTestCase.FULLY_DECLARED_NS_DOC);
+		VariableSchemeDocument xmlObj = DdiManager.getInstance()
+				.getVariableScheme("vs_1", null, "lp_1", null);
+		Assert.assertNotNull(xmlObj.getVariableScheme());
+	}
+
+	@Test
+	public void getVariableSchemesLight() throws Exception {
+		PersistenceManager.getInstance().setWorkingResource(
+				DdieditorTestCase.FULLY_DECLARED_NS_DOC);
+		LightXmlObjectListDocument listDoc = DdiManager.getInstance()
+				.getVariableSchemesLight("", null, "", null);
+		Assert.assertEquals(1, listDoc.getLightXmlObjectList()
+				.sizeOfLightXmlObjectArray());
+	}
+
+	@Test
+	public void getVariable() throws Exception {
+		PersistenceManager.getInstance().setWorkingResource(
+				DdieditorTestCase.FULLY_DECLARED_NS_DOC);
+		VariableDocument xmlObj = DdiManager.getInstance().getVariable("v0001",
+				null, "vs_1", null);
+		Assert.assertNotNull(xmlObj.getVariable());
+	}
+
+	@Test
+	public void getVariablesLight() throws Exception {
+		PersistenceManager.getInstance().setWorkingResource(
+				DdieditorTestCase.FULLY_DECLARED_NS_DOC);
+		LightXmlObjectListDocument listDoc = DdiManager.getInstance()
+				.getVariableSchemesLight("", null, "", null);
+		Assert.assertEquals(1, listDoc.getLightXmlObjectList()
+				.sizeOfLightXmlObjectArray());
+	}
+
+	@Test
 	public void getDataCollection() throws Exception {
 		PersistenceManager.getInstance().setWorkingResource(
 				DdieditorTestCase.FULLY_DECLARED_NS_DOC);
@@ -427,7 +463,8 @@ public class DdiManagerTest extends DdieditorTestCase {
 
 		// test setup
 		String query = "for $element in doc('dbxml:/big-doc.dbxml/big-doc.xml')//*[namespace-uri()='ddi:logicalproduct:3_0' and local-name()='LogicalProduct'] for $child in $element//*[namespace-uri()='ddi:logicalproduct:3_0' and local-name()='CategoryScheme']  where $element/@id = 'lp_1' and $child/@id = 'cats_7' and empty($child/@version) return $child";
-		MaintainableLabelQuery schemeQuery = new MaintainableLabelQuery("", "", "");
+		MaintainableLabelQuery schemeQuery = new MaintainableLabelQuery("", "",
+				"");
 		schemeQuery.setQuery(query);
 		schemeQuery
 				.setElementConversionNames(new String[] { "reusable__Label" });
@@ -720,9 +757,8 @@ public class DdiManagerTest extends DdieditorTestCase {
 				.getQuestionConstruct("qc_1", null, "ctrl", null);
 		Assert.assertNotNull("Not found!", instrument);
 	}
-	
+
 	@Test
-	
 	public void getStatementItemLight() throws Exception {
 		PersistenceManager.getInstance().setWorkingResource(
 				DdieditorTestCase.FULLY_DECLARED_NS_DOC);

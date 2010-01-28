@@ -29,6 +29,8 @@ import org.ddialliance.ddi3.xml.xmlbeans.datacollection.SequenceDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.datacollection.StatementItemDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.logicalproduct.CategorySchemeDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.logicalproduct.CodeSchemeDocument;
+import org.ddialliance.ddi3.xml.xmlbeans.logicalproduct.VariableDocument;
+import org.ddialliance.ddi3.xml.xmlbeans.logicalproduct.VariableSchemeDocument;
 import org.ddialliance.ddieditor.model.conceptual.ConceptualElement;
 import org.ddialliance.ddieditor.model.conceptual.ConceptualType;
 import org.ddialliance.ddieditor.model.lightxmlobject.LightXmlObjectListDocument;
@@ -1508,5 +1510,51 @@ public class DdiManager {
 			queryElement(id, version, "CategoryScheme", null, null, null);
 		}
 		return (text == "" ? null : CategorySchemeDocument.Factory.parse(text));
+	}
+	
+	public VariableSchemeDocument getVariableScheme(String id, String version,
+			String parentId, String parentVersion) throws Exception {
+		String text = queryElement(id, version, "VariableScheme", parentId,
+				parentVersion, "logicalproduct__LogicalProduct");
+		if (text == null) {
+			queryElement(id, version, "VariableScheme", null, null, null);
+		}
+		return (text == "" ? null : VariableSchemeDocument.Factory.parse(text));
+	}
+	
+	public LightXmlObjectListDocument getVariableSchemesLight(String id,
+			String version, String parentId, String parentVersion)
+			throws Exception {
+		LightXmlObjectListDocument lightXmlObjectListDocument = queryLightXmlBeans(
+				id, version, parentId, parentVersion,
+				"logicalproduct__LogicalProduct", "VariableScheme", null,
+				"VariableSchemeName");
+		if (lightXmlObjectListDocument.getLightXmlObjectList()
+				.getLightXmlObjectList().isEmpty()) {
+			lightXmlObjectListDocument = queryLightXmlBeans(id, version,
+					parentId, parentVersion, "//", "VariableScheme", null,
+					"VariableSchemeName");
+		}
+		return lightXmlObjectListDocument;
+	}
+	
+	public VariableDocument getVariable(String id, String version,
+			String parentId, String parentVersion) throws Exception {
+		String text = queryElement(id, version, "Variable", parentId,
+				parentVersion, "VariableScheme");
+		if (text == null) {
+			queryElement(id, version, "Variable", null, null, null);
+		}
+		return (text == "" ? null : VariableDocument.Factory.parse(text));
+	}
+	
+	public LightXmlObjectListDocument getVariablesLight(String id,
+			String version, String parentId, String parentVersion)
+			throws Exception {
+		LightXmlObjectListDocument lightXmlObjectListDocument = queryLightXmlBeans(
+				id, version, parentId, parentVersion,
+				"VariableScheme", "Variable", null,
+				"VariableName");
+		return lightXmlObjectListDocument;
 	}
 }
