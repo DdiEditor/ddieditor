@@ -27,6 +27,7 @@ import com.ximpleware.VTDNav;
 
 /**
  * URN utility
+ * @deprecated use Urn2Util due to development reasons Kept in SVN for backwards comparability issues
  */
 public class UrnUtil {
 	private static Log log = LogFactory.getLog(LogType.SYSTEM, UrnUtil.class);
@@ -75,15 +76,16 @@ public class UrnUtil {
 
 		// construct parent element list
 		List<String> parentElements = new LinkedList<String>();
-		String initialParentElement = DdiManager.getInstance()
-				.getDdi3NamespaceHelper().getParentElementName(elementName);
+		String initialParentElement = null;
+//		DdiManager.getInstance()
+//				.getDdi3NamespaceHelper().getParentElementName(elementName);
 		if (initialParentElement != null) {
 			String tmpParentElement = initialParentElement;
 			parentElements.add(tmpParentElement);
 			do {
-				tmpParentElement = DdiManager.getInstance()
-						.getDdi3NamespaceHelper().getParentElementName(
-								tmpParentElement);
+//				tmpParentElement = DdiManager.getInstance()
+//						.getDdi3NamespaceHelper().getParentElementName(
+//								tmpParentElement);
 				parentElements.add(tmpParentElement);
 			} while (!tmpParentElement.equals("DDIInstance"));
 		} else {
@@ -185,15 +187,16 @@ public class UrnUtil {
 
 		// construct parent element list
 		List<String> parentElements = new LinkedList<String>();
-		String initialParentElement = DdiManager.getInstance()
-				.getDdi3NamespaceHelper().getParentElementName(elementName);
+		String initialParentElement = null;
+//		DdiManager.getInstance()
+//				.getDdi3NamespaceHelper().getParentElementName(elementName);
 		if (initialParentElement != null) {
 			String tmpParentElement = initialParentElement;
 			parentElements.add(tmpParentElement);
 			do {
-				tmpParentElement = DdiManager.getInstance()
-						.getDdi3NamespaceHelper().getParentElementName(
-								tmpParentElement);
+//				tmpParentElement = DdiManager.getInstance()
+//						.getDdi3NamespaceHelper().getParentElementName(
+//								tmpParentElement);
 				parentElements.add(tmpParentElement);
 			} while (!tmpParentElement.equals("DDIInstance"));
 		} else {
@@ -409,9 +412,10 @@ public class UrnUtil {
 		}
 
 		// create lookup for element with top maintainables
-		String initialParentElement = DdiManager.getInstance()
-				.getDdi3NamespaceHelper().getParentElementName(
-						urn.getContainedElement());
+		String initialParentElement = null;
+		// DdiManager.getInstance()
+		// .getDdi3NamespaceHelper().getParentElementName(
+		// urn.getContainedElement());
 
 		List<TopURNType> topUrns = PersistenceManager.getInstance()
 				.getTopUrnsByIdAndVersionByWorkingResource(
