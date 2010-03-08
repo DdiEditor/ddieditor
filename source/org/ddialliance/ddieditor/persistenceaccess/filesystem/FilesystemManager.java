@@ -80,7 +80,7 @@ public class FilesystemManager implements PersistenceStorage {
 
 			for (Urn urn : urns) {
 				TopURNType topURN = ddiResource.addNewTopURN();
-				topURN.setElement(urn.getContainedElement());
+				topURN.setElement(urn.getMaintainableElement());
 				topURN.setId(urn.getMaintainableId());
 				topURN.setAgency(urn.getIdentifingAgency());
 				topURN.setVersion(urn.getMaintainableVersion());
