@@ -1284,7 +1284,7 @@ public class DdiManager {
 			throws Exception {
 		return queryLightXmlBeans(id, version, parentId, parentVersion,
 				"datacollection__DataCollection", "Instrument", null,
-				"reusable__Name");
+				"reusable__Label");
 	}
 
 	public InstrumentDocument getInstrument(String id, String version,
