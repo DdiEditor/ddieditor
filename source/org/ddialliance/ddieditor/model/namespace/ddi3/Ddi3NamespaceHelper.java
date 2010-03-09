@@ -9,6 +9,10 @@ import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.xml.namespace.QName;
+
+import org.apache.xmlbeans.SchemaType;
+import org.apache.xmlbeans.XmlObject;
 import org.ddialliance.ddieditor.model.relationship.UrnRelationhipListDocument;
 import org.ddialliance.ddieditor.model.relationship.ElementDocument.Element;
 import org.ddialliance.ddieditor.model.relationship.UrnRelationhipListDocument.UrnRelationhipList;
@@ -100,7 +104,7 @@ public class Ddi3NamespaceHelper {
 		// load
 		elementNamespace = FileUtil.loadProperties(ELEMENT_NAMESPACE);
 		elementIdentifiable = FileUtil.loadProperties(ELEMENT_IDENTIFIABLE);
-		elementNameLabels = FileUtil.loadProperties(ELEMENT_NAME_LABEL);		
+		elementNameLabels = FileUtil.loadProperties(ELEMENT_NAME_LABEL);
 		try {
 			urnRelationhipList = UrnRelationhipListDocument.Factory.parse(
 					ELEMENT_URN_RELATIONSHIP).getUrnRelationhipList();
@@ -421,13 +425,18 @@ public class Ddi3NamespaceHelper {
 		return maintainalbeList;
 	}
 
-	public String getParentElementName(String elementName) {
-		// parent
-		String parentElementName = null;
-		if (log.isDebugEnabled()) {
-			log.debug("Parent element: " + parentElementName);
+	public boolean isMaintainable(XmlObject xmlObject) {
+		QName qName = xmlObject.schemaType().getDocumentElementName();
+		return isMaintainable(qName.getLocalPart());
+	}
+
+	public boolean isMaintainable(String localName) {
+		for (String tmp : getMaintainableElementsList()) {
+			if (tmp.indexOf(localName) > -1) {
+				return true;
+			}
 		}
-		return parentElementName;
+		return false;
 	}
 
 	/**
@@ -459,7 +468,7 @@ public class Ddi3NamespaceHelper {
 		}
 		return localElementNames;
 	}
-	
+
 	public Set<Object> getLocalNameLabelNames() {
 		return elementNameLabels.keySet();
 	}
