@@ -439,6 +439,19 @@ public class Ddi3NamespaceHelper {
 		return false;
 	}
 
+	public boolean isVersionable(XmlObject xmlObject) {
+		QName qName = xmlObject.schemaType().getDocumentElementName();
+		String localName = qName.getLocalPart();
+		for (Entry<Object, Object> entry : elementIdentifiable.entrySet()) {
+			if ((entry.getValue().equals(MAINTAINABLE_TYPE) || entry.getValue()
+					.equals(VERSIONABLE_TYPE))
+					&& entry.getKey().equals(localName)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	/**
 	 * Transform the conversion name to local schema name
 	 * 
