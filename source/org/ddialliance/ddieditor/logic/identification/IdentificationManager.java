@@ -1,8 +1,10 @@
 package org.ddialliance.ddieditor.logic.identification;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
+import org.apache.xmlbeans.XmlObject;
 import org.ddialliance.ddi3.xml.xmlbeans.reusable.AbstractIdentifiableType;
 import org.ddialliance.ddi3.xml.xmlbeans.reusable.AbstractMaintainableType;
 import org.ddialliance.ddi3.xml.xmlbeans.reusable.AbstractVersionableType;
@@ -175,6 +177,51 @@ public class IdentificationManager {
 		}
 	}
 
+	/**
+	 * Retrieve version responsibility and version rationale
+	 * 
+	 * @param xmlObject of type Document
+	 * @return version information
+	 * @throws DDIFtpException
+	 */
+	public VersionInformation getVersionInformation(XmlObject xmlObject)
+			throws DDIFtpException {
+		XmlBeansUtil.instanceOfXmlBeanDocument(xmlObject, new Throwable());
+		
+		XmlObject xmlObjectType = XmlBeansUtil.getXmlObjectTypeFromXmlDocument(
+				xmlObject, new Throwable());
+		if (!(xmlObjectType instanceof AbstractVersionableType)) {
+			throw new DDIFtpException("Is not versionable");
+		}
+		VersionInformation versionInformation = new VersionInformation();
+
+		// responsibility
+		try {
+			versionInformation.versionResponsibility = (String) ReflectionUtil
+					.invokeMethod(xmlObjectType, "getVersionResponsibility",
+							false, new Object[] {});
+		} catch (Exception e) {
+			DDIFtpException wrapedException = new DDIFtpException(
+					"Error on get version responsible");
+			wrapedException.setRealThrowable(e);
+			throw wrapedException;
+		}
+
+		// rationale
+		try {
+			versionInformation.versionRationaleList = (List<InternationalStringType>) ReflectionUtil
+					.invokeMethod(xmlObjectType, "getVersionRationaleList",
+							false, new Object[] {});
+		} catch (Exception e) {
+			DDIFtpException wrapedException = new DDIFtpException(
+					"Error on get version rationale");
+			wrapedException.setRealThrowable(e);
+			throw wrapedException;
+		}
+
+		return versionInformation;
+	}
+
 	public enum VersionChangeType {
 		MAJOR, MINIOR, MINOR_MINOR;
 	}
@@ -251,8 +298,8 @@ public class IdentificationManager {
 					"newInstance");
 			ReflectionUtil.invokeMethod(obj, "addNew"
 					+ lightXmlObject.getElement() + "Reference", false, null);
-			
-			result =  ReflectionUtil.invokeMethod(obj, "get"
+
+			result = ReflectionUtil.invokeMethod(obj, "get"
 					+ lightXmlObject.getElement() + "Reference", false, null);
 		} catch (Exception e) {
 			DDIFtpException wrapedException = new DDIFtpException(
