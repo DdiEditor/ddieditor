@@ -1100,7 +1100,7 @@ public class DdiManager {
 			throws Exception {
 		// ConceptScheme/Concept/Label
 		return queryLightXmlBeans(id, version, parentId, parentVersion,
-				"ConceptScheme", "Concept", null, "ConceptName");
+		"ConceptScheme", "Concept", null, "reusable__Label");
 	}
 
 	@Profiled(tag = "getConceptScheme")
