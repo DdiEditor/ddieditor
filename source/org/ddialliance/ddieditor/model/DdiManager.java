@@ -1209,8 +1209,9 @@ public class DdiManager {
 	public LightXmlObjectListDocument getQuestionItemsLight(String id,
 			String version, String parentId, String parentVersion)
 			throws Exception {
+		// TODO Question Item has currently no Label - it should
 		return queryLightXmlBeans(id, version, parentId, parentVersion,
-				"QuestionScheme", "QuestionItem", null, "QuestionItemName");
+				"QuestionScheme", "QuestionItem", null, "reusable__Label");
 	}
 
 	@Profiled(tag = "getQuestionItem")
