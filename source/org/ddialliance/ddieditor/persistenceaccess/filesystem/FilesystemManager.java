@@ -1,7 +1,6 @@
 package org.ddialliance.ddieditor.persistenceaccess.filesystem;
 
 import java.io.File;
-import java.math.BigDecimal;
 import java.util.List;
 
 import org.ddialliance.ddieditor.logic.urn.ddi.FastUrnUtil;
@@ -31,7 +30,7 @@ public class FilesystemManager implements PersistenceStorage {
 
 	public static synchronized PersistenceStorage getInstance() {
 		if (instance == null) {
-			logSystem.info("Initializing BDbXmlManager");
+			logSystem.info("Initializing");
 			instance = new FilesystemManager();
 		}
 		return instance;
@@ -50,7 +49,7 @@ public class FilesystemManager implements PersistenceStorage {
 					+ file.getName() + "' has already been added");
 		}
 
-		// strip file of DDIInstance - left out!, until now :- )
+		// TODO strip file of DDIInstance - left out!, until now :- )
 
 		try {
 			// load file into db xml container
@@ -92,78 +91,8 @@ public class FilesystemManager implements PersistenceStorage {
 		} catch (Exception e) {
 			throw e;
 		} finally {
-			// reset doc
+			// TODO reset doc
 		}
-	}
-
-	public void close() throws Exception {
-		// TODO Auto-generated method stub
-
-	}
-
-	// public void commitTransaction() throws Exception {
-	// }
-
-	public String getGlobalResourcePath(StorageType storage) throws Exception {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public String getResourcePath(StorageType storage, String resource)
-			throws DDIFtpException {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public Object getTransaction() throws Exception {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public List<String> query(String query) throws Exception {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public boolean querySingleBoolean(String query) throws Exception {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	public String querySingleString(String query) throws Exception {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public MaintainableLabelQueryResult queryMaintainableLabel(
-			MaintainableLabelQuery maintainableLabelQuery,
-			MaintainableLabelQueryResult maintainableLabelQueryResult)
-			throws Exception {
-		return null;
-	}
-
-	public void setWorkingConnection(StorageType storage) throws Exception {
-		// TODO Auto-generated method stub
-
-	}
-
-	public void updateQuery(String query) throws Exception {
-		// TODO Auto-generated method stub
-
-	}
-
-	public void exportResource(String id, File file) throws Exception {
-		// TODO Auto-generated method stub
-
-	}
-
-	public List<String> getResources() throws Exception {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public void removeResource(String id) throws Exception {
-		// TODO Auto-generated method stub
 	}
 
 	@Override
@@ -171,7 +100,79 @@ public class FilesystemManager implements PersistenceStorage {
 			MaintainableLabelQuery maintainableLabelQuery,
 			MaintainableLightLabelQueryResult maintainableLightLabelQueryResult)
 			throws Exception {
-		// TODO Auto-generated method stub
+		// not implemented
 		return null;
+	}
+
+	@Override
+	public void close() throws Exception {
+		// not implemented
+	}
+
+	@Override
+	public void exportResource(String id, File file) throws Exception {
+		// not implemented
+
+	}
+
+	@Override
+	public String getGlobalResourcePath(StorageType storage) throws Exception {
+		// not implemented
+		return null;
+	}
+
+	@Override
+	public String getResourcePath(StorageType storage, String resource)
+			throws Exception {
+		// not implemented
+		return null;
+	}
+
+	@Override
+	public List<String> getResources() throws Exception {
+		// not implemented
+		return null;
+	}
+
+	@Override
+	public List<String> query(String query) throws Exception {
+		// not implemented
+		return null;
+	}
+
+	@Override
+	public MaintainableLabelQueryResult queryMaintainableLabel(
+			MaintainableLabelQuery maintainableLabelQuery,
+			MaintainableLabelQueryResult maintainableLabelQueryResult)
+			throws Exception {
+		// not implemented
+		return null;
+	}
+
+	@Override
+	public boolean querySingleBoolean(String query) throws Exception {
+		// not implemented
+		return false;
+	}
+
+	@Override
+	public String querySingleString(String query) throws Exception {
+		// not implemented
+		return null;
+	}
+
+	@Override
+	public void removeResource(String id) throws Exception {
+		// not implemented
+	}
+
+	@Override
+	public void setWorkingConnection(StorageType storage) throws Exception {
+		// not implemented
+	}
+
+	@Override
+	public void updateQuery(String query) throws Exception {
+		// not implemented
 	}
 }
