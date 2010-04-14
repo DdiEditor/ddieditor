@@ -71,16 +71,16 @@ public interface PersistenceStorage {
 	public String getGlobalResourcePath(StorageType storage) throws Exception;
 
 	/**
-	 * Add a xml resource to storage
+	 * Add a resource to a storage
 	 * 
-	 * @param path
-	 *            to xml file to add
+	 * @param obj
+	 *            resource to add
 	 * @throws Exception
 	 */
 	public void addResource(Object obj) throws Exception;
 
 	/**
-	 * Remove a xml resource from storage
+	 * Remove a resource from a storage
 	 * 
 	 * @param id
 	 *            xml file to remove
@@ -89,12 +89,38 @@ public interface PersistenceStorage {
 	public void removeResource(String id) throws Exception;
 
 	/**
-	 * Retrieve ids of all xml resources in storage
+	 * Retrieve ids of all resources
 	 * 
 	 * @return list of resource ids
 	 * @throws Exception
 	 */
 	public List<String> getResources() throws Exception;
+
+	/**
+	 * Add a xml resource to storage
+	 * 
+	 * @param obj
+	 *            storage to add
+	 * @throws Exception
+	 */
+	public void addStorage(Object obj) throws Exception;
+
+	/**
+	 * Remove a storage
+	 * 
+	 * @param id
+	 *            of storage to remove
+	 * @throws Exception
+	 */
+	public void removeStorage(String id) throws Exception;
+
+	/**
+	 * Retrieve ids of all storages
+	 * 
+	 * @return list of resource ids
+	 * @throws Exception
+	 */
+	public List<String> getStorages() throws Exception;
 
 	/**
 	 * Export a resource from storage to a file
