@@ -442,6 +442,8 @@ public class Ddi3NamespaceHelper {
 	public boolean isVersionable(XmlObject xmlObject) {
 		QName qName = xmlObject.schemaType().getDocumentElementName();
 		String localName = qName.getLocalPart();
+		// TODO convert a localName to conversion name via QName to detect eg.
+		// StudyUnit as studyunit_StudyUnit
 		for (Entry<Object, Object> entry : elementIdentifiable.entrySet()) {
 			if ((entry.getValue().equals(MAINTAINABLE_TYPE) || entry.getValue()
 					.equals(VERSIONABLE_TYPE))
