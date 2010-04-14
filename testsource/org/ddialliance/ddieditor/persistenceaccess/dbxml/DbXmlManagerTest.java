@@ -1,18 +1,21 @@
 package org.ddialliance.ddieditor.persistenceaccess.dbxml;
 
+import static org.junit.Assert.*;
+
 import java.io.File;
+import java.util.List;
 
 import org.ddialliance.ddi3.xml.xmlbeans.instance.DDIInstanceDocument;
 import org.ddialliance.ddieditor.DdieditorTestCase;
 import org.ddialliance.ddieditor.model.DdiManager;
 import org.ddialliance.ddieditor.persistenceaccess.PersistenceManager;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.sleepycat.dbxml.XmlResults;
 
 public class DbXmlManagerTest extends DdieditorTestCase {
-
 	@Test
 	public void query() throws Exception {
 		PersistenceManager.getInstance().setWorkingResource(
@@ -53,5 +56,11 @@ public class DbXmlManagerTest extends DdieditorTestCase {
 				DdieditorTestCase.FULLY_DECLARED_NS_DOC, file);
 		DDIInstanceDocument exportDoc = DDIInstanceDocument.Factory.parse(file);
 		Assert.assertNotNull(exportDoc);
+	}
+	
+	@Test
+	public void getStorages() throws Exception {
+		List<String> result = DbXmlManager.getInstance().getStorages();
+		System.out.println(result);
 	}
 }
