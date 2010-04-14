@@ -1,18 +1,14 @@
 package org.ddialliance.ddieditor.persistenceaccess;
 
-import static org.junit.Assert.*;
-
 import java.util.List;
 
 import org.ddialliance.ddieditor.DdieditorTestCase;
-import org.ddialliance.ddieditor.model.resource.DDIResourceDocument;
 import org.ddialliance.ddieditor.model.resource.DDIResourceType;
 import org.ddialliance.ddieditor.model.resource.ResourceListDocument;
-import org.ddialliance.ddieditor.model.resource.StorageDocument;
 import org.ddialliance.ddieditor.model.resource.StorageType;
-import org.ddialliance.ddieditor.model.resource.TopURNDocument;
 import org.ddialliance.ddieditor.model.resource.TopURNType;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class PersistenceManagerTest extends DdieditorTestCase {
@@ -44,28 +40,43 @@ public class PersistenceManagerTest extends DdieditorTestCase {
 		List<TopURNType> topUrns = PersistenceManager.getInstance()
 				.getTopUrnsByIdAndVersionByWorkingResource("hungobongo",
 						"qs_-2", "1.0.2");
-		Assert.assertEquals("hungobongo", topUrns.get(0)
-				.getAgency());
+		Assert.assertEquals("hungobongo", topUrns.get(0).getAgency());
 	}
 
 	@Test
 	public void deleteResource() throws Exception {
-		String orgName = SINGLE_MANINTAINABLE_QS_FD_NS_DOC + ".xml";
+		String orgName = SINGLE_MANINTAINABLE_D_FD_NS_DOC;
 		PersistenceManager.getInstance().deleteResource(orgName);
 
-		DDIResourceType  ddiResource= PersistenceManager.getInstance()
+		DDIResourceType ddiResource = PersistenceManager.getInstance()
 				.getResourceByOrgName(orgName);
-		Assert.assertNotNull("Not empty!", ddiResource);
+		Assert.assertNull("Not empty!", ddiResource);
 	}
-	
+
+	@Test
+	public void deleteStorage() throws Exception {
+		String orgName = SINGLE_MANINTAINABLE_QS_FD_NS_DOC;
+		StorageType storage = PersistenceManager.getInstance()
+				.getStorageByResourceOrgName(orgName);
+		String storageId = storage.getId();
+		storage = null;
+
+		PersistenceManager.getInstance().deleteStorage(storageId);
+		List<StorageType> list = PersistenceManager.getInstance().getStorages();
+		for (StorageType storageType : list) {
+			Assert.assertNotSame(storageId, storageType.getId());
+		}
+	}
+
 	@Test
 	public void getStorages() throws Exception {
 		List<StorageType> list = PersistenceManager.getInstance().getStorages();
 	}
-	
+
 	@Test
 	public void getResourceList() throws Exception {
-		ResourceListDocument resourceList = PersistenceManager.getInstance().getResourceList();
+		ResourceListDocument resourceList = PersistenceManager.getInstance()
+				.getResourceList();
 		Assert.assertNotNull("Not found!", resourceList);
 	}
 }
