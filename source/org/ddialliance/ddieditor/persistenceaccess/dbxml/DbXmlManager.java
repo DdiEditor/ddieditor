@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 
 import org.ddialliance.ddieditor.model.DdiManager;
 import org.ddialliance.ddieditor.model.lightxmlobject.LabelType;
@@ -177,10 +176,10 @@ public class DbXmlManager implements PersistenceStorage {
 			// environmentConfig.setDsyncDatabases(true);
 			// error stream
 			// change to property definition of dbxml log level
-//			XmlManager.setLogLevel(XmlManager.LEVEL_ALL, true);
-//			XmlManager.setLogCategory(XmlManager.CATEGORY_CONTAINER
-//					| XmlManager.CATEGORY_MANAGER | XmlManager.CATEGORY_QUERY,
-//					true);
+			// XmlManager.setLogLevel(XmlManager.LEVEL_ALL, true);
+			// XmlManager.setLogCategory(XmlManager.CATEGORY_CONTAINER
+			// | XmlManager.CATEGORY_MANAGER | XmlManager.CATEGORY_QUERY,
+			// true);
 			// be aware of log level may affect execution to hang!
 			// environmentConfig.setErrorStream(new Log4jLogOutputStream(
 			// logPersistence, LogLevel.INFO));
@@ -241,10 +240,19 @@ public class DbXmlManager implements PersistenceStorage {
 	}
 
 	public void setWorkingConnection(StorageType storage) throws Exception {
-		openContainer(new File(storage.getConnection()));
+		addStorage(new File(storage.getConnection()));
 	}
 
-	public void openContainer(File file) throws Exception {
+	@Override
+	public void addStorage(Object obj) throws Exception {
+		File file = null;
+		if (obj instanceof File) {
+			file = (File) obj;
+		} else {
+			throw new DDIFtpException("Storage must point to a XML file: "
+					+ obj, new Throwable());
+		}
+
 		if (getContainer(file.getName()) == null) {
 			try {
 				if (!file.exists()) {
@@ -258,10 +266,10 @@ public class DbXmlManager implements PersistenceStorage {
 
 					// create indices
 					if (!file.getName().equals(
-							PersistenceManager.RESOURCE_LIST_FILE)) {
+							PersistenceManager.RESOURCE_LIST_FILE+".dbxml")) {
 						createIndices(xmlContainer);
 						listIndices(xmlContainer);
-					}
+					} 
 				} else {
 					if (logSystem.isDebugEnabled()) {
 						logSystem.debug("Opening dbxml container: "
@@ -281,6 +289,26 @@ public class DbXmlManager implements PersistenceStorage {
 					+ file.getAbsolutePath());
 		}
 		this.currentWorikingContainer = file.getName();
+	}
+
+	@Override
+	public List<String> getStorages() throws Exception {
+		List<String> result = new ArrayList<String>(openContainers.keySet());
+		return result;
+	}
+
+	@Override
+	public void removeStorage(String id) throws Exception {
+		String containerId = id+".dbxml";
+		
+		// close container
+		openContainers.get(containerId).close();
+		
+		// remove container
+		xmlManager.removeContainer(getTransaction(), containerId);
+
+		// clean up open connections
+		openContainers.remove(containerId);
 	}
 
 	public void close() throws Exception {
@@ -452,6 +480,7 @@ public class DbXmlManager implements PersistenceStorage {
 		xmlInputStream.delete();
 	}
 
+	@Override
 	public void removeResource(String docName) throws Exception {
 		List<String> documents = getResources();
 		if (documents.contains(docName)) {
@@ -459,13 +488,15 @@ public class DbXmlManager implements PersistenceStorage {
 				logSystem.info("Remove doc: " + docName + " from container: "
 						+ currentWorikingContainer);
 			}
+
+			// remove xml file
 			getWorkingContainer().deleteDocument(getTransaction(), docName,
 					getXmlUpdateContext());
 		}
 	}
 
 	public List<String> getResources() throws Exception {
-		List<String> documents = new ArrayList<String>();
+		List<String> result = new ArrayList<String>();
 
 		XmlResults xmlResults = getWorkingContainer().getAllDocuments(
 				getXmlDocumentConfig());
@@ -473,12 +504,11 @@ public class DbXmlManager implements PersistenceStorage {
 		XmlDocument xmlDocument;
 		while (xmlResults.hasNext()) {
 			xmlDocument = xmlResults.next().asDocument();
-			documents.add(xmlDocument.getName());
+			result.add(xmlDocument.getName());
 			xmlDocument.delete();
 		}
 		xmlResults.delete();
-
-		return documents;
+		return result;
 	}
 
 	@Profiled(tag = "query_{$0}")
@@ -995,7 +1025,7 @@ public class DbXmlManager implements PersistenceStorage {
 		LabelType label = null;
 		List<LabelType> tmpNameLabels = new ArrayList<LabelType>();
 		String attrLang = "lang", labelPrecedence = "Name";
-		
+
 		// *Name takes precedence over *Label
 		boolean isName = false;
 
@@ -1007,7 +1037,7 @@ public class DbXmlManager implements PersistenceStorage {
 				for (Object localNameLabelName : DdiManager.getInstance()
 						.getDdi3NamespaceHelper().getLocalNameLabelNames()) {
 					if (localName.equals(localNameLabelName)) {
-						if (localName.indexOf(labelPrecedence)>-1) {
+						if (localName.indexOf(labelPrecedence) > -1) {
 							isName = true;
 						}
 						label = LabelType.Factory.newInstance();

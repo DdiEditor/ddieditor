@@ -56,7 +56,7 @@ public class FilesystemManager implements PersistenceStorage {
 			String containerName = file.getName().substring(0,
 					file.getName().lastIndexOf("."));
 			String connection = containerName + ".dbxml";
-			DbXmlManager.getInstance().openContainer(new File(connection));
+			DbXmlManager.getInstance().addStorage(new File(connection));
 			DbXmlManager.getInstance().addResource(file);
 
 			// add storage
@@ -174,5 +174,21 @@ public class FilesystemManager implements PersistenceStorage {
 	@Override
 	public void updateQuery(String query) throws Exception {
 		// not implemented
+	}
+
+	@Override
+	public void addStorage(Object obj) throws Exception {
+		
+	}
+
+	@Override
+	public List<String> getStorages() throws Exception {
+		// not implemented
+		return null;
+	}
+
+	@Override
+	public void removeStorage(String id) throws Exception {
+		// not implemented		
 	}
 }
