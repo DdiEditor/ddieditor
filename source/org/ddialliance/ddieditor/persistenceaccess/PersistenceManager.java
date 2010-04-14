@@ -19,7 +19,6 @@ import org.ddialliance.ddieditor.model.resource.TopURNType;
 import org.ddialliance.ddieditor.persistenceaccess.dbxml.DbXmlManager;
 import org.ddialliance.ddieditor.util.DdiEditorRefUtil;
 import org.ddialliance.ddiftp.util.DDIFtpException;
-import org.ddialliance.ddiftp.util.ReflectionUtil;
 import org.ddialliance.ddiftp.util.log.Log;
 import org.ddialliance.ddiftp.util.log.LogFactory;
 import org.ddialliance.ddiftp.util.log.LogType;
@@ -41,8 +40,8 @@ public class PersistenceManager {
 
 	private ResourceListDocument resourceList = null;
 
-	private String workingResource = "not-set";
-	private String tmpWorkingResource = "not-set";
+	private String workingResource = null;
+	private String tmpWorkingResource = null;
 	private StorageType workingStorage = null;
 	private PersistenceStorage workingPersistenceStorage = null;
 	private Set<String> openStorages = new TreeSet<String>();
@@ -67,7 +66,7 @@ public class PersistenceManager {
 			try {
 				log.info("Initializing PersistenceManager");
 				instance.workingResource = RESOURCE_LIST_FILE;
-				DbXmlManager.getInstance().openContainer(
+				DbXmlManager.getInstance().addStorage(
 						new File(RESOURCE_LIST_CONTAINER));
 
 				if (instance.getResourceList() == null) {
@@ -82,7 +81,7 @@ public class PersistenceManager {
 						"Error parsing project file: " + RESOURCE_LIST_FILE, e);
 				throw ddiFtpE;
 			}
-			
+
 			// create paramatized queries to store in cache
 			// cache is filled up lazily
 		}
@@ -112,9 +111,9 @@ public class PersistenceManager {
 			throws DDIFtpException {
 		workingStorage = getStorageByResourceOrgName(workingResource);
 		if (workingStorage == null) {
-			throw new DDIFtpException("Working storage for resource: "
+			throw new DDIFtpException("Working storage for resource: '"
 					+ workingResource
-					+ "is not recognized check loaded resources");
+					+ "' is not recognized check loaded resources");
 		}
 
 		String pStoreClassName = workingStorage.getManager();
@@ -184,7 +183,15 @@ public class PersistenceManager {
 	 * @throws DDIFtpException
 	 */
 	private void resetWorkingResource() throws DDIFtpException {
-		setWorkingResource(tmpWorkingResource);
+		// check resources
+		if (resourceList !=null) {
+			for (DDIResourceType ddiResource : getResources()) {
+				if (ddiResource.getOrgName().equals(tmpWorkingResource)) {
+					setWorkingResource(tmpWorkingResource);
+					break;				
+				}
+			}	
+		}
 	}
 
 	/**
@@ -587,6 +594,28 @@ public class PersistenceManager {
 	 * @throws DDIFtpException
 	 */
 	public void deleteStorage(String id) throws DDIFtpException {
+		PersistenceStorage persistenceStorage = null;
+		for (StorageType storage : getStorages()) {
+			if (storage.getId().equals(id)) {
+				try {
+					persistenceStorage = (PersistenceStorage) DdiEditorRefUtil
+					.invokeStaticMethod(storage.getManager(), "getInstance",
+							null);
+				} catch (Exception e) {
+					throw new DDIFtpException("Error retrieve persistence storage");
+				}
+				break;
+			}
+		}
+		
+		// remove storage implementation
+		try {
+			persistenceStorage.removeStorage(id);
+		} catch (Exception e) {
+			throw new DDIFtpException("Error on delete storage", e);
+		}
+		
+		// remove storage from list
 		try {
 			setResource();
 			XQuery query = new XQuery();
@@ -601,7 +630,7 @@ public class PersistenceManager {
 
 			delete(query);
 		} catch (Exception e) {
-			throw new DDIFtpException("Error on create storage", e);
+			throw new DDIFtpException("Error on delete storage", e);
 		} finally {
 			resetWorkingResource();
 		}
@@ -650,6 +679,7 @@ public class PersistenceManager {
 	 * @throws DDIFtpException
 	 */
 	public void deleteResource(String id) throws DDIFtpException {
+		// remove resource from resource list
 		try {
 			setResource();
 			XQuery query = new XQuery();
@@ -669,7 +699,6 @@ public class PersistenceManager {
 		} finally {
 			resetWorkingResource();
 		}
-
 		rebuildResources();
 	}
 
