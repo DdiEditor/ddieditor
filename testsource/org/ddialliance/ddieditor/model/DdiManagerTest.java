@@ -44,7 +44,7 @@ public class DdiManagerTest extends DdieditorTestCase {
 	public void getQuestionSchemesLight() throws Exception {
 		PersistenceManager.getInstance().setWorkingResource(
 				DdieditorTestCase.FULLY_DECLARED_NS_DOC);
-		Assert.assertEquals(3, DdiManager.getInstance()
+		Assert.assertEquals(2, DdiManager.getInstance()
 				.getQuestionSchemesLight(null, null, null, null)
 				.getLightXmlObjectList().getLightXmlObjectList().size());
 
@@ -60,7 +60,7 @@ public class DdiManagerTest extends DdieditorTestCase {
 	public void getQuestionScheme() throws Exception {
 		PersistenceManager.getInstance().setWorkingResource(
 				DdieditorTestCase.FULLY_DECLARED_NS_DOC);
-		String id = "qs_";
+		String id = "qs_1";
 		String parentId = "dd";
 		QuestionSchemeDocument test = DdiManager.getInstance()
 				.getQuestionScheme(id, null, parentId, null);
@@ -75,14 +75,14 @@ public class DdiManagerTest extends DdieditorTestCase {
 
 		// qi_8
 		QuestionItemDocument questionItem = DdiManager.getInstance()
-				.getQuestionItem("qi_8", "", "qs_", "");
+				.getQuestionItem("qi_8", "", "qs_2", "");
 		InternationalStringType internationalString = questionItem
 				.getQuestionItem().addNewQuestionItemName();
 		internationalString.setStringValue("test");
 		DdiManager.getInstance().updateElement(questionItem, "qi_8", "");
 
 		questionItem = DdiManager.getInstance().getQuestionItem("qi_10", "",
-				"qs_", "");
+				"qs_2", "");
 		Assert.assertNotNull(questionItem);
 	}
 
@@ -96,7 +96,7 @@ public class DdiManagerTest extends DdieditorTestCase {
 				.newInstance();
 		QuestionItemType questionItemType = questionItem.addNewQuestionItem();
 		questionItemType.setId("newId");
-		DdiManager.getInstance().createElement(questionItem, "qs_", null,
+		DdiManager.getInstance().createElement(questionItem, "qs_2", null,
 				"QuestionScheme");
 
 		// update
@@ -135,12 +135,12 @@ public class DdiManagerTest extends DdieditorTestCase {
 				.getLightXmlObjectList().size());
 
 		listDoc = DdiManager.getInstance().getQuestionItemsLight("qi_1", "3.0",
-				"qs_-2", "1.0.2");
+				"qs_2", "1.0.2");
 		Assert.assertEquals(1, listDoc.getLightXmlObjectList()
 				.getLightXmlObjectList().size());
 
 		listDoc = DdiManager.getInstance().getQuestionItemsLight(null, null,
-				"qs_", null);
+				"qs_2", null);
 		Assert.assertEquals(1468, listDoc.getLightXmlObjectList()
 				.getLightXmlObjectList().size());
 
@@ -155,7 +155,7 @@ public class DdiManagerTest extends DdieditorTestCase {
 		PersistenceManager.getInstance().setWorkingResource(
 				DdieditorTestCase.FULLY_DECLARED_NS_DOC);
 		QuestionItemDocument questionItemDocument = DdiManager.getInstance()
-				.getQuestionItem("qi_1467", null, "qs_", null);
+				.getQuestionItem("qi_1467", null, "qs_2", null);
 		Assert.assertNotNull(questionItemDocument);
 		Assert.assertEquals("qi_1467", questionItemDocument.getQuestionItem()
 				.getId());
