@@ -2,10 +2,13 @@ package org.ddialliance.ddieditor.model.namespace.ddi3;
 
 import java.io.File;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.Map.Entry;
+import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -61,15 +64,15 @@ public class Ddi3NamespaceHelper {
 	private UrnRelationhipList urnRelationhipList;
 
 	// sub prefix variables
-	private String noSpace = "";
-	private Pattern startTagPattern = Pattern.compile("<[a-zA-Z]+:");
-	private Pattern endTagPattern = Pattern.compile("</[a-zA-Z]+:");
+	private final String NO_SPACE = "";
+	private Pattern startTagPattern = Pattern.compile("<[a-zA-Z]+[1-9]?:");
+	private Pattern endTagPattern = Pattern.compile("</[a-zA-Z]+[1-9]?:");
 	private Pattern elementPattern = Pattern.compile("<[a-zA-Z]+");
 
 	// pattern xmlns:r="ddi:reusable:3_0"
 	// xmlns:ddi="ddi:datacollection:3_0"
 	private Pattern namespacePattern = Pattern
-			.compile("xmlns[:]{1}[a-z]*=[[\"]|[']]{1}ddi:[a-z]*:[0-9]{1}_[0-9]{1}[[\"]|[']]{1}");
+			.compile("xmlns[:]{1}[a-z]*[1-9]?=[[\"]|[']]{1}ddi:[a-z]*:[0-9]{1}_[0-9]{1}[[\"]|[']]{1}");
 
 	// pattern xsi:type="d:CodeDomainType"
 	private Pattern xsiPattern = Pattern
@@ -193,6 +196,26 @@ public class Ddi3NamespaceHelper {
 		} else {
 			return elementName;
 		}
+	}
+
+	/**
+	 * Convert a ddi element local name to duplicate conversion name via the
+	 * elements qualified name
+	 * 
+	 * @param qName
+	 *            qualified name of element to do conversion on
+	 * @see javax.xml.namespace.QName
+	 * @return duplicate conversion
+	 * @throws DDIFtpException
+	 */
+	public String getDuplicateConvention(QName qName) throws DDIFtpException {
+		StringBuilder search = new StringBuilder();
+		search.append((qName.getNamespaceURI().split(":"))[1]);
+		search.append("__");
+		search.append(qName.getLocalPart());
+
+		String result = (String) elementNamespace.get(search.toString());
+		return (result == null ? qName.getLocalPart() : search.toString());
 	}
 
 	/**
@@ -320,11 +343,36 @@ public class Ddi3NamespaceHelper {
 
 		// remove all xsi:type declarations
 		Matcher xsiMacher = xsiPattern.matcher(node);
-		node = xsiMacher.replaceAll(noSpace);
+		node = xsiMacher.replaceAll(NO_SPACE);
 
 		// remove all xmlns:xsi declarations
 		Matcher xsiDefMacher = xsiDefPattern.matcher(node);
-		node = xsiDefMacher.replaceAll(noSpace);
+		node = xsiDefMacher.replaceAll(NO_SPACE);
+
+		// index namespace prefix deceleration
+		Map<String, String> prefixNamespaces = new HashMap<String, String>();
+		Matcher namespaceMatcher = namespacePattern.matcher(node);
+		String namespaceDecl = null;
+		String value;
+		int index = -1;
+		if (namespaceMatcher.find()) {
+			do {
+				// xmlns:ddi1="ddi:datacollection:3_1"
+				namespaceDecl = node.substring(namespaceMatcher.start(),
+						namespaceMatcher.end());
+				index = namespaceDecl.indexOf("=");
+				value = namespaceDecl.substring(6, index);
+				if (!prefixNamespaces.containsKey(value)) {
+					prefixNamespaces.put(value, namespaceDecl.substring(
+							index + 2, namespaceDecl.length() - 1));
+				} else {
+					continue;
+				}
+			} while (namespaceMatcher.find());
+		}
+
+		// remove all prefixes deceleration
+		node = namespaceMatcher.replaceAll("");
 
 		// remove all end prefix
 		endTagMatcher = endTagPattern.matcher(node);
@@ -333,12 +381,12 @@ public class Ddi3NamespaceHelper {
 
 		// search start prefix
 		startTagMatcher = startTagPattern.matcher(element.toString());
-		String namespace;
-
+		String prefix, namespace;
 		if (startTagMatcher.find()) {
 			do {
-				String prefix = element.substring(startTagMatcher.start() + 1,
+				prefix = element.substring(startTagMatcher.start() + 1,
 						startTagMatcher.end() - 1);
+				namespace = prefixNamespaces.get(prefix);
 
 				// delete prefix
 				element.delete(startTagMatcher.start() + 1, startTagMatcher
@@ -348,57 +396,57 @@ public class Ddi3NamespaceHelper {
 				elementMacher = elementPattern.matcher(element.toString());
 				elementMacher.region(startTagMatcher.start(), element.length());
 				elementMacher.find();
-
 				String currentElement = element.substring(
 						elementMacher.start() + 1, elementMacher.end());
 
-				// define namespace
-				namespace = null;
-				try {
-					if (log.isDebugEnabled()) {
-						log.debug("currentElement: " + currentElement);
+				// insert prefix replacement, namespace declaration
+				// <QuestionText xml:lang="no" ...
+				if (namespace != null) {
+					element.insert(elementMacher.end(), " xmlns=\"" + namespace
+							+ "\"");
+				} else {
+					Matcher namespaceMacher = namespacePattern
+							.matcher(currentElement);
+					if (namespaceMacher.find()) {
+						prefixNamespaces
+								.put(prefix, currentElement.substring(
+										namespaceMacher.start(),
+										namespaceMacher.end()));
 					}
-					Ddi3NamespacePrefix ddiPrefix = getNamespaceObjectByElement(currentElement);
-					namespace = ddiPrefix.getNamespace();
-				} catch (DDIFtpException e) {
-					// hack to circumvent unused unique element name to
-					// namespace convention via using standard ddi namespace
-					// prefixes
-					Ddi3NamespacePrefix ddiPrefix = Ddi3NamespacePrefix
-							.getNamespaceByDefaultPrefix(prefix);
-					if (ddiPrefix != null) {
+
+					// define namespace
+					namespace = null;
+					Ddi3NamespacePrefix ddiPrefix = null;
+					try {
+						if (log.isDebugEnabled()) {
+							log.debug("currentElement: " + currentElement);
+						}
+						ddiPrefix = getNamespaceObjectByElement(currentElement);
 						namespace = ddiPrefix.getNamespace();
-					}
-				}
-				if (namespace == null) {
-					// 2nd hack to resolve xmlbeans namespace decleration :ddi
-					String namespaceStr = null;
-					if (prefix.equals("ddi")) {
-						int start = element.indexOf("xmlns:ddi=\"",
-								elementMacher.start() + 1);
-						if (start > -1) {
-							namespaceStr = element.substring(start + 11,
-									element.indexOf("\"", start + 11));
+						element.insert(elementMacher.end(), " xmlns=\""
+								+ namespace + "\"");
+					} catch (DDIFtpException e) {
+						// hack to circumvent unused unique element name to
+						// namespace convention via using standard ddi namespace
+						// prefixes
+						ddiPrefix = Ddi3NamespacePrefix
+								.getNamespaceByDefaultPrefix(prefix);
+						if (ddiPrefix != null) {
+							namespace = ddiPrefix.getNamespace();
+							element.insert(elementMacher.end(), " xmlns=\""
+									+ namespace + "\"");
+						} else {
+							throw new DDIFtpException(
+									"Unsuccessfull namespace prefix substitution for prefix: '"
+											+ prefix + "', at element: '"
+											+ currentElement
+											+ "', current node form: "
+											+ element.toString(),
+									new Throwable());
 						}
 					}
-					if (namespaceStr == null) {
-						throw new DDIFtpException(
-								"Unsuccessfull namespace prefix substitution for element: "
-										+ node, new Throwable());
-					}
-					namespace = namespaceStr;
 				}
-				// if (prevNamespace != null && prevNamespace.equals(namespace))
-				// {
-				// //
-				// } else {
-				// element.insert(elementMacher.end(), " xmlns=\"" + namespace
-				// + "\"");
-				// }
-				// prevNamespace = namespace;
 
-				element.insert(elementMacher.end(), " xmlns=\"" + namespace
-						+ "\"");
 				// reset start prefix matcher
 				startTagMatcher = startTagPattern.matcher(element.toString());
 			} while (startTagMatcher.find());
@@ -406,7 +454,7 @@ public class Ddi3NamespaceHelper {
 
 		// remove all predefined ddi prefixed namespace declarations
 		Matcher namespaceMacher = namespacePattern.matcher(element);
-		node = namespaceMacher.replaceAll(noSpace);
+		node = namespaceMacher.replaceAll(NO_SPACE);
 		if (log.isDebugEnabled()) {
 			log.debug("Modified node:\n" + node);
 		}
