@@ -63,7 +63,7 @@ public class DdieditorTestCase {
 							+ SINGLE_MANINTAINABLE_QS_FD_NS_DOC));
 
 			// no commit
-			//System.setProperty("ddieditor.test", "true");
+			System.setProperty("ddieditor.test", "true");
 			
 			// debug resources
 			PersistenceManager.getInstance().exportResourceList(
