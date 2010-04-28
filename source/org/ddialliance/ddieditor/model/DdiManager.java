@@ -7,6 +7,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
 
+import javax.xml.namespace.QName;
+
 import org.apache.xmlbeans.XmlException;
 import org.apache.xmlbeans.XmlObject;
 import org.ddialliance.ddi3.xml.xmlbeans.conceptualcomponent.ConceptDocument;
@@ -45,6 +47,7 @@ import org.ddialliance.ddieditor.persistenceaccess.maintainablelabel.Maintainabl
 import org.ddialliance.ddieditor.persistenceaccess.maintainablelabel.MaintainableLightLabelQueryResult;
 import org.ddialliance.ddieditor.util.DdiEditorRefUtil;
 import org.ddialliance.ddiftp.util.DDIFtpException;
+import org.ddialliance.ddiftp.util.ReflectionUtil;
 import org.ddialliance.ddiftp.util.log.Log;
 import org.ddialliance.ddiftp.util.log.LogFactory;
 import org.ddialliance.ddiftp.util.log.LogType;
@@ -558,9 +561,61 @@ public class DdiManager {
 			String parentVersion, String parentElementType)
 			throws DDIFtpException {
 		XmlBeansUtil.instanceOfXmlBeanDocument(xmlObject, new Throwable());
+
+		// get last element of same type to insert
+		LightXmlObjectType lastElementOfSameType = null;
+
+		// reflect get light element list
+		QName qName = xmlObject.schemaType().getDocumentElementName();
+		StringBuilder operation = new StringBuilder("get");
+		operation.append(qName.getLocalPart());
+		operation.append("sLight");
+
 		LightXmlObjectListDocument lightXmlObjectList = null;
+		try {
+			lightXmlObjectList = (LightXmlObjectListDocument) ReflectionUtil
+					.invokeMethod(DdiManager.getInstance(), operation
+							.toString(), false, new Object[] { "", "",
+							parentId == null ? "" : parentId,
+							parentVersion == null ? "" : parentVersion });
+		} catch (Exception e) {
+			throw new DDIFtpException(e);
+		}
+
+		// define last element of same type
+		if (lightXmlObjectList != null
+				&& !lightXmlObjectList.getLightXmlObjectList()
+						.getLightXmlObjectList().isEmpty()) {
+			lastElementOfSameType = lightXmlObjectList.getLightXmlObjectList()
+					.getLightXmlObjectList().get(
+							lightXmlObjectList.getLightXmlObjectList()
+									.getLightXmlObjectList().size() - 1);
+		}
+
+		// insert xml object after last element of same type
+		if (lastElementOfSameType != null) {
+			PersistenceManager.getInstance().insert(
+					getDdi3NamespaceHelper().substitutePrefixesFromElements(
+							xmlObject.xmlText()),
+					XQueryInsertKeyword.AFTER,
+					xQueryCrudPosition(lastElementOfSameType.getId(),
+							lastElementOfSameType.getVersion(),
+							getDdi3NamespaceHelper().getDuplicateConvention(
+									qName), parentId, parentVersion,
+							parentElementType));
+			return;
+		}
+
+		// guard, last element of same type NULL
+		PersistenceManager.getInstance().insert(
+				getDdi3NamespaceHelper().substitutePrefixesFromElements(
+						xmlObject.xmlText()),
+				XQueryInsertKeyword.INTO,
+				xQueryCrudPosition(parentId, parentVersion, parentElementType,
+						null, null, null));
 
 		// concept
+		// LightXmlObjectListDocument lightXmlObjectList = null;
 		// check for concept group in concept scheme
 		// try {
 		// lightXmlObjectList = getConceptGroupsLight(null, null, parentId,
@@ -570,14 +625,6 @@ public class DdiManager {
 		// e.printStackTrace();
 		// }
 		// System.out.println(lightXmlObjectList.getLightXmlObjectList().sizeOfLightXmlObjectArray());
-
-		// insert xml object
-		PersistenceManager.getInstance().insert(
-				getDdi3NamespaceHelper().substitutePrefixesFromElements(
-						xmlObject.xmlText()),
-				XQueryInsertKeyword.INTO,
-				xQueryCrudPosition(parentId, parentVersion, parentElementType,
-						null, null, null));
 	}
 
 	/**
@@ -945,7 +992,7 @@ public class DdiManager {
 		for (String key : conversionToLocalName.keySet()) {
 			result.getResult().put(key, new LinkedList<LightXmlObjectType>());
 		}
-		
+
 		// query
 		MaintainableLightLabelQueryResult maintainableLightLabelQueryResult;
 		try {
@@ -957,7 +1004,7 @@ public class DdiManager {
 					"Error querying persistent storage on maintainable label light",
 					e);
 		}
-		
+
 		// clean result of empty lists
 		for (Iterator<Entry<String, LinkedList<LightXmlObjectType>>> iterator = maintainableLightLabelQueryResult
 				.getResult().entrySet().iterator(); iterator.hasNext();) {
@@ -1100,7 +1147,7 @@ public class DdiManager {
 			throws Exception {
 		// ConceptScheme/Concept/Label
 		return queryLightXmlBeans(id, version, parentId, parentVersion,
-		"ConceptScheme", "Concept", null, "reusable__Label");
+				"ConceptScheme", "Concept", null, "reusable__Label");
 	}
 
 	@Profiled(tag = "getConceptScheme")
@@ -1169,10 +1216,17 @@ public class DdiManager {
 	public LightXmlObjectListDocument getQuestionSchemesLight(String id,
 			String version, String parentId, String parentVersion)
 			throws Exception {
+		// LightXmlObjectListDocument lightXmlObjectListDocument =
+		// queryLightXmlBeans(
+		// id, version, parentId, parentVersion,
+		// "logicalproduct__LogicalProduct", "CodeScheme", null,
+		// "reusable__Label");
+
 		// QuestionScheme/Label
 		LightXmlObjectListDocument lightXmlObjectListDocument = queryLightXmlBeans(
-				id, version, parentId, parentVersion, "QuestionScheme", null,
-				null, "reusable__Label");
+				id, version, parentId, parentVersion,
+				"datacollection__DataCollection", "QuestionScheme", null,
+				"reusable__Label");
 		if (lightXmlObjectListDocument.getLightXmlObjectList()
 				.getLightXmlObjectList().isEmpty()) {
 			queryLightXmlBeans(id, version, parentId, parentVersion,
@@ -1512,7 +1566,7 @@ public class DdiManager {
 		}
 		return (text == "" ? null : CategorySchemeDocument.Factory.parse(text));
 	}
-	
+
 	public VariableSchemeDocument getVariableScheme(String id, String version,
 			String parentId, String parentVersion) throws Exception {
 		String text = queryElement(id, version, "VariableScheme", parentId,
@@ -1522,7 +1576,7 @@ public class DdiManager {
 		}
 		return (text == "" ? null : VariableSchemeDocument.Factory.parse(text));
 	}
-	
+
 	public LightXmlObjectListDocument getVariableSchemesLight(String id,
 			String version, String parentId, String parentVersion)
 			throws Exception {
@@ -1538,7 +1592,7 @@ public class DdiManager {
 		}
 		return lightXmlObjectListDocument;
 	}
-	
+
 	public VariableDocument getVariable(String id, String version,
 			String parentId, String parentVersion) throws Exception {
 		String text = queryElement(id, version, "Variable", parentId,
@@ -1548,14 +1602,13 @@ public class DdiManager {
 		}
 		return (text == "" ? null : VariableDocument.Factory.parse(text));
 	}
-	
+
 	public LightXmlObjectListDocument getVariablesLight(String id,
 			String version, String parentId, String parentVersion)
 			throws Exception {
 		LightXmlObjectListDocument lightXmlObjectListDocument = queryLightXmlBeans(
-				id, version, parentId, parentVersion,
-				"VariableScheme", "Variable", null,
-				"VariableName");
+				id, version, parentId, parentVersion, "VariableScheme",
+				"Variable", null, "VariableName");
 		return lightXmlObjectListDocument;
 	}
 }
