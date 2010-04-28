@@ -16,6 +16,7 @@ import org.ddialliance.ddi3.xml.xmlbeans.datacollection.InstrumentDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.datacollection.QuestionItemDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.datacollection.QuestionItemType;
 import org.ddialliance.ddi3.xml.xmlbeans.datacollection.QuestionSchemeDocument;
+import org.ddialliance.ddi3.xml.xmlbeans.datacollection.QuestionSchemeType;
 import org.ddialliance.ddi3.xml.xmlbeans.logicalproduct.CategorySchemeDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.logicalproduct.CodeSchemeDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.logicalproduct.VariableDocument;
@@ -25,6 +26,7 @@ import org.ddialliance.ddi3.xml.xmlbeans.reusable.InternationalStringType;
 import org.ddialliance.ddi3.xml.xmlbeans.reusable.impl.CitationDocumentImpl;
 import org.ddialliance.ddi3.xml.xmlbeans.reusable.impl.NameDocumentImpl;
 import org.ddialliance.ddieditor.DdieditorTestCase;
+import org.ddialliance.ddieditor.logic.identification.IdentificationManager;
 import org.ddialliance.ddieditor.model.conceptual.ConceptualElement;
 import org.ddialliance.ddieditor.model.lightxmlobject.LightXmlObjectListDocument;
 import org.ddialliance.ddieditor.model.namespace.ddi3.Ddi3NamespacePrefix;
@@ -45,7 +47,7 @@ public class DdiManagerTest extends DdieditorTestCase {
 		PersistenceManager.getInstance().setWorkingResource(
 				DdieditorTestCase.FULLY_DECLARED_NS_DOC);
 		Assert.assertEquals(2, DdiManager.getInstance()
-				.getQuestionSchemesLight(null, null, null, null)
+				.getQuestionSchemesLight(null, null, "dd", null)
 				.getLightXmlObjectList().getLightXmlObjectList().size());
 
 		// single file
@@ -306,7 +308,7 @@ public class DdiManagerTest extends DdieditorTestCase {
 	public void createLargeElement() throws Exception {
 		PersistenceManager.getInstance().setWorkingResource(
 				DdieditorTestCase.FULLY_DECLARED_NS_DOC);
-		String id = "qs_";
+		String id = "qs2_";
 		String newId = "qs_test";
 		String parentId = "dd";
 		QuestionSchemeDocument test = DdiManager.getInstance()
@@ -322,13 +324,40 @@ public class DdiManagerTest extends DdieditorTestCase {
 	}
 
 	@Test
+	public void createScheme() throws Exception {
+		PersistenceManager.getInstance().setWorkingResource(
+				DdieditorTestCase.FULLY_DECLARED_NS_DOC);
+
+		String parentId = "dd";
+		LightXmlObjectListDocument lightXmlObjectList = DdiManager.getInstance().getQuestionSchemesLight("", "", parentId, "");
+		
+		QuestionSchemeDocument doc = QuestionSchemeDocument.Factory
+				.newInstance();
+		QuestionSchemeType type = doc.addNewQuestionScheme();
+		IdentificationManager.getInstance().addIdentification(type, "qs", null);
+		IdentificationManager.getInstance().addVersionInformation(
+				doc.getQuestionScheme(), null, null);
+
+		DdiManager.getInstance().createElement(doc, parentId, null,
+				"datacollection__DataCollection");
+
+		LightXmlObjectListDocument lightXmlObjectListDocument = DdiManager
+				.getInstance().getQuestionSchemesLight(null, null, null, null);
+		Assert.assertEquals(3, lightXmlObjectListDocument
+				.getLightXmlObjectList().getLightXmlObjectList().size());
+
+		PersistenceManager.getInstance().exportResoure(FULLY_DECLARED_NS_DOC,
+				new File("export-test.xml"));
+	}
+
+	@Test
 	public void createElement() throws Exception {
 		PersistenceManager.getInstance().setWorkingResource(
 				DdieditorTestCase.FULLY_DECLARED_NS_DOC);
 
 		// retrieve template element
 		String id = "qi_2000";
-		String parentId = "qs_";
+		String parentId = "qs2_";
 
 		// question item
 		QuestionItemDocument questionItemDoc = DdiManager.getInstance()
