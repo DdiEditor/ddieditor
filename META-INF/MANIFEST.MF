@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: ddieditor
 Bundle-SymbolicName: ddieditor
-Bundle-Version: 1.0.0.qualifier
+Bundle-Version: 0.3.0
 Bundle-Activator: org.ddialliance.ddieditor.osgi.Activator
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Service-Component: OSGI-INF/component.xml
@@ -24,9 +24,9 @@ Export-Package:
  org.ddialliance.ddieditor.util
 Bundle-ClassPath: .,
  build/
-Require-Bundle: lib-java;bundle-version="1.0.0",
+Require-Bundle: lib-java;bundle-version="0.1.0",
  org.eclipse.osgi;bundle-version="3.5.0",
- util;bundle-version="1.0.0"
+ util;bundle-version="0.7.0"
 Import-Package: 
  com.sleepycat.db,
  com.sleepycat.dbxml,
