@@ -723,7 +723,7 @@ public class DdiManager {
 			query.query.append("'");
 			if (version != null && !version.equals("")) {
 				query.query.append(" and $element/@version = '");
-				query.query.append(parentVersion);
+				query.query.append(version);
 				query.query.append("'");
 			} else {
 				query.query.append(" and empty($element/@version)");
