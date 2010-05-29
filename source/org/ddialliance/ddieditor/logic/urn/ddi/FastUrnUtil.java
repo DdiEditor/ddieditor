@@ -88,7 +88,7 @@ public class FastUrnUtil {
 		int attrIndex = -1;
 		while ((nr.iterate()) != -1) {
 			urn = new Urn();
-			urn.setMaintainableElement(localName);
+			urn.setMaintainableElement(DdiManager.getInstance().getDdi3NamespaceHelper().getLocalSchemaName(localName));
 
 			// id
 			attrIndex = vn.getAttrVal("id");
