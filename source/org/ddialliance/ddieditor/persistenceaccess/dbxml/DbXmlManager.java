@@ -9,9 +9,12 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
+import javax.xml.namespace.QName;
+
 import org.ddialliance.ddieditor.model.DdiManager;
 import org.ddialliance.ddieditor.model.lightxmlobject.LabelType;
 import org.ddialliance.ddieditor.model.lightxmlobject.LightXmlObjectType;
+import org.ddialliance.ddieditor.model.namespace.ddi3.Ddi3NamespaceHelper;
 import org.ddialliance.ddieditor.model.namespace.ddi3.Ddi3NamespacePrefix;
 import org.ddialliance.ddieditor.model.resource.StorageType;
 import org.ddialliance.ddieditor.persistenceaccess.PersistenceManager;
@@ -266,10 +269,10 @@ public class DbXmlManager implements PersistenceStorage {
 
 					// create indices
 					if (!file.getName().equals(
-							PersistenceManager.RESOURCE_LIST_FILE+".dbxml")) {
+							PersistenceManager.RESOURCE_LIST_FILE + ".dbxml")) {
 						createIndices(xmlContainer);
 						listIndices(xmlContainer);
-					} 
+					}
 				} else {
 					if (logSystem.isDebugEnabled()) {
 						logSystem.debug("Opening dbxml container: "
@@ -299,11 +302,11 @@ public class DbXmlManager implements PersistenceStorage {
 
 	@Override
 	public void removeStorage(String id) throws Exception {
-		String containerId = id+".dbxml";
-		
+		String containerId = id + ".dbxml";
+
 		// close container
 		openContainers.get(containerId).close();
-		
+
 		// remove container
 		xmlManager.removeContainer(getTransaction(), containerId);
 
@@ -631,7 +634,7 @@ public class DbXmlManager implements PersistenceStorage {
 		if (xmlValue == null) { // guard
 			rs.delete();
 			rs = null;
-			commitTransaction();
+			rollbackTransaction();
 			return maintainableLabelQueryResult;
 		}
 
@@ -771,6 +774,56 @@ public class DbXmlManager implements PersistenceStorage {
 		rs = null;
 		commitTransaction();
 		return maintainableLabelQueryResult;
+	}
+
+	public void indexForProfile() throws Exception {
+		// query
+		String query = "/*";
+		queryLog.info(query);
+		XmlResults rs = xQuery(query);
+
+		if (rs.isNull()) { // guard
+			rollbackTransaction();
+			throw new DDIFtpException("No results for query: " + query);
+		}
+
+		// init value
+		XmlValue xmlValue = rs.next();
+		if (xmlValue == null) { // guard
+			rs.delete();
+			rs = null;
+			rollbackTransaction();
+		}
+
+		// populate result
+		String localName;
+		String localMaintainableName = "";
+		String prevLocalName = "";
+
+		if (xmlValue.isNode()) {
+			XmlEventReader reader = xmlValue.asEventReader();
+			while (reader.hasNext()) {
+				int type = reader.next();
+				if (type == XmlEventReader.StartElement) {
+					localName = reader.getLocalName();
+					QName qName = new QName(reader.getNamespaceURI(), localName);
+
+					// maintainable
+					if (DdiManager.getInstance().getDdi3NamespaceHelper().isMaintainable(localName)) {
+						//DdiManager.getInstance().getDdi3NamespaceHelper().
+					}
+					
+					// versionables
+
+					// identifiable
+
+				}
+				reader.close();
+			}
+			rs.delete();
+			rs = null;
+			commitTransaction();
+		}
 	}
 
 	private void extractSubelementsOfSchemeQuery(StringBuffer element,
