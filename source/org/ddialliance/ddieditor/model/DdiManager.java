@@ -38,6 +38,7 @@ import org.ddialliance.ddieditor.model.conceptual.ConceptualType;
 import org.ddialliance.ddieditor.model.lightxmlobject.LightXmlObjectListDocument;
 import org.ddialliance.ddieditor.model.lightxmlobject.LightXmlObjectType;
 import org.ddialliance.ddieditor.model.namespace.ddi3.Ddi3NamespaceHelper;
+import org.ddialliance.ddieditor.model.relationship.ElementDocument.Element;
 import org.ddialliance.ddieditor.persistenceaccess.ParamatizedXquery;
 import org.ddialliance.ddieditor.persistenceaccess.PersistenceManager;
 import org.ddialliance.ddieditor.persistenceaccess.XQueryInsertKeyword;
@@ -1062,6 +1063,15 @@ public class DdiManager {
 		}
 
 		return result;
+	}
+
+	public String getDDIXPathForElement(QName qName) throws Exception {
+		String conversionName = DdiManager.getInstance()
+				.getDdi3NamespaceHelper().getDuplicateConvention(qName);
+		Element element = DdiManager.getInstance().getDdi3NamespaceHelper()
+				.getElementParents(conversionName);
+
+		return null;
 	}
 
 	//
