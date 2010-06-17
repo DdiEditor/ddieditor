@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.List;
 
 import org.ddialliance.ddieditor.logic.urn.ddi.FastUrnUtil;
+import org.ddialliance.ddieditor.model.DdiManager;
 import org.ddialliance.ddieditor.model.resource.DDIResourceDocument;
 import org.ddialliance.ddieditor.model.resource.DDIResourceType;
 import org.ddialliance.ddieditor.model.resource.StorageDocument;
@@ -79,7 +80,8 @@ public class FilesystemManager implements PersistenceStorage {
 
 			for (Urn urn : urns) {
 				TopURNType topURN = ddiResource.addNewTopURN();
-				topURN.setElement(urn.getMaintainableElement());
+				topURN.setElement(
+								urn.getMaintainableElement());
 				topURN.setId(urn.getMaintainableId());
 				topURN.setAgency(urn.getIdentifingAgency());
 				topURN.setVersion(urn.getMaintainableVersion());
@@ -178,7 +180,7 @@ public class FilesystemManager implements PersistenceStorage {
 
 	@Override
 	public void addStorage(Object obj) throws Exception {
-		
+
 	}
 
 	@Override
@@ -189,6 +191,6 @@ public class FilesystemManager implements PersistenceStorage {
 
 	@Override
 	public void removeStorage(String id) throws Exception {
-		// not implemented		
+		// not implemented
 	}
 }
