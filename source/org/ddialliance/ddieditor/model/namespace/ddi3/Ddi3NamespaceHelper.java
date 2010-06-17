@@ -436,13 +436,22 @@ public class Ddi3NamespaceHelper {
 							element.insert(elementMacher.end(), " xmlns=\""
 									+ namespace + "\"");
 						} else {
-							throw new DDIFtpException(
-									"Unsuccessfull namespace prefix substitution for prefix: '"
-											+ prefix + "', at element: '"
-											+ currentElement
-											+ "', current node form: "
-											+ element.toString(),
-									new Throwable());
+							// TODO
+							// test if the declaration is at the top of xml
+
+							if (ddiPrefix == null && prefix.equals("dc2")) {
+								element
+										.insert(elementMacher.end(),
+												" xmlns=\"http://purl.org/dc/elements/1.1/\"");
+							} else {
+								throw new DDIFtpException(
+										"Unsuccessfull namespace prefix substitution for prefix: '"
+												+ prefix + "', at element: '"
+												+ currentElement
+												+ "', current node form: "
+												+ element.toString(),
+										new Throwable());
+							}
 						}
 					}
 				}
