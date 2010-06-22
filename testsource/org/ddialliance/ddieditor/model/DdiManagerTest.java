@@ -714,7 +714,7 @@ public class DdiManagerTest extends DdieditorTestCase {
 	public void getConceptSchemes() throws Exception {
 		PersistenceManager.getInstance().setWorkingResource(
 				FULLY_DECLARED_NS_DOC);
-		Assert.assertEquals(1, DdiManager.getInstance().getConceptSchemeLight(
+		Assert.assertEquals(1, DdiManager.getInstance().getConceptSchemesLight(
 				null, null, null, null).getLightXmlObjectList()
 				.getLightXmlObjectList().size());
 	}
