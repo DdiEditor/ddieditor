@@ -1039,7 +1039,7 @@ public class DdiManager {
 		// TODO
 
 		// - concepts
-		lightDoc = getConceptSchemeLight(null, null, null, null);
+		lightDoc = getConceptSchemesLight(null, null, null, null);
 		for (LightXmlObjectType lightElement : lightDoc.getLightXmlObjectList()
 				.getLightXmlObjectList()) {
 			result.add(new ConceptualElement(ConceptualType.LOGIC_concepts,
@@ -1136,7 +1136,7 @@ public class DdiManager {
 	//
 	// conceptual components
 	//	
-	public LightXmlObjectListDocument getConceptSchemeLight(String id,
+	public LightXmlObjectListDocument getConceptSchemesLight(String id,
 			String version, String parentId, String parentVersion)
 			throws Exception {
 		LightXmlObjectListDocument lightXmlObjectListDocument = queryLightXmlBeans(
