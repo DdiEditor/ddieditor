@@ -29,6 +29,7 @@ import org.ddialliance.ddi3.xml.xmlbeans.datacollection.RepeatUntilDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.datacollection.RepeatWhileDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.datacollection.SequenceDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.datacollection.StatementItemDocument;
+import org.ddialliance.ddi3.xml.xmlbeans.logicalproduct.CategoryDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.logicalproduct.CategorySchemeDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.logicalproduct.CodeSchemeDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.logicalproduct.VariableDocument;
@@ -1576,6 +1577,33 @@ public class DdiManager {
 		}
 		return (text == "" ? null : CategorySchemeDocument.Factory.parse(text));
 	}
+
+	public LightXmlObjectListDocument getCategoryLight(String id,
+			String version, String parentId, String parentVersion)
+			throws Exception {
+		LightXmlObjectListDocument lightXmlObjectListDocument = queryLightXmlBeans(
+				id, version, parentId, parentVersion,
+				"CategoryScheme", "Category", null,
+				"reusable__Label");
+		if (lightXmlObjectListDocument.getLightXmlObjectList()
+				.getLightXmlObjectList().isEmpty()) {
+			lightXmlObjectListDocument = queryLightXmlBeans(id, version,
+					parentId, parentVersion, "//", "Category", null,
+					"reusable__Label");
+		}
+		return lightXmlObjectListDocument;
+	}
+
+	public CategoryDocument getCategory(String id, String version,
+			String parentId, String parentVersion) throws Exception {
+		String text = queryElement(id, version, "Category", parentId,
+				parentVersion, "CategoryScheme");
+		if (text == null) {
+			queryElement(id, version, "Category", null, null, null);
+		}
+		return (text == "" ? null : CategoryDocument.Factory.parse(text));
+	}
+
 
 	public VariableSchemeDocument getVariableScheme(String id, String version,
 			String parentId, String parentVersion) throws Exception {
