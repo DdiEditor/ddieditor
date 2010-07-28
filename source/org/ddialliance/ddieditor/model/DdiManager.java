@@ -1520,7 +1520,8 @@ public class DdiManager {
 			String version, String parentId, String parentVersion)
 			throws Exception {
 		return queryLightXmlBeans(id, version, parentId, parentVersion,
-				"UniverseScheme", "Universe", null, "HumanReadable");
+//				"UniverseScheme", "Universe", null, "HumanReadable");
+		"UniverseScheme", "Universe", null, "reusable__Label");
 	}
 
 	//
