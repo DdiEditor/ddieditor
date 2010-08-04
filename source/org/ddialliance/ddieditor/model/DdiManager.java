@@ -9,6 +9,7 @@ import java.util.Map.Entry;
 
 import javax.xml.namespace.QName;
 
+import org.apache.log4j.lf5.viewer.categoryexplorer.CategoryElement;
 import org.apache.xmlbeans.XmlException;
 import org.apache.xmlbeans.XmlObject;
 import org.ddialliance.ddi3.xml.xmlbeans.conceptualcomponent.ConceptDocument;
@@ -1035,15 +1036,35 @@ public class DdiManager {
 							lightElement));
 		}
 
-		// logic
 		// - universe
-		// TODO
+		lightDoc = getUniverseSchemesLight(null, null, null, null);
+		for (LightXmlObjectType lightElement : lightDoc.getLightXmlObjectList()
+				.getLightXmlObjectList()) {
+			result.add(new ConceptualElement(ConceptualType.LOGIC_Universe,
+					lightElement));
+		}
 
 		// - concepts
 		lightDoc = getConceptSchemesLight(null, null, null, null);
 		for (LightXmlObjectType lightElement : lightDoc.getLightXmlObjectList()
 				.getLightXmlObjectList()) {
 			result.add(new ConceptualElement(ConceptualType.LOGIC_concepts,
+					lightElement));
+		}
+		
+		// - categorie
+		lightDoc = getCategorySchemesLight(null, null, null, null);
+		for (LightXmlObjectType lightElement : lightDoc.getLightXmlObjectList()
+				.getLightXmlObjectList()) {
+			result.add(new ConceptualElement(ConceptualType.LOGIC_category,
+					lightElement));
+		}
+		
+		// - code
+		lightDoc = getCodeSchemesLight(null, null, null, null);
+		for (LightXmlObjectType lightElement : lightDoc.getLightXmlObjectList()
+				.getLightXmlObjectList()) {
+			result.add(new ConceptualElement(ConceptualType.LOGIC_code,
 					lightElement));
 		}
 
