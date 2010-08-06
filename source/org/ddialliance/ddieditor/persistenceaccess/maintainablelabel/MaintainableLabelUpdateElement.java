@@ -27,7 +27,7 @@ public class MaintainableLabelUpdateElement {
 	}
 
 	public MaintainableLabelUpdateElement(XmlObject element, Integer crudValue) {		
-		this.localName = element.schemaType().getDocumentElementName().getLocalPart();
+		this.localName = element.schemaType().getName().getLocalPart();
 		this.value = element.xmlText();
 		this.crudValue = crudValue;
 	}
@@ -97,6 +97,6 @@ public class MaintainableLabelUpdateElement {
 		result.append(crudValue);
 		result.append(", value: ");
 		result.append(value);
-		return super.toString();
+		return result.toString();
 	}
 }
