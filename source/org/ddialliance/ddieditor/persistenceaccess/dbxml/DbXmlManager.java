@@ -1,6 +1,6 @@
 package org.ddialliance.ddieditor.persistenceaccess.dbxml;
 
-import java.io.File;
+ import java.io.File;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
@@ -14,7 +14,6 @@ import javax.xml.namespace.QName;
 import org.ddialliance.ddieditor.model.DdiManager;
 import org.ddialliance.ddieditor.model.lightxmlobject.LabelType;
 import org.ddialliance.ddieditor.model.lightxmlobject.LightXmlObjectType;
-import org.ddialliance.ddieditor.model.namespace.ddi3.Ddi3NamespaceHelper;
 import org.ddialliance.ddieditor.model.namespace.ddi3.Ddi3NamespacePrefix;
 import org.ddialliance.ddieditor.model.resource.StorageType;
 import org.ddialliance.ddieditor.persistenceaccess.PersistenceManager;
@@ -1130,7 +1129,7 @@ public class DbXmlManager implements PersistenceStorage {
 			lightXmlObject.getLabelList().addAll(tmpNameLabels);
 		}
 	}
-
+	
 	public void exportResource(String document, File file) throws Exception {
 		// file
 		if (file.exists()) {
