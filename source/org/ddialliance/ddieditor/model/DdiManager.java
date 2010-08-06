@@ -9,12 +9,13 @@ import java.util.Map.Entry;
 
 import javax.xml.namespace.QName;
 
-import org.apache.log4j.lf5.viewer.categoryexplorer.CategoryElement;
 import org.apache.xmlbeans.XmlException;
 import org.apache.xmlbeans.XmlObject;
+import org.apache.xmlbeans.XmlOptions;
 import org.ddialliance.ddi3.xml.xmlbeans.conceptualcomponent.ConceptDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.conceptualcomponent.ConceptGroupDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.conceptualcomponent.ConceptSchemeDocument;
+import org.ddialliance.ddi3.xml.xmlbeans.conceptualcomponent.ConceptualComponentDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.conceptualcomponent.UniverseDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.conceptualcomponent.UniverseSchemeDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.datacollection.ComputationItemDocument;
@@ -35,6 +36,7 @@ import org.ddialliance.ddi3.xml.xmlbeans.logicalproduct.CategorySchemeDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.logicalproduct.CodeSchemeDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.logicalproduct.VariableDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.logicalproduct.VariableSchemeDocument;
+import org.ddialliance.ddi3.xml.xmlbeans.studyunit.StudyUnitType;
 import org.ddialliance.ddieditor.model.conceptual.ConceptualElement;
 import org.ddialliance.ddieditor.model.conceptual.ConceptualType;
 import org.ddialliance.ddieditor.model.lightxmlobject.LightXmlObjectListDocument;
@@ -1027,7 +1029,7 @@ public class DdiManager {
 		List<ConceptualElement> result = new ArrayList<ConceptualElement>();
 
 		// study
-		LightXmlObjectListDocument lightDoc = getStudyUnitLight(null, null,
+		LightXmlObjectListDocument lightDoc = getStudyUnitsLight(null, null,
 				null, null);
 		for (LightXmlObjectType lightElement : lightDoc.getLightXmlObjectList()
 				.getLightXmlObjectList()) {
@@ -1036,6 +1038,7 @@ public class DdiManager {
 							lightElement));
 		}
 
+		// logic
 		// - universe
 		lightDoc = getUniverseSchemesLight(null, null, null, null);
 		for (LightXmlObjectType lightElement : lightDoc.getLightXmlObjectList()
@@ -1051,7 +1054,7 @@ public class DdiManager {
 			result.add(new ConceptualElement(ConceptualType.LOGIC_concepts,
 					lightElement));
 		}
-		
+
 		// - categorie
 		lightDoc = getCategorySchemesLight(null, null, null, null);
 		for (LightXmlObjectType lightElement : lightDoc.getLightXmlObjectList()
@@ -1067,7 +1070,7 @@ public class DdiManager {
 			result.add(new ConceptualElement(ConceptualType.LOGIC_code,
 					lightElement));
 		}
-
+		
 		// - questions
 		lightDoc = getQuestionSchemesLight(null, null, null, null);
 		for (LightXmlObjectType lightElement : lightDoc.getLightXmlObjectList()
@@ -1097,9 +1100,192 @@ public class DdiManager {
 	}
 
 	//
+	// import
+	//
+	public void importStudyUnit(
+			String resource,
+			org.ddialliance.ddi3.xml.xmlbeans.studyunit.StudyUnitDocument studyUnitDocument)
+			throws Exception {
+		DdiManager.getInstance().setWorkingDocument(resource);
+
+		// avail study units
+		LightXmlObjectListDocument studyUnits = getStudyUnitsLight(null, null,
+				null, null);
+		
+		// import into existing study unit
+		if (!studyUnits.getLightXmlObjectList().getLightXmlObjectList()
+				.isEmpty()) {
+			// set: id version agency
+
+			// over write
+			// TODO support multiple study units
+			LightXmlObjectType selected = studyUnits.getLightXmlObjectList()
+					.getLightXmlObjectArray(0);
+
+			MaintainableLabelQueryResult labelQueryResult = getStudyLabel(
+					selected.getId(), selected.getVersion(), selected
+							.getParentId(), selected.getParentVersion());
+
+			List<MaintainableLabelUpdateElement> updates = new ArrayList<MaintainableLabelUpdateElement>();
+			StudyUnitType type = studyUnitDocument.getStudyUnit();
+			XmlOptions xmlOptions = new XmlOptions();
+			xmlOptions.setSavePrettyPrint();
+			xmlOptions.setSaveOuter();
+
+			// insert study level info
+			LinkedList<String> existingObj = null;
+			for (Entry<String, LinkedList<String>> entry : labelQueryResult
+					.getResult().entrySet()) {
+				log.debug(entry.getKey());
+
+				// insert values
+				Object importObj = null;
+				try {
+					existingObj = entry.getValue();
+					importObj = ReflectionUtil.invokeMethod(type, "get"
+							+ entry.getKey(), false, null);
+				} catch (Exception e) {
+					try {
+						importObj = ReflectionUtil.invokeMethod(type, "get"
+								+ entry.getKey() + "List", false, null);
+					} catch (Exception e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
+				}
+				// create
+				if (importObj != null && existingObj.isEmpty()) {
+					log.debug("create");
+					if (importObj instanceof List) {
+						for (XmlObject xmlObject : ((List<XmlObject>) importObj)) {
+							updates.add(new MaintainableLabelUpdateElement(
+									entry.getKey(), xmlObject
+											.xmlText(xmlOptions),
+									MaintainableLabelUpdateElement.NEW));
+						}
+					} else {
+						updates.add(new MaintainableLabelUpdateElement(entry
+								.getKey(), ((XmlObject) importObj)
+								.xmlText(xmlOptions),
+								MaintainableLabelUpdateElement.NEW));
+					}
+				}
+				// update
+				else if (importObj != null && !existingObj.isEmpty()) {
+					log.debug("update");
+					if (importObj instanceof List) {
+						int count = 1;
+						for (XmlObject xmlObject : ((List<XmlObject>) importObj)) {
+							updates.add(new MaintainableLabelUpdateElement(
+									entry.getKey(), xmlObject
+											.xmlText(xmlOptions), count));
+							count++;
+						}
+					} else {
+						updates.add(new MaintainableLabelUpdateElement(entry
+								.getKey(), ((XmlObject) importObj)
+								.xmlText(xmlOptions), 1));
+					}
+				}
+				// delete
+				else if (importObj == null && !existingObj.isEmpty()) {
+					log.debug("delete");
+					if (importObj instanceof List) {
+						int count = -1;
+						for (XmlObject xmlObject : ((List<XmlObject>) importObj)) {
+							updates.add(new MaintainableLabelUpdateElement(
+									entry.getKey(), "", count));
+							count--;
+						}
+					} else {
+						updates.add(new MaintainableLabelUpdateElement(entry
+								.getKey(), "", -1));
+					}
+				}
+				existingObj = null;
+			}
+			if (log.isDebugEnabled()) {
+				for (MaintainableLabelUpdateElement maintainableLabelUpdateElement : updates) {
+					log.debug(maintainableLabelUpdateElement.toString());
+				}
+			}
+			updateMaintainableLabel(labelQueryResult, updates);
+			
+			// insert conceptual component
+			// create
+			List<LightXmlObjectType> conceptCompLights = getConceptualComponentsLight(
+					null, null, null, null).getLightXmlObjectList()
+					.getLightXmlObjectList();
+			if (conceptCompLights.isEmpty()) {
+				ConceptualComponentDocument concDoc = ConceptualComponentDocument.Factory
+						.newInstance();
+				concDoc.setConceptualComponent(studyUnitDocument.getStudyUnit()
+						.getConceptualComponentList().get(0));
+
+				createElement(concDoc, studyUnitDocument.getStudyUnit().getId(),
+						studyUnitDocument.getStudyUnit().getVersion(),
+						"studyunit__StudyUnit");
+			}
+			UniverseSchemeDocument doc = getUniverseScheme(null, null, null, null);
+			// create
+			if (doc == null) {
+				LightXmlObjectType concLight = conceptCompLights.get(0);
+				UniverseSchemeDocument uniSDoc = UniverseSchemeDocument.Factory
+						.newInstance();
+				uniSDoc.setUniverseScheme(studyUnitDocument.getStudyUnit()
+						.getConceptualComponentArray(0).getUniverseSchemeArray(0));
+				createElement(uniSDoc, concLight.getId(), concLight.getId(),
+						concLight.getElement());
+			}
+			// replace
+			else {
+				// weed out unused universe ref
+
+			}
+			// insert archive
+			
+		} else {
+			// avail ddi instance
+			LightXmlObjectListDocument ddiInstances = getDdiInstanceLight(null,
+					null, null, null);
+			
+			// import into existing ddi instance
+			if (!ddiInstances.getLightXmlObjectList().getLightXmlObjectList()
+					.isEmpty()) {
+				// no study unit import all
+				// insert all into ddi instance
+				LightXmlObjectType lightXmlObject = ddiInstances
+						.getLightXmlObjectList().getLightXmlObjectArray(0);
+				createElement(studyUnitDocument, lightXmlObject.getId(),
+						lightXmlObject.getVersion(), lightXmlObject
+								.getElement());
+			}
+		}
+		// TODO avail group
+
+		// TODO avail resource package		
+
+		return;
+	}
+
+	//
+	// ddi instance
+	//
+	public LightXmlObjectListDocument getDdiInstanceLight(String id,
+			String version, String parentId, String parentVersion)
+			throws Exception {
+		// UserId as label is hack as ddi instanc does not have a label element
+		LightXmlObjectListDocument lightXmlObjectListDocument = queryLightXmlBeans(
+				id, version, parentId, parentVersion, "//", "DDIInstance",
+				null, "UserID");
+
+		return lightXmlObjectListDocument;
+	}
+
+	//
 	// study unit
 	//
-	public LightXmlObjectListDocument getStudyUnitLight(String id,
+	public LightXmlObjectListDocument getStudyUnitsLight(String id,
 			String version, String parentId, String parentVersion)
 			throws Exception {
 		LightXmlObjectListDocument lightXmlObjectListDocument = queryLightXmlBeans(
@@ -1158,6 +1344,21 @@ public class DdiManager {
 	//
 	// conceptual components
 	//	
+	public LightXmlObjectListDocument getConceptualComponentsLight(String id,
+			String version, String parentId, String parentVersion)
+			throws Exception {
+		LightXmlObjectListDocument lightXmlObjectListDocument = queryLightXmlBeans(
+				id, version, parentId, parentVersion, "studyunit__StudyUnit",
+				"ConceptualComponent", null, "reusable__Label");
+		if (lightXmlObjectListDocument.getLightXmlObjectList()
+				.getLightXmlObjectList().isEmpty()) {
+			lightXmlObjectListDocument = queryLightXmlBeans(id, version,
+					parentId, parentVersion, "//", "ConceptualComponent", null,
+					"reusable__Label");
+		}
+		return lightXmlObjectListDocument;
+	}
+
 	public LightXmlObjectListDocument getConceptSchemesLight(String id,
 			String version, String parentId, String parentVersion)
 			throws Exception {
@@ -1600,33 +1801,6 @@ public class DdiManager {
 		return (text == "" ? null : CategorySchemeDocument.Factory.parse(text));
 	}
 
-	public LightXmlObjectListDocument getCategoryLight(String id,
-			String version, String parentId, String parentVersion)
-			throws Exception {
-		LightXmlObjectListDocument lightXmlObjectListDocument = queryLightXmlBeans(
-				id, version, parentId, parentVersion,
-				"CategoryScheme", "Category", null,
-				"reusable__Label");
-		if (lightXmlObjectListDocument.getLightXmlObjectList()
-				.getLightXmlObjectList().isEmpty()) {
-			lightXmlObjectListDocument = queryLightXmlBeans(id, version,
-					parentId, parentVersion, "//", "Category", null,
-					"reusable__Label");
-		}
-		return lightXmlObjectListDocument;
-	}
-
-	public CategoryDocument getCategory(String id, String version,
-			String parentId, String parentVersion) throws Exception {
-		String text = queryElement(id, version, "Category", parentId,
-				parentVersion, "CategoryScheme");
-		if (text == null) {
-			queryElement(id, version, "Category", null, null, null);
-		}
-		return (text == "" ? null : CategoryDocument.Factory.parse(text));
-	}
-
-
 	public VariableSchemeDocument getVariableScheme(String id, String version,
 			String parentId, String parentVersion) throws Exception {
 		String text = queryElement(id, version, "VariableScheme", parentId,
@@ -1651,6 +1825,32 @@ public class DdiManager {
 					"VariableSchemeName");
 		}
 		return lightXmlObjectListDocument;
+	}
+	
+	public LightXmlObjectListDocument getCategoryLight(String id,
+			String version, String parentId, String parentVersion)
+			throws Exception {
+		LightXmlObjectListDocument lightXmlObjectListDocument = queryLightXmlBeans(
+				id, version, parentId, parentVersion,
+				"CategoryScheme", "Category", null,
+				"reusable__Label");
+		if (lightXmlObjectListDocument.getLightXmlObjectList()
+				.getLightXmlObjectList().isEmpty()) {
+			lightXmlObjectListDocument = queryLightXmlBeans(id, version,
+					parentId, parentVersion, "//", "Category", null,
+					"reusable__Label");
+		}
+		return lightXmlObjectListDocument;
+	}
+
+	public CategoryDocument getCategory(String id, String version,
+			String parentId, String parentVersion) throws Exception {
+		String text = queryElement(id, version, "Category", parentId,
+				parentVersion, "CategoryScheme");
+		if (text == null) {
+			queryElement(id, version, "Category", null, null, null);
+		}
+		return (text == "" ? null : CategoryDocument.Factory.parse(text));
 	}
 
 	public VariableDocument getVariable(String id, String version,
