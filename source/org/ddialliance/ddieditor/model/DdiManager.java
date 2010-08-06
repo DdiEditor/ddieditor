@@ -1,5 +1,6 @@
 package org.ddialliance.ddieditor.model;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -597,11 +598,15 @@ public class DdiManager {
 									.getLightXmlObjectList().size() - 1);
 		}
 
+		XmlOptions options = new XmlOptions();
+		options.setSaveAggressiveNamespaces();
+		options.setSavePrettyPrint();
+		
 		// insert xml object after last element of same type
 		if (lastElementOfSameType != null) {
 			PersistenceManager.getInstance().insert(
 					getDdi3NamespaceHelper().substitutePrefixesFromElements(
-							xmlObject.xmlText()),
+							xmlObject.xmlText(options)),
 					XQueryInsertKeyword.AFTER,
 					xQueryCrudPosition(lastElementOfSameType.getId(),
 							lastElementOfSameType.getVersion(),
@@ -614,7 +619,7 @@ public class DdiManager {
 		// guard, last element of same type NULL
 		PersistenceManager.getInstance().insert(
 				getDdi3NamespaceHelper().substitutePrefixesFromElements(
-						xmlObject.xmlText()),
+						xmlObject.xmlText(options)),
 				XQueryInsertKeyword.INTO,
 				xQueryCrudPosition(parentId, parentVersion, parentElementType,
 						null, null, null));
@@ -1255,7 +1260,7 @@ public class DdiManager {
 				// no study unit import all
 				// insert all into ddi instance
 				LightXmlObjectType lightXmlObject = ddiInstances
-						.getLightXmlObjectList().getLightXmlObjectArray(0);
+						.getLightXmlObjectList().getLightXmlObjectArray(0);				
 				createElement(studyUnitDocument, lightXmlObject.getId(),
 						lightXmlObject.getVersion(), lightXmlObject
 								.getElement());
