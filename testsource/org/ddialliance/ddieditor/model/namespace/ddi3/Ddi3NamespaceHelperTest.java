@@ -1,5 +1,8 @@
 package org.ddialliance.ddieditor.model.namespace.ddi3;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -93,11 +96,25 @@ public class Ddi3NamespaceHelperTest extends DdieditorTestCase {
 		String result = DdiManager.getInstance().getDdi3NamespaceHelper()
 				.substitutePrefixesFromElements(xml);
 	}
-	
+
 	@Test
 	public void substitutePrefixesFromEmtyElement() throws Exception {
 		String xml = "<ddi1:ID xmlns:ddi1=\"ddi:reusable:3_1\"/>";
 		String result = DdiManager.getInstance().getDdi3NamespaceHelper()
 				.substitutePrefixesFromElements(xml);
+	}
+
+	@Test
+	public void substitutePrefixesFromEmtyElementComplex() throws Exception {
+		XmlObject xmlObject = XmlObject.Factory.parse(new File(
+				"resources/test.xml"));
+		String result = DdiManager.getInstance().getDdi3NamespaceHelper()
+				.substitutePrefixesFromElementsKeepXsiDefs(xmlObject.xmlText());
+			// Create file
+			FileWriter fstream = new FileWriter("out.xml");
+			BufferedWriter out = new BufferedWriter(fstream);
+			out.write("<?xml version=\"1.0\" encoding=\"utf-8\"?>"+result);
+			// Close the output stream
+			out.close();
 	}
 }

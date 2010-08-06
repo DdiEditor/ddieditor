@@ -1,5 +1,7 @@
 package org.ddialliance.ddieditor.model;
 
+import static org.junit.Assert.*;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -29,19 +31,57 @@ import org.ddialliance.ddieditor.DdieditorTestCase;
 import org.ddialliance.ddieditor.logic.identification.IdentificationManager;
 import org.ddialliance.ddieditor.model.conceptual.ConceptualElement;
 import org.ddialliance.ddieditor.model.lightxmlobject.LightXmlObjectListDocument;
+import org.ddialliance.ddieditor.model.lightxmlobject.LightXmlObjectType;
 import org.ddialliance.ddieditor.model.namespace.ddi3.Ddi3NamespacePrefix;
 import org.ddialliance.ddieditor.persistenceaccess.PersistenceManager;
+import org.ddialliance.ddieditor.persistenceaccess.filesystem.FilesystemManager;
 import org.ddialliance.ddieditor.persistenceaccess.maintainablelabel.MaintainableLabelQuery;
 import org.ddialliance.ddieditor.persistenceaccess.maintainablelabel.MaintainableLabelQueryResult;
 import org.ddialliance.ddieditor.persistenceaccess.maintainablelabel.MaintainableLabelUpdateElement;
 import org.ddialliance.ddieditor.persistenceaccess.maintainablelabel.MaintainableLightLabelQueryResult;
 import org.ddialliance.ddiftp.util.DDIFtpException;
+import org.ddialliance.ddiftp.util.ReflectionUtil;
 import org.ddialliance.ddiftp.util.Translator;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 
 public class DdiManagerTest extends DdieditorTestCase {
+	@Test
+	public void getDdiInstanceLight() throws Exception {
+		PersistenceManager.getInstance().setWorkingResource(
+				DdieditorTestCase.FULLY_DECLARED_NS_DOC);
+		Assert.assertEquals(1, DdiManager.getInstance().getDdiInstanceLight(
+				null, null, null, null).getLightXmlObjectList()
+				.getLightXmlObjectList().size());
+	}
+
+	@Test
+	public void getConceptualComponentsLight() throws Exception {
+		PersistenceManager.getInstance().setWorkingResource(
+				FULLY_DECLARED_NS_DOC);
+		// FilesystemManager.getInstance().addResource(new
+		// File("resources/import.xml"));
+		LightXmlObjectListDocument result = DdiManager.getInstance()
+				.getConceptualComponentsLight(null, null, null, null);
+
+		Assert.assertEquals("Size not same", 1, result.getLightXmlObjectList()
+				.getLightXmlObjectList().size());
+		LightXmlObjectType type = result.getLightXmlObjectList()
+				.getLightXmlObjectList().get(0);
+
+		try {
+			result = (LightXmlObjectListDocument) ReflectionUtil.invokeMethod(
+					DdiManager.getInstance(), "getConceptualComponentsLight",
+					false, new Object[] { "", "", type.getParentId(),
+							type.getParentVersion() });
+		} catch (Exception e) {
+			throw new DDIFtpException(e);
+		}
+		Assert.assertEquals("Size not same", 1, result.getLightXmlObjectList()
+				.getLightXmlObjectList().size());
+	}
+
 	@Test
 	public void getQuestionSchemesLight() throws Exception {
 		PersistenceManager.getInstance().setWorkingResource(
@@ -329,8 +369,9 @@ public class DdiManagerTest extends DdieditorTestCase {
 				DdieditorTestCase.FULLY_DECLARED_NS_DOC);
 
 		String parentId = "dd";
-		LightXmlObjectListDocument lightXmlObjectList = DdiManager.getInstance().getQuestionSchemesLight("", "", parentId, "");
-		
+		LightXmlObjectListDocument lightXmlObjectList = DdiManager
+				.getInstance().getQuestionSchemesLight("", "", parentId, "");
+
 		QuestionSchemeDocument doc = QuestionSchemeDocument.Factory
 				.newInstance();
 		QuestionSchemeType type = doc.addNewQuestionScheme();
