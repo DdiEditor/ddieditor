@@ -1,25 +1,23 @@
 package org.ddialliance.ddieditor.model.namespace.ddi3;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.Map.Entry;
-import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.xml.namespace.QName;
 
-import org.apache.xmlbeans.SchemaType;
 import org.apache.xmlbeans.XmlObject;
 import org.ddialliance.ddieditor.model.relationship.UrnRelationhipListDocument;
 import org.ddialliance.ddieditor.model.relationship.ElementDocument.Element;
 import org.ddialliance.ddieditor.model.relationship.UrnRelationhipListDocument.UrnRelationhipList;
-import org.ddialliance.ddieditor.persistenceaccess.maintainablelabel.MaintainableLabelQuery;
 import org.ddialliance.ddiftp.util.DDIFtpException;
 import org.ddialliance.ddiftp.util.FileUtil;
 import org.ddialliance.ddiftp.util.log.Log;
@@ -71,8 +69,16 @@ public class Ddi3NamespaceHelper {
 
 	// pattern xmlns:r="ddi:reusable:3_0"
 	// xmlns:ddi="ddi:datacollection:3_0"
-	private Pattern namespacePattern = Pattern
+	private Pattern ddiNamespacePattern = Pattern
 			.compile("xmlns[:]{1}[a-z]*[1-9]?=[[\"]|[']]{1}ddi:[a-z]*:[0-9]{1}_[0-9]{1}[[\"]|[']]{1}");
+
+	// xmlns:xht="http://www.w3.org/1999/xhtml"
+	String urlPattern = "^(http|https|ftp)\\://[a-zA-Z0-9\\-\\.]+\\.[a-zA-Z]{2,3}(:[a-zA-Z0-9]*)?/?([a-zA-Z0-9\\-\\._\\?\\,\\'/\\\\\\+&amp;%\\$#\\=~])*$";
+	// "^http://([a-zA-Z0-9_\\-]+)([\\.][a-zA-Z0-9_\\-]+)+([/][a-zA-Z0-9\\~\\(\\)_\\-]*)+([\\.][a-zA-Z0-9\\(\\)_\\-]+)*$";
+	private Pattern urlNamespacePattern = Pattern
+			.compile("(xmlns[:\\w*]+=\\\".*?\\\")");
+	// .compile("xmlns[:]{1}[a-z]*=[[\"]|[']]{1}" + urlPattern
+	// + "[[\"]|[']]{1}");
 
 	// pattern xsi:type="d:CodeDomainType"
 	private Pattern xsiPattern = Pattern
@@ -230,6 +236,7 @@ public class Ddi3NamespaceHelper {
 	public String addFullyQualifiedNamespaceDeclarationToElements(String query)
 			throws DDIFtpException {
 		String cacheResult = qualifiedNsCache.get(query);
+		log.debug(query);
 		if (cacheResult != null) {
 			// if (log.isDebugEnabled()) {
 			// log.debug("Qualified NS declaration for: '" + query
@@ -333,46 +340,85 @@ public class Ddi3NamespaceHelper {
 	 */
 	public String substitutePrefixesFromElements(String node)
 			throws DDIFtpException {
-		if (log.isDebugEnabled()) {
-			log.debug("Org node:\n" + node);
+		return substitutePrefixesFromElements(node, true);
+	}
+
+	public String substitutePrefixesFromElementsKeepXsiDefs(String node)
+			throws DDIFtpException {
+		return substitutePrefixesFromElements(node, false);
+	}
+
+	class DoublePrefix {
+		public DoublePrefix(String prefix, String namespace) {
+			super();
+			this.prefix = prefix;
+			this.namespace = namespace;
 		}
 
+		String prefix;
+		String namespace;
+	}
+
+	private String substitutePrefixesFromElements(String node,
+			boolean removeXsiDefinitions) throws DDIFtpException {
+		// if (log.isDebugEnabled()) {
+		// log.debug("Org node:\n" + node);
+		// }
+
+		Map<String, String> prefixNamespaces = new HashMap<String, String>();
+		Map<String, List<String>> prefixNamespacesDoubles = new HashMap<String, List<String>>();
 		Matcher startTagMatcher = null;
 		Matcher endTagMatcher = null;
 		Matcher elementMacher = null;
 
-		// remove all xsi:type declarations
-		Matcher xsiMacher = xsiPattern.matcher(node);
-		node = xsiMacher.replaceAll(NO_SPACE);
-
-		// remove all xmlns:xsi declarations
-		Matcher xsiDefMacher = xsiDefPattern.matcher(node);
-		node = xsiDefMacher.replaceAll(NO_SPACE);
-
-		// index namespace prefix deceleration
-		Map<String, String> prefixNamespaces = new HashMap<String, String>();
-		Matcher namespaceMatcher = namespacePattern.matcher(node);
+		// index url namespace prefix declarations
+		Matcher urlNamespaceMatcher = urlNamespacePattern.matcher(node);
 		String namespaceDecl = null;
-		String value;
+		String key;
 		int index = -1;
-		if (namespaceMatcher.find()) {
+		if (urlNamespaceMatcher.find()) {
 			do {
-				// xmlns:ddi1="ddi:datacollection:3_1"
-				namespaceDecl = node.substring(namespaceMatcher.start(),
-						namespaceMatcher.end());
+				namespaceDecl = node.substring(urlNamespaceMatcher.start(),
+						urlNamespaceMatcher.end());
 				index = namespaceDecl.indexOf("=");
-				value = namespaceDecl.substring(6, index);
-				if (!prefixNamespaces.containsKey(value)) {
-					prefixNamespaces.put(value, namespaceDecl.substring(
-							index + 2, namespaceDecl.length() - 1));
-				} else {
+				if (index < 6) {
 					continue;
 				}
-			} while (namespaceMatcher.find());
+				key = namespaceDecl.substring(6, index);
+
+				if (!prefixNamespaces.containsKey(key)) {
+					prefixNamespaces.put(key, namespaceDecl.substring(
+							index + 2, namespaceDecl.length() - 1));
+				} else {
+					String test = namespaceDecl.substring(index + 2,
+							namespaceDecl.length() - 1);
+					String org = prefixNamespaces.get(key);
+					if (!prefixNamespaces.get(key).equals(test)) {
+						
+						if (!prefixNamespacesDoubles.containsKey(key)) {
+							List<String> tmp = new ArrayList<String>();
+							tmp.add(test);
+							prefixNamespacesDoubles.put(key, tmp);
+						} else {
+							prefixNamespacesDoubles.get(key).add(test);
+						}
+					}
+					continue;
+				}
+			} while (urlNamespaceMatcher.find());
 		}
 
-		// remove all prefixes deceleration
-		node = namespaceMatcher.replaceAll("");
+		// substitute prefixes
+		if (!prefixNamespaces.isEmpty()) {
+			// remove all url prefix decelerations
+			node = urlNamespaceMatcher.replaceAll("");
+		}
+
+		if (removeXsiDefinitions) {
+			// remove all xsi:type declarations
+			Matcher xsiMacher = xsiPattern.matcher(node);
+			node = xsiMacher.replaceAll(NO_SPACE);
+		}
 
 		// remove all end prefix
 		endTagMatcher = endTagPattern.matcher(node);
@@ -382,6 +428,7 @@ public class Ddi3NamespaceHelper {
 		// search start prefix
 		startTagMatcher = startTagPattern.matcher(element.toString());
 		String prefix, namespace;
+
 		if (startTagMatcher.find()) {
 			do {
 				prefix = element.substring(startTagMatcher.start() + 1,
@@ -392,20 +439,36 @@ public class Ddi3NamespaceHelper {
 				element.delete(startTagMatcher.start() + 1, startTagMatcher
 						.end());
 
-				// current element
+				// element matcher
 				elementMacher = elementPattern.matcher(element.toString());
 				elementMacher.region(startTagMatcher.start(), element.length());
 				elementMacher.find();
-				String currentElement = element.substring(
-						elementMacher.start() + 1, elementMacher.end());
 
 				// insert prefix replacement, namespace declaration
 				// <QuestionText xml:lang="no" ...
 				if (namespace != null) {
+					if (prefixNamespacesDoubles.containsKey(prefix)) {
+						String currentElement = element.substring(elementMacher
+								.start() + 1, elementMacher.end());
+						Ddi3NamespacePrefix ddiPrefix = null;
+						try {
+							ddiPrefix = getNamespaceObjectByElement(currentElement);
+							namespace = ddiPrefix.getNamespace();
+						} catch (Exception e) {
+							// do nothing
+						}
+						System.out.println(currentElement + " : " + namespace);
+					}
 					element.insert(elementMacher.end(), " xmlns=\"" + namespace
 							+ "\"");
-				} else {
-					Matcher namespaceMacher = namespacePattern
+				} else
+				// special case where namespace not found
+				{
+					// current element
+					String currentElement = element.substring(elementMacher
+							.start() + 1, elementMacher.end());
+
+					Matcher namespaceMacher = ddiNamespacePattern
 							.matcher(currentElement);
 					if (namespaceMacher.find()) {
 						prefixNamespaces
@@ -427,31 +490,27 @@ public class Ddi3NamespaceHelper {
 								+ namespace + "\"");
 					} catch (DDIFtpException e) {
 						// hack to circumvent unused unique element name to
-						// namespace convention via using standard ddi namespace
+						// namespace convention via using standard ddi
+						// namespace
 						// prefixes
 						ddiPrefix = Ddi3NamespacePrefix
 								.getNamespaceByDefaultPrefix(prefix);
 						if (ddiPrefix != null) {
 							namespace = ddiPrefix.getNamespace();
+							if (namespace == null) {
+								// TODO index root element for prefix elements
+								// xquery get prefixes
+							}
 							element.insert(elementMacher.end(), " xmlns=\""
 									+ namespace + "\"");
 						} else {
-							// TODO
-							// test if the declaration is at the top of xml
-
-							if (ddiPrefix == null && prefix.equals("dc2")) {
-								element
-										.insert(elementMacher.end(),
-												" xmlns=\"http://purl.org/dc/elements/1.1/\"");
-							} else {
-								throw new DDIFtpException(
-										"Unsuccessfull namespace prefix substitution for prefix: '"
-												+ prefix + "', at element: '"
-												+ currentElement
-												+ "', current node form: "
-												+ element.toString(),
-										new Throwable());
-							}
+							throw new DDIFtpException(
+									"Unsuccessfull namespace prefix substitution for prefix: '"
+											+ prefix + "', at element: '"
+											+ currentElement
+											+ "', current node form: "
+											+ element.toString(),
+									new Throwable());
 						}
 					}
 				}
@@ -459,17 +518,23 @@ public class Ddi3NamespaceHelper {
 				// reset start prefix matcher
 				startTagMatcher = startTagPattern.matcher(element.toString());
 			} while (startTagMatcher.find());
-		}
-
-		// remove all predefined ddi prefixed namespace declarations
-		Matcher namespaceMacher = namespacePattern.matcher(element);
-		node = namespaceMacher.replaceAll(NO_SPACE);
-		if (log.isDebugEnabled()) {
-			log.debug("Modified node:\n" + node);
+			if (!removeXsiDefinitions) {
+				try {
+					elementMacher = elementPattern.matcher(element.toString());
+					elementMacher.find();
+					element
+							.insert(elementMacher.end(),
+									" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" ");
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+			return element.toString();
 		}
 		return node;
 	}
-
+	
 	public Set<String> getMaintainableElementsList() {
 		if (maintainalbeList == null) {
 			maintainalbeList = new TreeSet<String>();
