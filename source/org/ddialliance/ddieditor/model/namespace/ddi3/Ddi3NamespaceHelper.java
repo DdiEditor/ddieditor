@@ -457,7 +457,6 @@ public class Ddi3NamespaceHelper {
 						} catch (Exception e) {
 							// do nothing
 						}
-						System.out.println(currentElement + " : " + namespace);
 					}
 					element.insert(elementMacher.end(), " xmlns=\"" + namespace
 							+ "\"");
