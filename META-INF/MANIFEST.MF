@@ -32,7 +32,6 @@ Import-Package:
  com.sleepycat.dbxml,
  com.sun.xml.xsom,
  com.sun.xml.xsom.parser,
- com.ximpleware,
  org.ddialliance.ddieditor,
  org.ddialliance.ddieditor.controller,
  org.ddialliance.ddieditor.logic.urn.ddi,
