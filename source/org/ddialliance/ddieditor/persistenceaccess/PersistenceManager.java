@@ -9,12 +9,14 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import org.apache.xmlbeans.XmlOptions;
+import org.ddialliance.ddieditor.model.DdiManager;
 import org.ddialliance.ddieditor.model.XQuery;
 import org.ddialliance.ddieditor.model.resource.DDIResourceDocument;
 import org.ddialliance.ddieditor.model.resource.DDIResourceType;
 import org.ddialliance.ddieditor.model.resource.ResourceListDocument;
 import org.ddialliance.ddieditor.model.resource.StorageDocument;
 import org.ddialliance.ddieditor.model.resource.StorageType;
+import org.ddialliance.ddieditor.model.resource.TopURNDocument;
 import org.ddialliance.ddieditor.model.resource.TopURNType;
 import org.ddialliance.ddieditor.persistenceaccess.dbxml.DbXmlManager;
 import org.ddialliance.ddieditor.util.DdiEditorRefUtil;
@@ -22,6 +24,8 @@ import org.ddialliance.ddiftp.util.DDIFtpException;
 import org.ddialliance.ddiftp.util.log.Log;
 import org.ddialliance.ddiftp.util.log.LogFactory;
 import org.ddialliance.ddiftp.util.log.LogType;
+import org.ddialliance.ddiftp.util.xml.Urn;
+import org.ddialliance.ddiftp.util.xml.XmlBeansUtil;
 import org.perf4j.aop.Profiled;
 
 /**
@@ -184,13 +188,13 @@ public class PersistenceManager {
 	 */
 	private void resetWorkingResource() throws DDIFtpException {
 		// check resources
-		if (resourceList !=null) {
+		if (resourceList != null) {
 			for (DDIResourceType ddiResource : getResources()) {
 				if (ddiResource.getOrgName().equals(tmpWorkingResource)) {
 					setWorkingResource(tmpWorkingResource);
-					break;				
+					break;
 				}
-			}	
+			}
 		}
 	}
 
@@ -599,22 +603,23 @@ public class PersistenceManager {
 			if (storage.getId().equals(id)) {
 				try {
 					persistenceStorage = (PersistenceStorage) DdiEditorRefUtil
-					.invokeStaticMethod(storage.getManager(), "getInstance",
-							null);
+							.invokeStaticMethod(storage.getManager(),
+									"getInstance", null);
 				} catch (Exception e) {
-					throw new DDIFtpException("Error retrieve persistence storage");
+					throw new DDIFtpException(
+							"Error retrieve persistence storage");
 				}
 				break;
 			}
 		}
-		
+
 		// remove storage implementation
 		try {
 			persistenceStorage.removeStorage(id);
 		} catch (Exception e) {
 			throw new DDIFtpException("Error on delete storage", e);
 		}
-		
+
 		// remove storage from list
 		try {
 			setResource();
@@ -792,6 +797,107 @@ public class PersistenceManager {
 			}
 		}
 		return result;
+	}
+
+	public void indexResourceUrns(boolean validUrnsOnly) throws Exception {
+		// xquery on non empty agency, id, version attrs
+		StringBuilder query = new StringBuilder();
+		query.append("for $x in ");
+		query.append(PersistenceManager.getInstance().getResourcePath());
+		if (validUrnsOnly) {
+			query
+					.append("//* where exists($x/@id) and exists($x/@version) and exists($x/@agency) return ");
+		} else {
+			query.append("//* where exists($x/@id) return ");
+		}
+		query
+				.append("<TopURN xmlns=\"ddieditor-resoure-list\" element=\"{node-name($x)}\" id=\"{$x/@id/string()}\" version=\"{$x/@version/string()}\" agency=\"{$x/@agency/string()}\" urn=\"\"/>");
+		List<String> resultSet = PersistenceManager.getInstance().query(
+				query.toString());
+
+		// process xquery result
+		Set<String> maintainableElementsList = DdiManager.getInstance()
+				.getDdi3NamespaceHelper().getMaintainableElementsList();
+		List<TopURNType> result = new ArrayList<TopURNType>();
+		TopURNDocument doc = null;
+		TopURNType type = null;
+		String localName = null;
+		String empty = "";
+		int index = -1;
+
+		XmlOptions xmlOptions = new XmlOptions();
+		xmlOptions.setDocumentType(TopURNType.type.getOuterType());
+		xmlOptions.setSavePrettyPrint();
+
+		for (String topUrnNode : resultSet) {
+			localName = XmlBeansUtil.getXmlAttributeValue(topUrnNode,
+					"element=\"");
+
+			// cleanup element name for xmlns prefix
+			index = localName.indexOf(":");
+			if (index > -1) {
+				localName = localName.substring(index + 1);
+			}
+			if (!maintainableElementsList.contains(localName)) {
+				continue;
+			}
+
+			// parse top urn
+			doc = TopURNDocument.Factory.parse(topUrnNode, xmlOptions);
+			type = doc.getTopURN();
+			type.setElement(localName);
+
+			if (!type.getAgency().equals(empty)
+					&& !type.getVersion().equals(empty)) {
+				// generate urn
+				Urn urn = new Urn();
+				urn.setMaintainableId(type.getId());
+				urn.setMaintainableVersion(type.getVersion());
+				urn.setIdentifingAgency(type.getAgency());
+				urn.setMaintainableElement(type.getElement());
+				type.setUrn(urn.toUrnString());
+			}
+
+			result.add(type);
+		}
+
+		// storage to update
+		StorageType storage = PersistenceManager.getInstance()
+				.getStorageByResourceOrgName(
+						PersistenceManager.getInstance().getWorkingResource());
+		storage.getDDIResourceList().get(0).setTopURNArray(
+				result.toArray(new TopURNType[] {}));
+
+		// update storage
+		String resourceId = PersistenceManager.getInstance()
+				.getWorkingResource();
+		XQuery xQuery = new XQuery();
+		try {
+			setResource();
+			xQuery.query.append("for $x in ");
+			xQuery.query.append(PersistenceManager.getInstance()
+					.getResourcePath());
+			xQuery.query
+					.append("//*[namespace-uri()='ddieditor-resoure-list' and local-name()='ResourceList']//*[namespace-uri()='ddieditor-resoure-list' and local-name()='Storage']");
+			xQuery.query.append(" where $x/@id = '");
+			xQuery.query.append(storage.getId());
+			xQuery.query.append("'");
+			xQuery.query.append(" return $x");
+			StorageDocument storageDocument = StorageDocument.Factory
+					.newInstance();
+			storageDocument.setStorage(storage);
+			updateNode(xQuery, storageDocument.xmlText(xmlOptions));
+		} catch (Exception e) {
+			throw new DDIFtpException(e);
+		} finally {
+			resetWorkingResource();
+		}
+		rebuildResources();
+
+		if (log.isDebugEnabled()) {
+			log.debug("Found validUrnsOnly:" + validUrnsOnly + ", top urns: "
+					+ result.size());
+		}
 	}
 
 	/**
