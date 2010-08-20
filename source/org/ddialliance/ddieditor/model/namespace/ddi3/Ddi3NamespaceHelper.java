@@ -394,7 +394,7 @@ public class Ddi3NamespaceHelper {
 							namespaceDecl.length() - 1);
 					String org = prefixNamespaces.get(key);
 					if (!prefixNamespaces.get(key).equals(test)) {
-						
+
 						if (!prefixNamespacesDoubles.containsKey(key)) {
 							List<String> tmp = new ArrayList<String>();
 							tmp.add(test);
@@ -533,13 +533,14 @@ public class Ddi3NamespaceHelper {
 		}
 		return node;
 	}
-	
+
 	public Set<String> getMaintainableElementsList() {
 		if (maintainalbeList == null) {
 			maintainalbeList = new TreeSet<String>();
 			for (Entry<Object, Object> entry : elementIdentifiable.entrySet()) {
 				if (entry.getValue().equals(MAINTAINABLE_TYPE)) {
-					maintainalbeList.add((String) entry.getKey());
+					maintainalbeList.add(getCleanedElementName((String) entry
+							.getKey()));
 				}
 			}
 		}
@@ -552,12 +553,7 @@ public class Ddi3NamespaceHelper {
 	}
 
 	public boolean isMaintainable(String localName) {
-		for (String tmp : getMaintainableElementsList()) {
-			if (tmp.indexOf(localName) > -1) {
-				return true;
-			}
-		}
-		return false;
+		return getMaintainableElementsList().contains(localName);
 	}
 
 	public boolean isVersionable(XmlObject xmlObject) {
