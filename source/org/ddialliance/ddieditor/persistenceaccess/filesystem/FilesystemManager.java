@@ -3,13 +3,10 @@ package org.ddialliance.ddieditor.persistenceaccess.filesystem;
 import java.io.File;
 import java.util.List;
 
-import org.ddialliance.ddieditor.logic.urn.ddi.FastUrnUtil;
-import org.ddialliance.ddieditor.model.DdiManager;
 import org.ddialliance.ddieditor.model.resource.DDIResourceDocument;
 import org.ddialliance.ddieditor.model.resource.DDIResourceType;
 import org.ddialliance.ddieditor.model.resource.StorageDocument;
 import org.ddialliance.ddieditor.model.resource.StorageType;
-import org.ddialliance.ddieditor.model.resource.TopURNType;
 import org.ddialliance.ddieditor.persistenceaccess.PersistenceManager;
 import org.ddialliance.ddieditor.persistenceaccess.PersistenceStorage;
 import org.ddialliance.ddieditor.persistenceaccess.dbxml.DbXmlManager;
@@ -17,11 +14,9 @@ import org.ddialliance.ddieditor.persistenceaccess.maintainablelabel.Maintainabl
 import org.ddialliance.ddieditor.persistenceaccess.maintainablelabel.MaintainableLabelQueryResult;
 import org.ddialliance.ddieditor.persistenceaccess.maintainablelabel.MaintainableLightLabelQueryResult;
 import org.ddialliance.ddiftp.util.DDIFtpException;
-import org.ddialliance.ddiftp.util.FileUtil;
 import org.ddialliance.ddiftp.util.log.Log;
 import org.ddialliance.ddiftp.util.log.LogFactory;
 import org.ddialliance.ddiftp.util.log.LogType;
-import org.ddialliance.ddiftp.util.xml.Urn;
 
 public class FilesystemManager implements PersistenceStorage {
 	private static Log logSystem = LogFactory.getLog(LogType.SYSTEM,
@@ -37,6 +32,7 @@ public class FilesystemManager implements PersistenceStorage {
 		return instance;
 	}
 
+	@Override
 	public void addResource(Object obj) throws Exception {
 		if (!(obj instanceof File)) {
 			throw new DDIFtpException("Argument must be a file!");
@@ -49,8 +45,6 @@ public class FilesystemManager implements PersistenceStorage {
 			throw new DDIFtpException("A resource with the same name: '"
 					+ file.getName() + "' has already been added");
 		}
-
-		// TODO strip file of DDIInstance - left out!, until now :- )
 
 		try {
 			// load file into db xml container
@@ -68,28 +62,18 @@ public class FilesystemManager implements PersistenceStorage {
 			storage.setManager(DbXmlManager.class.getName());
 			PersistenceManager.getInstance().createStorage(storageDoc);
 
-			// index storage and add resources
-			FastUrnUtil fastUrnUtil = new FastUrnUtil(FileUtil.readFile(file
-					.getAbsolutePath()));
-			List<Urn> urns = fastUrnUtil.generateManintainablesUrns(true);
+			// add resource
 			DDIResourceDocument ddiResourceDocument = DDIResourceDocument.Factory
 					.newInstance();
 			DDIResourceType ddiResource = ddiResourceDocument
 					.addNewDDIResource();
 			ddiResource.setOrgName(file.getName());
-
-			for (Urn urn : urns) {
-				TopURNType topURN = ddiResource.addNewTopURN();
-				topURN.setElement(
-								urn.getMaintainableElement());
-				topURN.setId(urn.getMaintainableId());
-				topURN.setAgency(urn.getIdentifingAgency());
-				topURN.setVersion(urn.getMaintainableVersion());
-				topURN.setUrn(urn.toUrnString());
-			}
 			PersistenceManager.getInstance().createResource(
 					ddiResourceDocument, containerName);
-			// PersistenceManager.getInstance().commitWorkingResource();
+			PersistenceManager.getInstance().setWorkingResource(file.getName());
+			
+			// index resource storage and add urns 
+			PersistenceManager.getInstance().indexResourceUrns(true);
 		} catch (Exception e) {
 			throw e;
 		} finally {
