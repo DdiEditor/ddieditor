@@ -1,7 +1,6 @@
 package org.ddialliance.ddieditor.logic.urn.ddi;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 
 import org.apache.xmlbeans.XmlObject;
@@ -21,9 +20,6 @@ import org.ddialliance.ddiftp.util.log.LogFactory;
 import org.ddialliance.ddiftp.util.log.LogType;
 import org.ddialliance.ddiftp.util.xml.Urn;
 import org.ddialliance.ddiftp.util.xml.XmlBeansUtil;
-
-import com.ximpleware.VTDGen;
-import com.ximpleware.VTDNav;
 
 public class Urn2Util {
 	private static Log log = LogFactory.getLog(LogType.SYSTEM, Urn2Util.class);
@@ -87,7 +83,7 @@ public class Urn2Util {
 					.getDdi3NamespaceHelper()
 					.getCleanedElementName(elementName));
 			urn.setContainedElementId(id);
-			
+
 		}
 
 		// version
@@ -107,10 +103,10 @@ public class Urn2Util {
 			for (Parent parent : elementUrnList.getParentList()) {
 				urn.setMaintainableElement(parent.getId());
 			}
-			if (parentId!=null&&!parentId.equals("")) {
+			if (parentId != null && !parentId.equals("")) {
 				urn.setMaintainableId(parentId);
 			}
-			if (parentVersion!=null&&!parentVersion.equals("")) {
+			if (parentVersion != null && !parentVersion.equals("")) {
 				urn.setMaintainableVersion(parentVersion);
 			}
 		}
@@ -120,29 +116,29 @@ public class Urn2Util {
 				.getTopUrnsByWorkingResource();
 		for (TopURNType topUrn : topUrns) {
 			// TODO better selection of top urn!
-			if (topUrn.getAgency()!=null) {
+			if (topUrn.getAgency() != null) {
 				urn.setIdentifingAgency(topUrn.getAgency());
-				
+
 				// parent version fall back
-				if (urn.getMaintainableVersion()==null) {
+				if (urn.getMaintainableVersion() == null) {
 					urn.setMaintainableVersion(topUrn.getVersion());
 				}
-				
+
 				// contained parent fall back
-				if (!isMaintainable&&urn.getMaintainableId()==null) {
+				if (!isMaintainable && urn.getMaintainableId() == null) {
 					urn.setMaintainableId(topUrn.getId());
 				}
-				if (!isMaintainable&&urn.getMaintainableVersion()==null) {
+				if (!isMaintainable && urn.getMaintainableVersion() == null) {
 					urn.setMaintainableVersion(topUrn.getVersion());
 				}
 			}
 		}
-		
+
 		// urn validation
 		// TODO when urn setup is finalized check in validation
 		// urn.parseUrn(urn.toUrnString());
 		if (log.isDebugEnabled()) {
-			log.debug("Constructed urn: "+urn.toString());
+			log.debug("Constructed urn: " + urn.toString());
 		}
 		return urn;
 	}
@@ -456,49 +452,6 @@ public class Urn2Util {
 	}
 
 	private static String getVersion(String xml) throws DDIFtpException {
-		// change to regexe
-		// Pattern idPattern =
-		// Pattern.compile("(([0-9])+(\\.([a-zA-Z0-9])+)*)");
-		// Matcher matcher = idPattern.matcher(version);
-		// matcher.matches();
-
-		// boolean singleQuote = false;
-		// int index = -1;
-		// index = xml.indexOf("version=\"");
-		// if (index < 0) {
-		// index = xml.indexOf("version='");
-		// singleQuote = !singleQuote;
-		// }
-		//
-		// if (index > -1) {
-		// int endIndex = -1;
-		// if (singleQuote) {
-		// endIndex = xml.indexOf("'", index);
-		// } else {
-		// endIndex = xml.indexOf("\"", index);
-		// }
-		// if (endIndex > -1) {
-		// return xml.substring(index, endIndex);
-		// }
-		// }
-		if (log.isDebugEnabled()) {
-			log.debug("xml: " + xml);
-		}
-
-		try {
-			VTDGen vg = new VTDGen();
-			vg.setDoc(xml.getBytes());
-			vg.parse(true);
-			VTDNav vn = vg.getNav();
-
-			int attrIndex = vn.getAttrVal("version");
-			if (attrIndex > -1) {
-				return vn.toNormalizedString(attrIndex);
-			} else {
-				return null;
-			}
-		} catch (Exception e) {
-			throw new DDIFtpException("Error getting version", e);
-		}
+		return XmlBeansUtil.getXmlAttributeValue(xml, "versio=\"");
 	}
 }
