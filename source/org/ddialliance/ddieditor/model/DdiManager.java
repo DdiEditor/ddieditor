@@ -1737,6 +1737,37 @@ public class DdiManager {
 				"ConceptualComponent", "UniverseScheme", null,
 				"reusable__Label");
 	}
+	
+	public MaintainableLabelQueryResult getUniverseSchemeLabel(String id,
+			String version, String parentId, String parentVersion)
+			throws DDIFtpException {
+		MaintainableLabelQuery maintainableLabelQuery = new MaintainableLabelQuery(
+				parentId, parentVersion, null);
+		maintainableLabelQuery
+				.setQuery(getQueryElementString(id, version,
+						"UniverseScheme", parentId, parentVersion,
+						"ConceptualComponent"));
+
+		maintainableLabelQuery.setElementConversionNames(new String[] {
+				"reusable__Label", "Description" });
+
+		maintainableLabelQuery.setMaintainableTarget("UniverseScheme");
+		maintainableLabelQuery.setStopElementNames(new String[] {
+				"Universe" });
+
+		MaintainableLabelQueryResult result = queryMaintainableLabel(maintainableLabelQuery);
+		if (result.getId() == null) {
+			maintainableLabelQuery.setQuery(getQueryElementString(id, version,
+					"UniverseScheme", parentId, parentVersion, "Group"));
+			result = queryMaintainableLabel(maintainableLabelQuery);
+		}
+		if (result.getId() == null) {
+			maintainableLabelQuery.setQuery(getQueryElementString(id, version,
+					"UniverseScheme", parentId, parentVersion, null));
+			result = queryMaintainableLabel(maintainableLabelQuery);
+		}
+		return result;
+	}
 
 	public UniverseDocument getUniverse(String id, String version,
 			String parentId, String parentVersion) throws Exception {
