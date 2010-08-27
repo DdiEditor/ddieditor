@@ -111,7 +111,7 @@ public class MaintainableLabelQueryResult {
 	 */
 	public XmlObject[] getSubElement(String elementName) throws DDIFtpException {
 		// guard
-		if (result.get(elementName).isEmpty()) {
+		if (result.get(elementName) == null || result.get(elementName).isEmpty()) {
 			return new XmlObject[] {};
 		}
 
