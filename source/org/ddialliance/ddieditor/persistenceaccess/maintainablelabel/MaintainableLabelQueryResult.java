@@ -16,6 +16,7 @@ import org.ddialliance.ddiftp.util.xml.XmlBeansUtil;
  * Accessors for maintainable label query and its containing sub elements
  */
 public class MaintainableLabelQueryResult {
+	private String localName;
 	private String id;
 	private String version;
 	private String agency;
@@ -59,6 +60,14 @@ public class MaintainableLabelQueryResult {
 
 	public void setAgency(String agency) {
 		this.agency = agency;
+	}
+
+	public String getLocalName() {
+		return localName;
+	}
+
+	public void setLocalName(String localName) {
+		this.localName = localName;
 	}
 
 	public String getQuery() {
@@ -147,7 +156,9 @@ public class MaintainableLabelQueryResult {
 
 	@Override
 	public String toString() {
-		StringBuilder result = new StringBuilder("Map: ");
+		StringBuilder result = new StringBuilder("Local name: ");
+		result.append(localName);
+		result.append(", map: ");
 		result.append(result);
 		result.append(", query: ");
 		result.append(query);
