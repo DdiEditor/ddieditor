@@ -14,6 +14,7 @@ public class MaintainableLabelUpdateElement {
 
 	/**
 	 * Constructor with arguments
+	 * 
 	 * @param localName
 	 * @param value
 	 * @param crudValue
@@ -26,8 +27,12 @@ public class MaintainableLabelUpdateElement {
 		this.crudValue = crudValue;
 	}
 
-	public MaintainableLabelUpdateElement(XmlObject element, Integer crudValue) {		
+	public MaintainableLabelUpdateElement(XmlObject element, Integer crudValue) {
 		this.localName = element.schemaType().getName().getLocalPart();
+		int index = this.localName.indexOf("Type");
+		if (index > -1) {
+			this.localName = this.localName.substring(0, index);
+		}
 		this.value = element.xmlText();
 		this.crudValue = crudValue;
 	}
@@ -42,6 +47,10 @@ public class MaintainableLabelUpdateElement {
 
 	public String getValue() {
 		return value;
+	}
+
+	public XmlObject getValueAsXmlObject() throws Exception {
+		return XmlObject.Factory.parse(value);
 	}
 
 	/**
@@ -59,10 +68,11 @@ public class MaintainableLabelUpdateElement {
 
 	/**
 	 * Create, update, delete value refers to the position of element when
-	 * retrieved @see MaintainableLabelQueryResult 
-	 * <br><br>zero ~ create
-	 * <br>positive ~ update
-	 * <br>negative ~ delete
+	 * retrieved @see MaintainableLabelQueryResult <br>
+	 * <br>
+	 * zero ~ create <br>
+	 * positive ~ update <br>
+	 * negative ~ delete
 	 * <p>
 	 * Eg. QusteionSceme a has to Labels x and y. When requested
 	 * MaintainableLabelQueryResult returns List<XmlObject[]> containing:
@@ -79,9 +89,10 @@ public class MaintainableLabelUpdateElement {
 	 * </p>
 	 * <p>
 	 * Eg. to deletethe Label x in QuestionScheme a: Create a new
-	 * MaintainableLabelUpdateElement(x, -1). The negative value crudValue 
+	 * MaintainableLabelUpdateElement(x, -1). The negative value crudValue
 	 * indicates deletion and its value indicates position.
 	 * <p/>
+	 * 
 	 * @param crudValue
 	 */
 	public void setCrudValue(Integer crudValue) {
