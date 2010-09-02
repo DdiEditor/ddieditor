@@ -47,9 +47,16 @@ public class FilesystemManager implements PersistenceStorage {
 		}
 
 		try {
+			// file and container name handling
+			String containerName = file.getName();
+			containerName = containerName.replace(" ", "_");
+			String fileName = containerName;
+			if (file.getName().lastIndexOf(".")>-1) {
+				containerName = file.getName().substring(0,
+						file.getName().lastIndexOf("."));				
+			}			
+			
 			// load file into db xml container
-			String containerName = file.getName().substring(0,
-					file.getName().lastIndexOf("."));
 			String connection = containerName + ".dbxml";
 			DbXmlManager.getInstance().addStorage(new File(connection));
 			DbXmlManager.getInstance().addResource(file);
@@ -67,10 +74,10 @@ public class FilesystemManager implements PersistenceStorage {
 					.newInstance();
 			DDIResourceType ddiResource = ddiResourceDocument
 					.addNewDDIResource();
-			ddiResource.setOrgName(file.getName());
+			ddiResource.setOrgName(fileName);
 			PersistenceManager.getInstance().createResource(
 					ddiResourceDocument, containerName);
-			PersistenceManager.getInstance().setWorkingResource(file.getName());
+			PersistenceManager.getInstance().setWorkingResource(fileName);
 			
 			// index resource storage and add urns 
 			PersistenceManager.getInstance().indexResourceUrns(true);

@@ -508,7 +508,7 @@ public class PersistenceManager {
 	 * @return resource list
 	 * @throws DDIFtpException
 	 */
-	protected ResourceListDocument getResourceList() throws DDIFtpException {
+	public ResourceListDocument getResourceList() throws DDIFtpException {
 		try {
 			setResource();
 			StringBuilder query = new StringBuilder();
@@ -976,7 +976,7 @@ public class PersistenceManager {
 			resetWorkingResource();
 		}
 	}
-
+	
 	/**
 	 * Export a resource from persistent storage to a file
 	 * 
