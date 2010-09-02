@@ -434,6 +434,10 @@ public class DdiManager {
 			xQuery.setObject(i++, getDdi3NamespaceHelper()
 					.addFullyQualifiedNamespaceDeclarationToElements(
 							parentElementType));
+			
+			xQuery.setObject(i++, PersistenceManager.getInstance()
+					.getResourcePath());
+			
 			xQuery.setObject(i++, getDdi3NamespaceHelper()
 					.addFullyQualifiedNamespaceDeclarationToElements(
 							elementType));
@@ -533,10 +537,7 @@ public class DdiManager {
 			StringBuilder query = new StringBuilder();
 			query.append("for $element in ?/? ");
 			if (parentElementType != null) {
-				// query.append("for $child in $element/? ? return $child");
-				query.append("for $child in "
-						+ PersistenceManager.getInstance().getResourcePath()
-						+ "/? ? return $child");
+				query.append("for $child in ?/? ? return $child");
 			} else {
 				query.append("? return $element");
 			}
@@ -797,6 +798,7 @@ public class DdiManager {
 
 		// result
 		MaintainableLabelQueryResult result = new MaintainableLabelQueryResult();
+		result.setLocalName(schemeQuery.getMaintainableTarget());
 		result.setLocalNamesToConversionLocalNames(conversionToLocalName);
 		result.setQuery(schemeQuery.getQuery());
 
