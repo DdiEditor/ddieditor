@@ -434,10 +434,10 @@ public class DdiManager {
 			xQuery.setObject(i++, getDdi3NamespaceHelper()
 					.addFullyQualifiedNamespaceDeclarationToElements(
 							parentElementType));
-			
+
 			xQuery.setObject(i++, PersistenceManager.getInstance()
 					.getResourcePath());
-			
+
 			xQuery.setObject(i++, getDdi3NamespaceHelper()
 					.addFullyQualifiedNamespaceDeclarationToElements(
 							elementType));
@@ -1383,6 +1383,14 @@ public class DdiManager {
 		return lightXmlObjectListDocument;
 	}
 
+	@Profiled(tag = "getConceptScheme")
+	public ConceptSchemeDocument getConceptScheme(String id, String version,
+			String parentId, String parentVersion) throws Exception {
+		String text = queryElement(id, version, "ConceptScheme", parentId,
+				parentVersion, "ConceptualComponent");
+		return (text == "" ? null : ConceptSchemeDocument.Factory.parse(text));
+	}
+
 	@Profiled(tag = "getConceptLight")
 	public LightXmlObjectListDocument getConceptsLight(String id,
 			String version, String parentId, String parentVersion)
@@ -1392,12 +1400,33 @@ public class DdiManager {
 				"ConceptScheme", "Concept", null, "reusable__Label");
 	}
 
-	@Profiled(tag = "getConceptScheme")
-	public ConceptSchemeDocument getConceptScheme(String id, String version,
-			String parentId, String parentVersion) throws Exception {
-		String text = queryElement(id, version, "ConceptScheme", parentId,
-				parentVersion, "ConceptualComponent");
-		return (text == "" ? null : ConceptSchemeDocument.Factory.parse(text));
+	public MaintainableLabelQueryResult getConcetSchemeLabel(String id,
+			String version, String parentId, String parentVersion)
+			throws DDIFtpException {
+		MaintainableLabelQuery maintainableLabelQuery = new MaintainableLabelQuery(
+				parentId, parentVersion, null);
+		maintainableLabelQuery
+				.setQuery(getQueryElementString(id, version, "ConceptScheme",
+						parentId, parentVersion, "ConceptualComponent"));
+
+		maintainableLabelQuery.setElementConversionNames(new String[] {
+				"reusable__Label", "Description" });
+
+		maintainableLabelQuery.setMaintainableTarget("ConceptScheme");
+		maintainableLabelQuery.setStopElementNames(new String[] { "Concept" });
+
+		MaintainableLabelQueryResult result = queryMaintainableLabel(maintainableLabelQuery);
+		if (result.getId() == null) {
+			maintainableLabelQuery.setQuery(getQueryElementString(id, version,
+					"ConceptScheme", parentId, parentVersion, "Group"));
+			result = queryMaintainableLabel(maintainableLabelQuery);
+		}
+		if (result.getId() == null) {
+			maintainableLabelQuery.setQuery(getQueryElementString(id, version,
+					"ConceptScheme", parentId, parentVersion, null));
+			result = queryMaintainableLabel(maintainableLabelQuery);
+		}
+		return result;
 	}
 
 	@Profiled(tag = "getConcept")
@@ -1739,23 +1768,21 @@ public class DdiManager {
 				"ConceptualComponent", "UniverseScheme", null,
 				"reusable__Label");
 	}
-	
+
 	public MaintainableLabelQueryResult getUniverseSchemeLabel(String id,
 			String version, String parentId, String parentVersion)
 			throws DDIFtpException {
 		MaintainableLabelQuery maintainableLabelQuery = new MaintainableLabelQuery(
 				parentId, parentVersion, null);
-		maintainableLabelQuery
-				.setQuery(getQueryElementString(id, version,
-						"UniverseScheme", parentId, parentVersion,
-						"ConceptualComponent"));
+		maintainableLabelQuery.setQuery(getQueryElementString(id, version,
+				"UniverseScheme", parentId, parentVersion,
+				"ConceptualComponent"));
 
 		maintainableLabelQuery.setElementConversionNames(new String[] {
 				"reusable__Label", "Description" });
 
 		maintainableLabelQuery.setMaintainableTarget("UniverseScheme");
-		maintainableLabelQuery.setStopElementNames(new String[] {
-				"Universe" });
+		maintainableLabelQuery.setStopElementNames(new String[] { "Universe" });
 
 		MaintainableLabelQueryResult result = queryMaintainableLabel(maintainableLabelQuery);
 		if (result.getId() == null) {
@@ -1789,6 +1816,35 @@ public class DdiManager {
 	//
 	// logical product
 	//
+	public MaintainableLabelQueryResult getCodeSchemeLabel(String id,
+			String version, String parentId, String parentVersion)
+			throws Exception {
+		MaintainableLabelQuery maintainableLabelQuery = new MaintainableLabelQuery(
+				parentId, parentVersion, null);
+		maintainableLabelQuery.setQuery(getQueryElementString(id, version,
+				"CodeScheme", parentId, parentVersion,
+				"logicalproduct__LogicalProduct"));
+
+		maintainableLabelQuery.setElementConversionNames(new String[] {
+				"reusable__Label", "Description" });
+
+		maintainableLabelQuery.setMaintainableTarget("CodeScheme");
+		maintainableLabelQuery.setStopElementNames(new String[] { "Code" });
+
+		MaintainableLabelQueryResult result = queryMaintainableLabel(maintainableLabelQuery);
+		if (result.getId() == null) {
+			maintainableLabelQuery.setQuery(getQueryElementString(id, version,
+					"CodeScheme", parentId, parentVersion, "Group"));
+			result = queryMaintainableLabel(maintainableLabelQuery);
+		}
+		if (result.getId() == null) {
+			maintainableLabelQuery.setQuery(getQueryElementString(id, version,
+					"CodeScheme", parentId, parentVersion, null));
+			result = queryMaintainableLabel(maintainableLabelQuery);
+		}
+		return result;
+	}
+
 	public LightXmlObjectListDocument getCodeSchemesLight(String id,
 			String version, String parentId, String parentVersion)
 			throws Exception {
@@ -1839,6 +1895,35 @@ public class DdiManager {
 			queryElement(id, version, "CategoryScheme", null, null, null);
 		}
 		return (text == "" ? null : CategorySchemeDocument.Factory.parse(text));
+	}
+
+	public MaintainableLabelQueryResult getCategorySchemeLabel(String id,
+			String version, String parentId, String parentVersion)
+			throws DDIFtpException {
+		MaintainableLabelQuery maintainableLabelQuery = new MaintainableLabelQuery(
+				parentId, parentVersion, null);
+		maintainableLabelQuery.setQuery(getQueryElementString(id, version,
+				"CategoryScheme", parentId, parentVersion,
+				"logicalproduct__LogicalProduct"));
+
+		maintainableLabelQuery.setElementConversionNames(new String[] {
+				"reusable__Label", "Description" });
+
+		maintainableLabelQuery.setMaintainableTarget("CategoryScheme");
+		maintainableLabelQuery.setStopElementNames(new String[] { "Category" });
+
+		MaintainableLabelQueryResult result = queryMaintainableLabel(maintainableLabelQuery);
+		if (result.getId() == null) {
+			maintainableLabelQuery.setQuery(getQueryElementString(id, version,
+					"CategoryScheme", parentId, parentVersion, "Group"));
+			result = queryMaintainableLabel(maintainableLabelQuery);
+		}
+		if (result.getId() == null) {
+			maintainableLabelQuery.setQuery(getQueryElementString(id, version,
+					"CategoryScheme", parentId, parentVersion, null));
+			result = queryMaintainableLabel(maintainableLabelQuery);
+		}
+		return result;
 	}
 
 	public VariableSchemeDocument getVariableScheme(String id, String version,
