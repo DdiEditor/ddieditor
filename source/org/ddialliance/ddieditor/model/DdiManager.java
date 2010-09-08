@@ -1161,51 +1161,41 @@ public class DdiManager {
 				}
 				// create
 				if (importObj != null && existingObj.isEmpty()) {
-					log.debug("create");
 					if (importObj instanceof List) {
 						for (XmlObject xmlObject : ((List<XmlObject>) importObj)) {
 							updates.add(new MaintainableLabelUpdateElement(
-									entry.getKey(), xmlObject
-											.xmlText(xmlOptions),
+									xmlObject,
 									MaintainableLabelUpdateElement.NEW));
 						}
 					} else {
-						updates.add(new MaintainableLabelUpdateElement(entry
-								.getKey(), ((XmlObject) importObj)
-								.xmlText(xmlOptions),
+						updates.add(new MaintainableLabelUpdateElement((XmlObject) importObj,
 								MaintainableLabelUpdateElement.NEW));
 					}
 				}
 				// update
 				else if (importObj != null && !existingObj.isEmpty()) {
-					log.debug("update");
 					if (importObj instanceof List) {
 						int count = 1;
 						for (XmlObject xmlObject : ((List<XmlObject>) importObj)) {
 							updates.add(new MaintainableLabelUpdateElement(
-									entry.getKey(), xmlObject
-											.xmlText(xmlOptions), count));
+									xmlObject, count));
 							count++;
 						}
 					} else {
-						updates.add(new MaintainableLabelUpdateElement(entry
-								.getKey(), ((XmlObject) importObj)
-								.xmlText(xmlOptions), 1));
+						updates.add(new MaintainableLabelUpdateElement((XmlObject) importObj, 1));
 					}
 				}
 				// delete
 				else if (importObj == null && !existingObj.isEmpty()) {
-					log.debug("delete");
 					if (importObj instanceof List) {
 						int count = -1;
 						for (XmlObject xmlObject : ((List<XmlObject>) importObj)) {
 							updates.add(new MaintainableLabelUpdateElement(
-									entry.getKey(), "", count));
+									null, count));
 							count--;
 						}
 					} else {
-						updates.add(new MaintainableLabelUpdateElement(entry
-								.getKey(), "", -1));
+						updates.add(new MaintainableLabelUpdateElement(null, -1));
 					}
 				}
 				existingObj = null;
