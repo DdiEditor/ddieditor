@@ -8,6 +8,7 @@ public class MaintainableLabelUpdateElement {
 	private String localName;
 	private String value;
 	private Integer crudValue;
+	private XmlObject element;
 
 	public MaintainableLabelUpdateElement() {
 	}
@@ -19,21 +20,22 @@ public class MaintainableLabelUpdateElement {
 	 * @param value
 	 * @param crudValue
 	 */
-	public MaintainableLabelUpdateElement(String localName, String value,
-			Integer crudValue) {
-		super();
-		this.localName = localName;
-		this.value = value;
-		this.crudValue = crudValue;
-	}
+//	public MaintainableLabelUpdateElement(String localName, String value,
+//			Integer crudValue) {
+//		super();
+//		this.localName = localName;
+//		this.value = value;
+//		this.crudValue = crudValue;
+//	}
 
 	public MaintainableLabelUpdateElement(XmlObject element, Integer crudValue) {
+		this.element = element;
 		this.localName = element.schemaType().getName().getLocalPart();
 		int index = this.localName.indexOf("Type");
 		if (index > -1) {
 			this.localName = this.localName.substring(0, index);
 		}
-		this.value = element.xmlText();
+//		this.value = element.xmlText();
 		this.crudValue = crudValue;
 	}
 
@@ -45,12 +47,12 @@ public class MaintainableLabelUpdateElement {
 		this.localName = localName;
 	}
 
-	public String getValue() {
-		return value;
+	public XmlObject getXmlObject() throws Exception {
+		return element;
 	}
 
-	public XmlObject getValueAsXmlObject() throws Exception {
-		return XmlObject.Factory.parse(value);
+	public String getValue() {
+		return this.value;
 	}
 
 	/**
@@ -107,7 +109,8 @@ public class MaintainableLabelUpdateElement {
 		result.append(", crudValue: ");
 		result.append(crudValue);
 		result.append(", value: ");
-		result.append(value);
+//		result.append(value);
+		result.append(element.xmlText());
 		return result.toString();
 	}
 }
