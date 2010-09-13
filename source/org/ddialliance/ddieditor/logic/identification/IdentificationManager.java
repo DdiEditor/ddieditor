@@ -226,18 +226,22 @@ public class IdentificationManager {
 		MAJOR, MINIOR, MINOR_MINOR;
 	}
 
-	private String generateVersion(String oldVeresion,
+	private String generateVersion(String oldVersion,
 			VersionChangeType versionChange) throws DDIFtpException {
 		checkPolicy();
-		// TODO apply version rules
 
 		// guard
-		if (oldVeresion == null) {
+		if (oldVersion == null) {
 			return "1.0.0";
+		}
+		
+		// TODO apply version rules in calling code ;- )
+		if (versionChange ==null) {
+			return oldVersion;
 		}
 
 		// add change
-		String[] versionSplit = oldVeresion.split("\\.");
+		String[] versionSplit = oldVersion.split("\\.");
 		int version = Integer.parseInt(versionSplit[versionChange.ordinal()]);
 		versionSplit[versionChange.ordinal()] = "" + ++version;
 
