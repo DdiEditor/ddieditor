@@ -1,6 +1,7 @@
 package org.ddialliance.ddieditor.model.namespace.ddi3;
 
 import java.io.File;
+import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -9,12 +10,15 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Scanner;
 import java.util.Vector;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.ddialliance.ddieditor.model.relationship.UrnRelationhipListDocument;
 import org.ddialliance.ddieditor.model.relationship.ElementDocument.Element;
 import org.ddialliance.ddieditor.model.relationship.ParentDocument.Parent;
 import org.ddialliance.ddieditor.model.relationship.SubParentDocument.SubParent;
 import org.ddialliance.ddieditor.model.relationship.UrnRelationhipListDocument.UrnRelationhipList;
+import org.ddialliance.ddieditor.util.XmlObjectUtil;
 import org.ddialliance.ddiftp.util.DDIFtpException;
 import org.ddialliance.ddiftp.util.FileUtil;
 import org.ddialliance.ddiftp.util.LineScanner;
@@ -32,6 +36,7 @@ import com.sun.xml.xsom.XSComplexType;
 import com.sun.xml.xsom.XSElementDecl;
 import com.sun.xml.xsom.XSSchema;
 import com.sun.xml.xsom.XSSchemaSet;
+import com.sun.xml.xsom.XSSimpleType;
 import com.sun.xml.xsom.parser.XSOMParser;
 
 /**
@@ -237,21 +242,6 @@ public class DdiSchemaIndexer {
 					elementNamespaceDuplicatesDebug);
 		}
 
-		// index name and label
-		String[] nameLabels = { "Name", "Label" };
-		String nonSetValue = "non-set-value";
-		for (Object key : elementNamespace.keySet()) {
-			for (int i = 0; i < nameLabels.length; i++) {
-				if (((String) key).indexOf(nameLabels[i]) > -1) {
-					elementNameLabels.put(key, nonSetValue);
-				}
-			}
-		}
-
-		// store to file
-		FileUtil.storeProperties(Ddi3NamespaceHelper.ELEMENT_NAME_LABEL,
-				elementNameLabels);
-
 		// index ddi identifiables
 		Iterator<XSSchema> itr2 = xssSchemaSet.iterateSchema();
 		while (itr2.hasNext()) {
@@ -267,6 +257,19 @@ public class DdiSchemaIndexer {
 		// store to file
 		FileUtil.storeProperties(Ddi3NamespaceHelper.ELEMENT_IDENTIFIABLE,
 				elementIdentifiable);
+
+		// index name and label
+		indexLabelNames();
+
+		// store to file
+		FileUtil.storeProperties(Ddi3NamespaceHelper.ELEMENT_NAME_LABEL,
+				elementNameLabels);
+	}
+
+	protected void indexLabelNames() throws DDIFtpException {
+		for (Object key : elementIdentifiable.keySet()) {
+			insertLabelName((String) key, (String) elementNamespace.get(key));
+		}
 	}
 
 	public Properties getElementNamespace() {
@@ -275,6 +278,10 @@ public class DdiSchemaIndexer {
 
 	public Properties getElementNamespaceDuplicates() {
 		return elementNamespaceDuplicates;
+	}
+
+	public Properties getElementLabelNames() {
+		return elementNameLabels;
 	}
 
 	private void indexDdiElements(XSSchema xSschema, String namespace) {
@@ -287,13 +294,15 @@ public class DdiSchemaIndexer {
 		}
 	}
 
-	private void indexDdiIdentifiables(XSSchema xSschema, String namespace) {
+	private void indexDdiIdentifiables(XSSchema xSschema, String namespace)
+			throws DDIFtpException {
 		String identifiableType = null;
 
 		// loop elements
 		Iterator<XSElementDecl> itr = xSschema.iterateElementDecls();
 		while (itr.hasNext()) {
 			XSElementDecl xsElementDecl = itr.next();
+
 			if (xsElementDecl.getType().isComplexType()) {
 				XSComplexType complex = (XSComplexType) xsElementDecl.getType();
 
@@ -326,6 +335,103 @@ public class DdiSchemaIndexer {
 					}
 					elementIdentifiable.put(elementName, identifiableType);
 				}
+			}
+		}
+	}
+
+	// TODO to be removed, not used
+	private void indexLabels(XSSchema xSschema, String namespace)
+			throws DDIFtpException {
+		String identifiableType = null;
+
+		// loop elements
+		Iterator<XSElementDecl> itr = xSschema.iterateElementDecls();
+		while (itr.hasNext()) {
+			XSElementDecl xsElementDecl = itr.next();
+			if (xsElementDecl.getType().isComplexType()) {
+				XSComplexType type = (XSComplexType) xsElementDecl.getType();
+				if (type.getName().equals("IfThenElse")) {
+					log.debug("break");
+				}
+				if (type.getSubtypes().isEmpty()) {
+					insertLabelName(type.getName(), type.getTargetNamespace());
+				} else {
+					for (XSComplexType sub : type.getSubtypes()) {
+						insertLabelName(sub.getName(), sub.getTargetNamespace());
+					}
+				}
+			} else if (xsElementDecl.getType().isSimpleType()) {
+				XSSimpleType type = (XSSimpleType) xsElementDecl.getType();
+				insertLabelName(type.getName(), type.getTargetNamespace());
+			}
+
+			if (identifiableType != null) {
+				// check duplicate
+				String elementName = xsElementDecl.getName();
+				if (elementNamespace.getProperty(elementName) == null) {
+					elementName = createDuplicateConvention(xsElementDecl
+							.getName(), namespace);
+				}
+
+				// store
+				if (log.isDebugEnabled()) {
+					log.debug("elementName: " + elementName
+							+ ", identifiableType: " + identifiableType);
+				}
+				elementIdentifiable.put(elementName, identifiableType);
+			}
+		}
+	}
+
+	Pattern nameList = Pattern.compile("get[a-zA-Z0-9]*NameList");
+	public static String labelList = "getLabelList";
+	private String label = "Label";
+
+	private void insertLabelName(String localName, String namespace)
+			throws DDIFtpException {
+		Method[] methods = null;
+		try {
+			methods = XmlObjectUtil.getXmlObjectMethods(localName, namespace);
+		} catch (DDIFtpException e) {
+			// do nothing just for logging
+			// TODO investigate: ncubes does not fit types or documents
+			return;
+		}
+
+		boolean found = false;
+		for (int i = 0; i < methods.length; i++) {
+			// label
+			if (methods[i].getName().equals(labelList)) {
+				elementNameLabels.put(Ddi3NamespaceHelper
+						.getCleanedElementName(localName), label);
+				found = true;
+				break;
+			}
+
+			// name
+			Matcher matcher = nameList.matcher(methods[i].getName());
+			if (matcher.matches()) {
+				String match = matcher.group();
+				elementNameLabels.put(Ddi3NamespaceHelper
+						.getCleanedElementName(localName), match.substring(3,
+						match.length() - 4));
+				found = true;
+				break;
+			}
+		}
+
+		// logging non found
+		if (log.isDebugEnabled()) {
+			if (!found) {
+				StringBuilder errorStr = new StringBuilder(localName);
+				errorStr.append(": ");
+				for (int i = 0; i < methods.length; i++) {
+					errorStr.append(methods[i].getName());
+					if (i < methods.length) {
+						errorStr.append(", ");
+					}
+				}
+				log.debug(errorStr.toString());
 			}
 		}
 	}
