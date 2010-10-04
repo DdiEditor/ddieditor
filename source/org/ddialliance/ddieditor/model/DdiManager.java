@@ -25,6 +25,7 @@ import org.ddialliance.ddi3.xml.xmlbeans.datacollection.DataCollectionDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.datacollection.IfThenElseDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.datacollection.InstrumentDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.datacollection.LoopDocument;
+import org.ddialliance.ddi3.xml.xmlbeans.datacollection.QuestionConstructDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.datacollection.QuestionItemDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.datacollection.QuestionSchemeDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.datacollection.RepeatUntilDocument;
@@ -1168,7 +1169,8 @@ public class DdiManager {
 									MaintainableLabelUpdateElement.NEW));
 						}
 					} else {
-						updates.add(new MaintainableLabelUpdateElement((XmlObject) importObj,
+						updates.add(new MaintainableLabelUpdateElement(
+								(XmlObject) importObj,
 								MaintainableLabelUpdateElement.NEW));
 					}
 				}
@@ -1182,7 +1184,8 @@ public class DdiManager {
 							count++;
 						}
 					} else {
-						updates.add(new MaintainableLabelUpdateElement((XmlObject) importObj, 1));
+						updates.add(new MaintainableLabelUpdateElement(
+								(XmlObject) importObj, 1));
 					}
 				}
 				// delete
@@ -1195,7 +1198,9 @@ public class DdiManager {
 							count--;
 						}
 					} else {
-						updates.add(new MaintainableLabelUpdateElement(null, -1));
+						updates
+								.add(new MaintainableLabelUpdateElement(null,
+										-1));
 					}
 				}
 				existingObj = null;
@@ -1610,6 +1615,39 @@ public class DdiManager {
 		return (text == "" ? null : InstrumentDocument.Factory.parse(text));
 	}
 
+	public MaintainableLabelQueryResult getControlConstructSchemeLabel(
+			String id, String version, String parentId, String parentVersion)
+			throws DDIFtpException {
+		MaintainableLabelQuery maintainableLabelQuery = new MaintainableLabelQuery(
+				parentId, parentVersion, null);
+		maintainableLabelQuery.setQuery(getQueryElementString(id, version,
+				"ControlConstructScheme", parentId, parentVersion,
+				"datacollection__DataCollection"));
+
+		maintainableLabelQuery.setElementConversionNames(new String[] {
+				"reusable__Label", "Description" });
+
+		maintainableLabelQuery.setMaintainableTarget("ControlConstructScheme");
+		maintainableLabelQuery.setStopElementNames(new String[] {
+				"ComputationItem", "IfThenElse", "Loop", "QuestionConstruct",
+				"RepeatUntil", "RepeatWhile", "Sequence", "StatementItem" });
+
+		MaintainableLabelQueryResult result = queryMaintainableLabel(maintainableLabelQuery);
+		if (result.getId() == null) {
+			maintainableLabelQuery
+					.setQuery(getQueryElementString(id, version,
+							"ControlConstructScheme", parentId, parentVersion,
+							"Group"));
+			result = queryMaintainableLabel(maintainableLabelQuery);
+		}
+		if (result.getId() == null) {
+			maintainableLabelQuery.setQuery(getQueryElementString(id, version,
+					"ControlConstructScheme", parentId, parentVersion, null));
+			result = queryMaintainableLabel(maintainableLabelQuery);
+		}
+		return result;
+	}
+
 	public ControlConstructSchemeDocument getControlConstructScheme(String id,
 			String version, String parentId, String parentVersion)
 			throws Exception {
@@ -1627,12 +1665,12 @@ public class DdiManager {
 				null, "reusable__Name");
 	}
 
-	public ControlConstructDocument getQuestionConstruct(String id,
+	public QuestionConstructDocument getQuestionConstruct(String id,
 			String version, String parentId, String parentVersion)
 			throws Exception {
 		String text = queryElement(id, version, "QuestionConstruct", parentId,
 				parentVersion, "ControlConstructScheme");
-		return (text == "" ? null : ControlConstructDocument.Factory
+		return (text == "" ? null : QuestionConstructDocument.Factory
 				.parse(text));
 	}
 
