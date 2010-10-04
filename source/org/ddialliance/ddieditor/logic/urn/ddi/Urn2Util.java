@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.xmlbeans.XmlObject;
+import org.ddialliance.ddi3.xml.xmlbeans.reusable.ReferenceType;
 import org.ddialliance.ddieditor.model.DdiManager;
 import org.ddialliance.ddieditor.model.XQuery;
 import org.ddialliance.ddieditor.model.lightxmlobject.LightXmlObjectListDocument;
@@ -453,5 +454,16 @@ public class Urn2Util {
 
 	private static String getVersion(String xml) throws DDIFtpException {
 		return XmlBeansUtil.getXmlAttributeValue(xml, "versio=\"");
+	}
+
+	public static ReferenceResolution getIdByReference(ReferenceType reference) {
+		// Attrs: URI, isExternal, isReference, lateBound, objectLanguage,
+		// sourceContext
+		// Content: Module?, Scheme?, (URN | (ID, IdentifyingAgency?, Version?))
+		if (!reference.getIDList().isEmpty()) {
+			return new ReferenceResolution(reference.getIDArray(0)
+					.getStringValue());
+		}
+		return null;
 	}
 }
