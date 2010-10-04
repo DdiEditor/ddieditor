@@ -1,6 +1,6 @@
 package org.ddialliance.ddieditor.persistenceaccess.dbxml;
 
- import java.io.File;
+import java.io.File;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
@@ -808,10 +808,11 @@ public class DbXmlManager implements PersistenceStorage {
 					QName qName = new QName(reader.getNamespaceURI(), localName);
 
 					// maintainable
-					if (DdiManager.getInstance().getDdi3NamespaceHelper().isMaintainable(localName)) {
-						//DdiManager.getInstance().getDdi3NamespaceHelper().
+					if (DdiManager.getInstance().getDdi3NamespaceHelper()
+							.isMaintainable(localName)) {
+						// DdiManager.getInstance().getDdi3NamespaceHelper().
 					}
-					
+
 					// versionables
 
 					// identifiable
@@ -967,7 +968,6 @@ public class DbXmlManager implements PersistenceStorage {
 						// insert
 						// skip sub elements of maintainable target
 						continue;
-						// TODO include maintainable target light element!
 					}
 
 					// sub elements
@@ -1073,63 +1073,44 @@ public class DbXmlManager implements PersistenceStorage {
 
 	private void setLabelsOnMaintainableLightSubelement(XmlEventReader reader,
 			LightXmlObjectType lightXmlObject) throws Exception {
-		String localName;
+		// labels
 		LabelType label = null;
-		List<LabelType> tmpNameLabels = new ArrayList<LabelType>();
-		String attrLang = "lang", labelPrecedence = "Name";
-
-		// *Name takes precedence over *Label
-		boolean isName = false;
+		String localName, attrLang = "lang";
+		String localLabelName = DdiManager.getInstance()
+				.getDdi3NamespaceHelper().getLabelNames().getProperty(
+						lightXmlObject.getElement());
+		if (localLabelName == null) {
+			// guard
+			return;
+		}
 
 		// scan xml
 		while (reader.hasNext()) {
 			int type = reader.next();
 			if (type == XmlEventReader.StartElement) {
 				localName = reader.getLocalName();
-				for (Object localNameLabelName : DdiManager.getInstance()
-						.getDdi3NamespaceHelper().getLocalNameLabelNames()) {
-					if (localName.equals(localNameLabelName)) {
-						if (localName.indexOf(labelPrecedence) > -1) {
-							isName = true;
-						}
-						label = LabelType.Factory.newInstance();
-
-						// set attributes
-						for (int h = 0; h < reader.getAttributeCount(); h++) {
-							if (reader.getAttributeLocalName(h)
-									.equals(attrLang)) {
-								label.setLang(reader.getAttributeValue(h));
-							}
+				if (localName.equals(localLabelName)) {
+					label = LabelType.Factory.newInstance();
+					// set attributes
+					for (int h = 0; h < reader.getAttributeCount(); h++) {
+						if (reader.getAttributeLocalName(h).equals(attrLang)) {
+							label.setLang(reader.getAttributeValue(h));
 						}
 					}
 				}
 			} else if (label != null && type == XmlEventReader.Characters) {
 				// set text on light label
 				XmlBeansUtil.setTextOnMixedElement(label, reader.getValue());
-
-				// name
-				if (isName) {
-					lightXmlObject.getLabelList().add(label);
-				}
-				// label
-				else {
-					tmpNameLabels.add(label);
-				}
+				lightXmlObject.getLabelList().add(label);
 				label = null;
-				isName = false;
 			} else if (type == XmlEventReader.EndElement) {
 				if (reader.getLocalName().equals(lightXmlObject.getElement())) {
 					break;
 				}
 			}
 		}
-
-		// enforce name over label rule
-		if (lightXmlObject.getLabelList().isEmpty()) {
-			lightXmlObject.getLabelList().addAll(tmpNameLabels);
-		}
 	}
-	
+
 	public void exportResource(String document, File file) throws Exception {
 		// file
 		if (file.exists()) {
