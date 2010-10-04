@@ -74,11 +74,9 @@ public class Ddi3NamespaceHelper {
 
 	// xmlns:xht="http://www.w3.org/1999/xhtml"
 	String urlPattern = "^(http|https|ftp)\\://[a-zA-Z0-9\\-\\.]+\\.[a-zA-Z]{2,3}(:[a-zA-Z0-9]*)?/?([a-zA-Z0-9\\-\\._\\?\\,\\'/\\\\\\+&amp;%\\$#\\=~])*$";
-	// "^http://([a-zA-Z0-9_\\-]+)([\\.][a-zA-Z0-9_\\-]+)+([/][a-zA-Z0-9\\~\\(\\)_\\-]*)+([\\.][a-zA-Z0-9\\(\\)_\\-]+)*$";
+	
 	private Pattern urlNamespacePattern = Pattern
 			.compile("(xmlns[:\\w*]+=\\\".*?\\\")");
-	// .compile("xmlns[:]{1}[a-z]*=[[\"]|[']]{1}" + urlPattern
-	// + "[[\"]|[']]{1}");
 
 	// pattern xsi:type="d:CodeDomainType"
 	private Pattern xsiPattern = Pattern
@@ -92,10 +90,6 @@ public class Ddi3NamespaceHelper {
 	 * Default constructor
 	 */
 	public Ddi3NamespaceHelper() throws DDIFtpException {
-		loadDdiElements();
-	}
-
-	private void loadDdiElements() throws DDIFtpException {
 		// inspect file status
 		if (!ELEMENT_IDENTIFIABLE.exists() || !ELEMENT_NAMESPACE.exists()
 				|| !ELEMENT_URN_RELATIONSHIP.exists()
@@ -120,6 +114,8 @@ public class Ddi3NamespaceHelper {
 		} catch (Exception e) {
 			throw new DDIFtpException("Marshal error", e);
 		}
+		
+		
 	}
 
 	public Properties getIdentifiables() {
@@ -194,7 +190,7 @@ public class Ddi3NamespaceHelper {
 	 *            to clean
 	 * @return cleaned element name
 	 */
-	public String getCleanedElementName(String elementName) {
+	public static String getCleanedElementName(String elementName) {
 		int index = elementName
 				.indexOf(DdiSchemaIndexer.ELEMENT_NAMESPACE_DELIMETER);
 		if (index > -1) {
@@ -603,5 +599,9 @@ public class Ddi3NamespaceHelper {
 
 	public Set<Object> getLocalNameLabelNames() {
 		return elementNameLabels.keySet();
+	}
+	
+	public Properties getLabelNames() {
+		return elementNameLabels;
 	}
 }
