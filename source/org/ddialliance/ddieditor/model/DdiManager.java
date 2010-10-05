@@ -19,12 +19,12 @@ import org.ddialliance.ddi3.xml.xmlbeans.conceptualcomponent.ConceptualComponent
 import org.ddialliance.ddi3.xml.xmlbeans.conceptualcomponent.UniverseDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.conceptualcomponent.UniverseSchemeDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.datacollection.ComputationItemDocument;
-import org.ddialliance.ddi3.xml.xmlbeans.datacollection.ControlConstructDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.datacollection.ControlConstructSchemeDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.datacollection.DataCollectionDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.datacollection.IfThenElseDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.datacollection.InstrumentDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.datacollection.LoopDocument;
+import org.ddialliance.ddi3.xml.xmlbeans.datacollection.MultipleQuestionItemDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.datacollection.QuestionConstructDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.datacollection.QuestionItemDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.datacollection.QuestionSchemeDocument;
@@ -1523,6 +1523,53 @@ public class DdiManager {
 		String text = queryElement(id, version, "QuestionScheme", parentId,
 				parentVersion, "datacollection__DataCollection");
 		return (text == "" ? null : QuestionSchemeDocument.Factory.parse(text));
+	}
+
+	@Profiled(tag = "getMultipleQuestionItemsLight")
+	public LightXmlObjectListDocument getMultipleQuestionItemsLight(String id,
+			String version, String parentId, String parentVersion)
+			throws Exception {
+		// TODO Multiple Question Item has currently no Label - it should
+		return queryLightXmlBeans(id, version, parentId, parentVersion,
+				"QuestionScheme", "MultipleQuestionItem", null, "reusable__Label");
+	}
+
+	@Profiled(tag = "getMultipleQuestionItem")
+	public MultipleQuestionItemDocument getMultipleQuestionItem(String id, String version,
+			String parentId, String parentVersion) throws Exception {
+		String text = queryElement(id, version, "MultipleQuestionItem", parentId,
+				parentVersion, "QuestionScheme");
+		return (text == "" ? null : MultipleQuestionItemDocument.Factory.parse(text));
+	}
+	
+	@Profiled(tag = "getMultipleQuestionItemLabel")
+	public MaintainableLabelQueryResult getMultipleQuestionItemLabel(String id,
+			String version, String parentId, String parentVersion)
+			throws DDIFtpException {
+		MaintainableLabelQuery maintainableLabelQuery = new MaintainableLabelQuery(
+				parentId, parentVersion, null);
+		maintainableLabelQuery.setQuery(getQueryElementString(id, version,
+				"MultipleQuestionItem", parentId, parentVersion,
+				"datacollection__DataCollection"));
+
+		maintainableLabelQuery.setElementConversionNames(new String[] {
+				"QuestionText", "datacollection__ConceptReference" });
+
+		maintainableLabelQuery.setMaintainableTarget("MultipleQuestionItem");
+		maintainableLabelQuery.setStopElementNames(new String[] { "SubQuestions" });
+
+		MaintainableLabelQueryResult result = queryMaintainableLabel(maintainableLabelQuery);
+		if (result.getId() == null) {
+			maintainableLabelQuery.setQuery(getQueryElementString(id, version,
+					"MultipleQuestionItem", parentId, parentVersion, "Group"));
+			result = queryMaintainableLabel(maintainableLabelQuery);
+		}
+		if (result.getId() == null) {
+			maintainableLabelQuery.setQuery(getQueryElementString(id, version,
+					"MultipleQuestionItem", parentId, parentVersion, null));
+			result = queryMaintainableLabel(maintainableLabelQuery);
+		}
+		return result;
 	}
 
 	@Profiled(tag = "getQuestionItemsLight")
