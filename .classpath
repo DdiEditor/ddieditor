@@ -16,8 +16,6 @@
 	<classpathentry kind="lib" path="/lib-java/picocolo/1.04/piccolo.jar"/>
 	<classpathentry kind="lib" path="/lib-java/relaxngDatatype/20020414/relaxngDatatype.jar"/>
 	<classpathentry kind="lib" path="/lib-java/xmlbeans/2.4.0/jsr173_1.0_api.jar"/>
-	<classpathentry kind="lib" path="/lib-java/xsom/20060901/xsom.jar"/>
-	<classpathentry kind="lib" path="/lib-java/xsom/20060901/xsom14.jar"/>
 	<classpathentry kind="lib" path="/lib-java/bdbxml/2.5.13/db.jar"/>
 	<classpathentry kind="lib" path="/lib-java/bdbxml/2.5.13/dbxml.jar"/>
 	<classpathentry kind="lib" path="/lib-java/commons/logging/1.1.1/commons-logging-1.1.1.jar"/>
@@ -28,5 +26,7 @@
 	<classpathentry kind="lib" path="/lib-java/xmlbeans/2.5.0/resolver.jar"/>
 	<classpathentry kind="lib" path="/lib-java/xmlbeans/2.5.0/xbean.jar"/>
 	<classpathentry kind="lib" path="/lib-java/xmlbeans/2.5.0/xmlpublic.jar"/>
+	<classpathentry kind="lib" path="/lib-java/xsom/20100328-nightly/xsom.jar"/>
+	<classpathentry kind="lib" path="/lib-java/xsom/20100328-nightly/xsom14.jar"/>
 	<classpathentry kind="output" path="build"/>
 </classpath>
