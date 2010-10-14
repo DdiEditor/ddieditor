@@ -1553,10 +1553,10 @@ public class DdiManager {
 				"datacollection__DataCollection"));
 
 		maintainableLabelQuery.setElementConversionNames(new String[] {
-				"QuestionText", "datacollection__ConceptReference" });
+				"QuestionText", "datacollection__ConceptReference", "SubQuestionSequence" });
 
 		maintainableLabelQuery.setMaintainableTarget("MultipleQuestionItem");
-		maintainableLabelQuery.setStopElementNames(new String[] { "SubQuestions" });
+		maintainableLabelQuery.setStopElementNames(new String[] { "QuestionItem", "ControlConstructScheme", "LogicalProduct" });
 
 		MaintainableLabelQueryResult result = queryMaintainableLabel(maintainableLabelQuery);
 		if (result.getId() == null) {
