@@ -1095,6 +1095,14 @@ public class DdiManager {
 					ConceptualType.LOGIC_instumentation, lightElement));
 		}
 
+		// - variable
+		lightDoc = getVariableSchemesLight(null, null, null, null);
+		for (LightXmlObjectType lightElement : lightDoc.getLightXmlObjectList()
+				.getLightXmlObjectList()) {
+			result.add(new ConceptualElement(ConceptualType.LOGIC_variable,
+					lightElement));
+		}
+
 		return result;
 	}
 
@@ -2032,6 +2040,35 @@ public class DdiManager {
 		return lightXmlObjectListDocument;
 	}
 
+	public MaintainableLabelQueryResult getVariableSchemeLabel(String id,
+			String version, String parentId, String parentVersion)
+			throws DDIFtpException {
+		MaintainableLabelQuery maintainableLabelQuery = new MaintainableLabelQuery(
+				parentId, parentVersion, null);
+		maintainableLabelQuery.setQuery(getQueryElementString(id, version,
+				"VariableScheme", parentId, parentVersion,
+				"logicalproduct__LogicalProduct"));
+
+		maintainableLabelQuery.setElementConversionNames(new String[] {
+				"reusable__Label", "Description" });
+
+		maintainableLabelQuery.setMaintainableTarget("VariableScheme");
+		maintainableLabelQuery.setStopElementNames(new String[] { "Variable" });
+
+		MaintainableLabelQueryResult result = queryMaintainableLabel(maintainableLabelQuery);
+		if (result.getId() == null) {
+			maintainableLabelQuery.setQuery(getQueryElementString(id, version,
+					"VariableScheme", parentId, parentVersion, "Group"));
+			result = queryMaintainableLabel(maintainableLabelQuery);
+		}
+		if (result.getId() == null) {
+			maintainableLabelQuery.setQuery(getQueryElementString(id, version,
+					"VariableScheme", parentId, parentVersion, null));
+			result = queryMaintainableLabel(maintainableLabelQuery);
+		}
+		return result;
+	}
+
 	public LightXmlObjectListDocument getCategoryLight(String id,
 			String version, String parentId, String parentVersion)
 			throws Exception {
@@ -2072,7 +2109,7 @@ public class DdiManager {
 			throws Exception {
 		LightXmlObjectListDocument lightXmlObjectListDocument = queryLightXmlBeans(
 				id, version, parentId, parentVersion, "VariableScheme",
-				"Variable", null, "VariableName");
+				"Variable", null, "reusable__Label");
 		return lightXmlObjectListDocument;
 	}
 
