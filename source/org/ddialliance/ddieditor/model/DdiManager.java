@@ -626,18 +626,6 @@ public class DdiManager {
 				XQueryInsertKeyword.INTO,
 				xQueryCrudPosition(parentId, parentVersion, parentElementType,
 						null, null, null));
-
-		// concept
-		// LightXmlObjectListDocument lightXmlObjectList = null;
-		// check for concept group in concept scheme
-		// try {
-		// lightXmlObjectList = getConceptGroupsLight(null, null, parentId,
-		// parentVersion);
-		// } catch (Exception e) {
-		// // TODO Auto-generated catch block
-		// e.printStackTrace();
-		// }
-		// System.out.println(lightXmlObjectList.getLightXmlObjectList().sizeOfLightXmlObjectArray());
 	}
 
 	/**
@@ -1969,7 +1957,7 @@ public class DdiManager {
 		if (lightXmlObjectListDocument.getLightXmlObjectList()
 				.getLightXmlObjectList().isEmpty()) {
 			lightXmlObjectListDocument = queryLightXmlBeans(id, version,
-					parentId, parentVersion, "//", "CategoryScheme", null,
+					parentId, parentVersion, "*", "CategoryScheme", null,
 					"reusable__Label");
 		}
 		return lightXmlObjectListDocument;
@@ -2069,7 +2057,7 @@ public class DdiManager {
 		return result;
 	}
 
-	public LightXmlObjectListDocument getCategoryLight(String id,
+	public LightXmlObjectListDocument getCategorysLight(String id,
 			String version, String parentId, String parentVersion)
 			throws Exception {
 		LightXmlObjectListDocument lightXmlObjectListDocument = queryLightXmlBeans(
