@@ -109,8 +109,8 @@ public class MaintainableLabelUpdateElement {
 		result.append(", crudValue: ");
 		result.append(crudValue);
 		result.append(", value: ");
-//		result.append(value);
-		result.append(element.xmlText());
+		result.append(value);
+//		result.append(element.xmlText());
 		return result.toString();
 	}
 }
