@@ -561,33 +561,35 @@ public class DdiManager {
 	 * @throws Exception
 	 */
 	@Profiled(tag = "createElement")
-	public void createElement(XmlObject xmlObject, String parentId,
-			String parentVersion, String parentElementType)
+	public void createElement(XmlObject xmlObject, String parentId, String parentVersion, String parentElementType)
 			throws DDIFtpException {
-		XmlBeansUtil.instanceOfXmlBeanDocument(xmlObject, new Throwable());
-
-		// get last element of same type to insert
-		LightXmlObjectType lastElementOfSameType = null;
-
 		// reflect get light element list
 		QName qName = xmlObject.schemaType().getDocumentElementName();
 		StringBuilder operation = new StringBuilder("get");
 		operation.append(qName.getLocalPart());
 		operation.append("sLight");
+		createElement(xmlObject, parentId, parentVersion, parentElementType, null, operation.toString());
+	}
 
-		LightXmlObjectListDocument lightXmlObjectList = null;
-		try {
-			lightXmlObjectList = (LightXmlObjectListDocument) ReflectionUtil
-					.invokeMethod(
-							DdiManager.getInstance(),
-							operation.toString(),
-							false,
-							new Object[] { "", "",
-									parentId == null ? "" : parentId,
-									parentVersion == null ? "" : parentVersion });
-		} catch (Exception e) {
-			throw new DDIFtpException(e);
-		}
+    public void createElement(XmlObject xmlObject, String parentId,
+            String parentVersion, String parentElementType, String subParentElementType,
+            String lightXmlObjectMethodName)
+            throws DDIFtpException {
+        XmlBeansUtil.instanceOfXmlBeanDocument(xmlObject, new Throwable());
+
+        // get last element of same type to insert
+        LightXmlObjectType lastElementOfSameType = null;
+
+        LightXmlObjectListDocument lightXmlObjectList = null;
+        try {
+                lightXmlObjectList = (LightXmlObjectListDocument) ReflectionUtil
+                                .invokeMethod(DdiManager.getInstance(), lightXmlObjectMethodName
+                                                .toString(), false, new Object[] { "", "",
+                                                parentId == null ? "" : parentId,
+                                                parentVersion == null ? "" : parentVersion });
+        } catch (Exception e) {
+                throw new DDIFtpException(e);
+        }
 
 		// define last element of same type
 		if (lightXmlObjectList != null
@@ -604,28 +606,42 @@ public class DdiManager {
 		options.setSaveAggressiveNamespaces();
 		options.setSavePrettyPrint();
 
-		// insert xml object after last element of same type
-		if (lastElementOfSameType != null) {
-			PersistenceManager.getInstance().insert(
-					getDdi3NamespaceHelper().substitutePrefixesFromElements(
-							xmlObject.xmlText(options)),
-					XQueryInsertKeyword.AFTER,
-					xQueryCrudPosition(
-							lastElementOfSameType.getId(),
-							lastElementOfSameType.getVersion(),
-							getDdi3NamespaceHelper().getDuplicateConvention(
-									qName), parentId, parentVersion,
-							parentElementType));
-			return;
-		}
+        // insert xml object after last element of same type
+        QName qName = xmlObject.schemaType().getDocumentElementName();
+        XQuery xQuery = null;
+        if (lastElementOfSameType != null) {
+                String childConvention =
+                        getDdi3NamespaceHelper().getDuplicateConvention(
+                                        qName);
+                if (subParentElementType!=null) {
+                        // append function child_parent with subParentElementType
+                        childConvention += getDdi3NamespaceHelper()
+                        .addFullyQualifiedNamespaceDeclarationToElements(subParentElementType);
+                }
+                xQuery = xQueryCrudPosition(lastElementOfSameType.getId(),                                          
+                        lastElementOfSameType.getVersion(), childConvention, parentId, parentVersion,
+                        parentElementType);
 
-		// guard, last element of same type NULL
-		PersistenceManager.getInstance().insert(
-				getDdi3NamespaceHelper().substitutePrefixesFromElements(
-						xmlObject.xmlText(options)),
-				XQueryInsertKeyword.INTO,
-				xQueryCrudPosition(parentId, parentVersion, parentElementType,
-						null, null, null));
+                PersistenceManager.getInstance().insert(
+                                getDdi3NamespaceHelper().substitutePrefixesFromElements(
+                                                xmlObject.xmlText(options)),
+                                XQueryInsertKeyword.AFTER,
+                                xQuery
+                                );
+                return;
+        }
+
+        // guard, last element of same type NULL
+        xQuery = xQueryCrudPosition(parentId, parentVersion, parentElementType,
+                        null, null, null);
+        if (subParentElementType!=null) {
+                xQuery.query.append(getDdi3NamespaceHelper()
+                                .addFullyQualifiedNamespaceDeclarationToElements(subParentElementType));
+        }
+        PersistenceManager.getInstance().insert(
+                        getDdi3NamespaceHelper().substitutePrefixesFromElements(
+                                        xmlObject.xmlText(options)),
+                        XQueryInsertKeyword.INTO,xQuery);
 	}
 
 	/**
@@ -1580,12 +1596,35 @@ public class DdiManager {
 		return queryLightXmlBeans(id, version, parentId, parentVersion,
 				"QuestionScheme", "QuestionItem", null, "reusable__Label");
 	}
+	
+	@Profiled(tag = "getMultipleQuestionQuestionItemsLight")
+	public LightXmlObjectListDocument getMultipleQuestionQuestionItemsLight(String id, String version, String parentId,
+			String parentVersion) throws Exception {
+		LightXmlObjectListDocument doc = queryLightXmlBeans(id, version, parentId, parentVersion,
+				"MultipleQuestionItem", "SubQuestions/QuestionItem", "QuestionItem", "QuestionItemName");
+		// Change element name from 'SubQuestions/QuestionItem' to
+		// 'SubQuestions/QuestionItem'
+		List<LightXmlObjectType> lightXmlList = doc.getLightXmlObjectList().getLightXmlObjectList();
+		for (Iterator iterator = lightXmlList.iterator(); iterator.hasNext();) {
+			LightXmlObjectType lightXmlObjectType = (LightXmlObjectType) iterator.next();
+			lightXmlObjectType.setElement("QuestionItem");
+		}
+		return doc;
+	}
 
 	@Profiled(tag = "getQuestionItem")
 	public QuestionItemDocument getQuestionItem(String id, String version,
 			String parentId, String parentVersion) throws Exception {
 		String text = queryElement(id, version, "QuestionItem", parentId,
 				parentVersion, "QuestionScheme");
+		return (text == "" ? null : QuestionItemDocument.Factory.parse(text));
+	}
+
+	@Profiled(tag = "getMultipleQuestionQuestionItem")
+	public QuestionItemDocument getMultipleQuestionQuestionItem(String id, String version, String parentId,
+			String parentVersion) throws Exception {
+		String text = queryElement(id, version, "SubQuestions/QuestionItem", parentId, parentVersion,
+				"MultipleQuestionItem");
 		return (text == "" ? null : QuestionItemDocument.Factory.parse(text));
 	}
 
