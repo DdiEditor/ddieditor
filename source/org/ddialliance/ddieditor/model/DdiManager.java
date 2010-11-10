@@ -833,7 +833,9 @@ public class DdiManager {
 		String queryString = schemeQueryResult.getQuery();
 		String updatePosition = "";
 		String nodeValue = "";
-		for (MaintainableLabelUpdateElement element : elements) {
+		// Note: Delete from behind
+		for (int i = elements.size()-1; i >= 0; i--) {
+			MaintainableLabelUpdateElement element = elements.get(i);
 			// guard
 			if (element.getCrudValue() == null) {
 				throw new DDIFtpException("Update value not specified for: "
@@ -979,6 +981,7 @@ public class DdiManager {
 		}
 		// delete
 		else if (element.getCrudValue() < 0) {
+			System.out.println("************Remove*********: "+((element.getCrudValue() * -1) - 1));
 			result.getResult().get(localName)
 					.remove((element.getCrudValue() * -1) - 1);
 		}
