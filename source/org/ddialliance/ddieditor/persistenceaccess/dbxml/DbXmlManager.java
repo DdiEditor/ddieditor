@@ -214,8 +214,8 @@ public class DbXmlManager implements PersistenceStorage {
 	private XmlContainerConfig getXmlContainerConfig() {
 		if (xmlContainerConfig == null) {
 			xmlContainerConfig = new XmlContainerConfig();
-			xmlContainerConfig.setIndexNodes(true);
-			xmlContainerConfig.setNodeContainer(true);
+			xmlContainerConfig.setIndexNodes(XmlContainerConfig.On);
+			xmlContainerConfig.setContainerType(XmlContainer.NodeContainer);
 			xmlContainerConfig.setTransactional(true);
 			if (DdiEditorConfig
 					.getBoolean(DdiEditorConfig.DBXML_IMPORT_VALIDATE)) {
@@ -507,7 +507,6 @@ public class DbXmlManager implements PersistenceStorage {
 		while (xmlResults.hasNext()) {
 			xmlDocument = xmlResults.next().asDocument();
 			result.add(xmlDocument.getName());
-			xmlDocument.delete();
 		}
 		xmlResults.delete();
 		return result;
