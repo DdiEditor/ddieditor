@@ -32,10 +32,8 @@ import org.perf4j.aop.Profiled;
  * Accesses persistence storage
  */
 public class PersistenceManager {
-	private static Log log = LogFactory.getLog(LogType.SYSTEM,
-			PersistenceManager.class);
-	private Log queryLog = LogFactory.getLog(LogType.PERSISTENCE,
-			PersistenceManager.class);
+	private static Log log = LogFactory.getLog(LogType.SYSTEM, PersistenceManager.class);
+	private Log queryLog = LogFactory.getLog(LogType.PERSISTENCE, PersistenceManager.class);
 	private static PersistenceManager instance = null;
 
 	public static final String RESOURCE_LIST_CONTAINER = "resource-list.dbxml";
@@ -61,28 +59,23 @@ public class PersistenceManager {
 	 * @return instance
 	 * @throws DDIFtpException
 	 */
-	public static synchronized PersistenceManager getInstance()
-			throws DDIFtpException {
+	public static synchronized PersistenceManager getInstance() throws DDIFtpException {
 		if (instance == null) {
 			instance = new PersistenceManager();
 
 			// initialize storage cache
 			try {
 				log.info("Initializing PersistenceManager");
-				instance.workingResource = RESOURCE_LIST_FILE;
-				DbXmlManager.getInstance().addStorage(
-						new File(RESOURCE_LIST_CONTAINER));
-
-				if (instance.getResourceList() == null) {
-					// add empty resource list
-					DbXmlManager.getInstance().addResource(
-							new File("resources" + File.separator
-									+ RESOURCE_LIST_FILE));
-				}
+				instance.workingResource = RESOURCE_LIST_FILE;				
+				
+				boolean test = new File(DbXmlManager.ENVIROMENT_HOME + "/" + RESOURCE_LIST_CONTAINER).exists();				
+				DbXmlManager.getInstance().addStorage(new File(RESOURCE_LIST_CONTAINER));
+				if (!test) {
+					DbXmlManager.getInstance().addResource(new File("resources" + File.separator + RESOURCE_LIST_FILE));
+				}				
 				instance.rebuildResources();
 			} catch (Exception e) {
-				DDIFtpException ddiFtpE = new DDIFtpException(
-						"Error parsing project file: " + RESOURCE_LIST_FILE, e);
+				DDIFtpException ddiFtpE = new DDIFtpException("Error parsing project file: " + RESOURCE_LIST_FILE, e);
 				throw ddiFtpE;
 			}
 
@@ -111,45 +104,36 @@ public class PersistenceManager {
 	}
 
 	@Profiled(tag = "setWorkingPersistenceStorage")
-	private PersistenceStorage setWorkingPersistenceStorage()
-			throws DDIFtpException {
+	private PersistenceStorage setWorkingPersistenceStorage() throws DDIFtpException {
 		workingStorage = getStorageByResourceOrgName(workingResource);
 		if (workingStorage == null) {
-			throw new DDIFtpException("Working storage for resource: '"
-					+ workingResource
+			throw new DDIFtpException("Working storage for resource: '" + workingResource
 					+ "' is not recognized check loaded resources");
 		}
 
 		String pStoreClassName = workingStorage.getManager();
 		try {
 			if (workingPersistenceStorage == null
-					|| !(Class.forName(pStoreClassName)
-							.isInstance(workingPersistenceStorage))) {
-				PersistenceStorage pStorage = (PersistenceStorage) DdiEditorRefUtil
-						.invokeStaticMethod(pStoreClassName, "getInstance",
-								null);
+					|| !(Class.forName(pStoreClassName).isInstance(workingPersistenceStorage))) {
+				PersistenceStorage pStorage = (PersistenceStorage) DdiEditorRefUtil.invokeStaticMethod(pStoreClassName,
+						"getInstance", null);
 				workingPersistenceStorage = pStorage;
 				openStorages.add(pStoreClassName);
 			}
 		} catch (Exception e) {
-			throw new DDIFtpException(
-					"Error on setting persistence storage for resource: "
-							+ workingResource, e);
+			throw new DDIFtpException("Error on setting persistence storage for resource: " + workingResource, e);
 		}
 
 		if (log.isDebugEnabled()) {
 			log.debug("Working resource: " + workingResource);
 			log.debug("Working storage: " + workingStorage.getId());
-			log.debug("Working persistence manager: "
-					+ workingPersistenceStorage.getClass().getName());
+			log.debug("Working persistence manager: " + workingPersistenceStorage.getClass().getName());
 		}
 
 		try {
 			workingPersistenceStorage.setWorkingConnection(workingStorage);
 		} catch (Exception e) {
-			throw new DDIFtpException(
-					"Error setting working connection for resource: "
-							+ workingResource);
+			throw new DDIFtpException("Error setting working connection for resource: " + workingResource);
 		}
 
 		return workingPersistenceStorage;
@@ -207,8 +191,7 @@ public class PersistenceManager {
 	 */
 	public String getResourcePath() throws DDIFtpException {
 		try {
-			return getPersistenceStorage().getResourcePath(workingStorage,
-					workingResource);
+			return getPersistenceStorage().getResourcePath(workingStorage, workingResource);
 		} catch (Exception e) {
 			throw new DDIFtpException("Error defining resource path", e);
 		}
@@ -223,11 +206,9 @@ public class PersistenceManager {
 	 */
 	public String getGlobalResourcePath() throws DDIFtpException {
 		try {
-			return getPersistenceStorage()
-					.getGlobalResourcePath(workingStorage);
+			return getPersistenceStorage().getGlobalResourcePath(workingStorage);
 		} catch (Exception e) {
-			throw new DDIFtpException("Error defining global path for:"
-					+ workingResource);
+			throw new DDIFtpException("Error defining global path for:" + workingResource);
 		}
 	}
 
@@ -249,8 +230,7 @@ public class PersistenceManager {
 	 *            one insert location
 	 * @throws DDIFtpException
 	 */
-	public void insert(Object nodes, XQueryInsertKeyword insertKeyword,
-			Object position) throws DDIFtpException {
+	public void insert(Object nodes, XQueryInsertKeyword insertKeyword, Object position) throws DDIFtpException {
 		// insert nodes [(node|nodes) keyword position]
 
 		// e.g. insert nodes <b4>inserted child</b4> after
@@ -259,8 +239,7 @@ public class PersistenceManager {
 
 		// nodes
 		if (nodes instanceof XQuery) {
-			query.namespaceDeclaration
-					.append(((XQuery) nodes).namespaceDeclaration.toString());
+			query.namespaceDeclaration.append(((XQuery) nodes).namespaceDeclaration.toString());
 			query.function.append(((XQuery) nodes).function.toString());
 			query.function.append(' ');
 			query.query.append(" insert nodes ");
@@ -279,8 +258,7 @@ public class PersistenceManager {
 			XQuery xQuery = (XQuery) position;
 			if (xQuery.namespaceDeclaration.length() > 1) {
 				query.namespaceDeclaration.append(' ');
-				query.namespaceDeclaration.append(xQuery.namespaceDeclaration
-						.toString());
+				query.namespaceDeclaration.append(xQuery.namespaceDeclaration.toString());
 			}
 			if (xQuery.function.length() > 1) {
 				query.function.append(xQuery.function.toString());
@@ -451,8 +429,7 @@ public class PersistenceManager {
 		try {
 			return getPersistenceStorage().querySingleBoolean(query);
 		} catch (Exception e) {
-			throw new DDIFtpException(
-					"Error on execution query single boolean", e);
+			throw new DDIFtpException("Error on execution query single boolean", e);
 		}
 	}
 
@@ -461,8 +438,7 @@ public class PersistenceManager {
 		try {
 			return getPersistenceStorage().querySingleString(query);
 		} catch (Exception e) {
-			throw new DDIFtpException("Error on execution query single string",
-					e);
+			throw new DDIFtpException("Error on execution query single string", e);
 		}
 	}
 
@@ -474,9 +450,8 @@ public class PersistenceManager {
 		for (String pStoreClassName : openStorages) {
 			pStorage = null;
 			try {
-				pStorage = (PersistenceStorage) DdiEditorRefUtil
-						.invokeStaticMethod(pStoreClassName, "getInstance",
-								null);
+				pStorage = (PersistenceStorage) DdiEditorRefUtil.invokeStaticMethod(pStoreClassName, "getInstance",
+						null);
 			} catch (Exception e) {
 				// do nothing logged in ReflectionUtil
 			}
@@ -484,9 +459,7 @@ public class PersistenceManager {
 				try {
 					pStorage.close();
 				} catch (Exception e) {
-					throw new DDIFtpException(
-							"Error closing persistence storage: "
-									+ pStoreClassName, e);
+					throw new DDIFtpException("Error closing persistence storage: " + pStoreClassName, e);
 				}
 			}
 		}
@@ -513,8 +486,7 @@ public class PersistenceManager {
 			setResource();
 			StringBuilder query = new StringBuilder();
 			query.append(getResourcePath());
-			query
-					.append("//*[namespace-uri()='ddieditor-resoure-list' and local-name()='ResourceList']");
+			query.append("//*[namespace-uri()='ddieditor-resoure-list' and local-name()='ResourceList']");
 			List<String> list = query(query.toString());
 
 			ResourceListDocument resourceList = null;
@@ -523,7 +495,7 @@ public class PersistenceManager {
 			}
 			return resourceList;
 		} catch (Exception e) {
-			throw new DDIFtpException("Error on creating storage: ", e);
+			throw new DDIFtpException("Error retrieving resource list: ", e);
 		} finally {
 			resetWorkingResource();
 		}
@@ -545,8 +517,7 @@ public class PersistenceManager {
 	 * @return name space declaration
 	 */
 	public String getDefaultResourceNs() {
-		StringBuilder result = new StringBuilder(
-				"declare default element namespace \"");
+		StringBuilder result = new StringBuilder("declare default element namespace \"");
 		result.append("ddieditor-resource-list");
 		result.append("\"; ");
 		return result.toString();
@@ -560,12 +531,10 @@ public class PersistenceManager {
 	 * @throws DDIFtpException
 	 */
 	public void createStorage(StorageDocument storage) throws DDIFtpException {
-		if (storage.getStorage().getId().equals(null)
-				|| storage.getStorage().getId().equals("")) {
+		if (storage.getStorage().getId().equals(null) || storage.getStorage().getId().equals("")) {
 			throw new DDIFtpException("Id can not be null or ''");
 		}
-		if (storage.getStorage().getManager().equals(null)
-				|| storage.getStorage().getManager().equals("")) {
+		if (storage.getStorage().getManager().equals(null) || storage.getStorage().getManager().equals("")) {
 			throw new DDIFtpException("Manager can not be null or ''");
 		}
 
@@ -578,12 +547,10 @@ public class PersistenceManager {
 			XQuery position = new XQuery();
 			position.query.append(" ");
 			position.query.append(getResourcePath());
-			position.query
-					.append("//*[namespace-uri()='ddieditor-resoure-list' and local-name()='ResourceList'][1]");
+			position.query.append("//*[namespace-uri()='ddieditor-resoure-list' and local-name()='ResourceList'][1]");
 			insert(storage.xmlText(), XQueryInsertKeyword.INTO, position);
 		} catch (Exception e) {
-			throw new DDIFtpException("Error on creating storage: "
-					+ storage.getStorage().getId(), e);
+			throw new DDIFtpException("Error on creating storage: " + storage.getStorage().getId(), e);
 		} finally {
 			resetWorkingResource();
 		}
@@ -602,12 +569,10 @@ public class PersistenceManager {
 		for (StorageType storage : getStorages()) {
 			if (storage.getId().equals(id)) {
 				try {
-					persistenceStorage = (PersistenceStorage) DdiEditorRefUtil
-							.invokeStaticMethod(storage.getManager(),
-									"getInstance", null);
+					persistenceStorage = (PersistenceStorage) DdiEditorRefUtil.invokeStaticMethod(storage.getManager(),
+							"getInstance", null);
 				} catch (Exception e) {
-					throw new DDIFtpException(
-							"Error retrieve persistence storage");
+					throw new DDIFtpException("Error retrieve persistence storage");
 				}
 				break;
 			}
@@ -651,14 +616,12 @@ public class PersistenceManager {
 	 *            id of storage the DDI resource belongs to
 	 * @throws DDIFtpException
 	 */
-	public void createResource(DDIResourceDocument ddiResource, String storageId)
-			throws DDIFtpException {
+	public void createResource(DDIResourceDocument ddiResource, String storageId) throws DDIFtpException {
 		XQuery query = new XQuery();
 		try {
 			setResource();
 			query.query.append(" for $x in ");
-			query.query.append(PersistenceManager.getInstance()
-					.getResourcePath());
+			query.query.append(PersistenceManager.getInstance().getResourcePath());
 			query.query
 					.append("//*[namespace-uri()='ddieditor-resoure-list' and local-name()='ResourceList']//*[namespace-uri()='ddieditor-resoure-list' and local-name()='Storage']");
 			query.query.append(" where $x/@id = '");
@@ -667,9 +630,9 @@ public class PersistenceManager {
 			query.query.append(" return $x");
 			insert(ddiResource.xmlText(), XQueryInsertKeyword.INTO, query);
 		} catch (Exception e) {
-			throw new DDIFtpException("Error on creating resource: "
-					+ ddiResource.getDDIResource() != null ? ddiResource
-					.getDDIResource().getOrgName() : "null", e);
+			throw new DDIFtpException(
+					"Error on creating resource: " + ddiResource.getDDIResource() != null ? ddiResource
+							.getDDIResource().getOrgName() : "null", e);
 		} finally {
 			resetWorkingResource();
 		}
@@ -699,8 +662,7 @@ public class PersistenceManager {
 
 			delete(query);
 		} catch (Exception e) {
-			throw new DDIFtpException("Error on retrieve resource with id: "
-					+ id, e);
+			throw new DDIFtpException("Error on retrieve resource with id: " + id, e);
 		} finally {
 			resetWorkingResource();
 		}
@@ -715,24 +677,20 @@ public class PersistenceManager {
 	 * @return storage
 	 * @throws DDIFtpException
 	 */
-	public StorageType getStorageByResourceOrgName(String orgName)
-			throws DDIFtpException {
+	public StorageType getStorageByResourceOrgName(String orgName) throws DDIFtpException {
 		// first time entry hack
 		if (resourceList == null) {
-			StorageDocument storageDocument = StorageDocument.Factory
-					.newInstance();
+			StorageDocument storageDocument = StorageDocument.Factory.newInstance();
 			StorageType storage = storageDocument.addNewStorage();
 			storage.setConnection(RESOURCE_LIST_CONTAINER);
-			storage
-					.setManager("org.ddialliance.ddieditor.persistenceaccess.dbxml.DbXmlManager");
+			storage.setManager("org.ddialliance.ddieditor.persistenceaccess.dbxml.DbXmlManager");
 			storage.setId("resource-list");
 			return storage;
 		}
 
 		// hack to get storage without resource
 		if (orgName.equals(RESOURCE_LIST_FILE)) {
-			for (StorageType storageTmp : resourceList.getResourceList()
-					.getStorageList()) {
+			for (StorageType storageTmp : resourceList.getResourceList().getStorageList()) {
 				if (storageTmp.getId().equals(RESOURCE_LIST)) {
 					return storageTmp;
 				}
@@ -740,8 +698,7 @@ public class PersistenceManager {
 		}
 
 		// loop for ingested resources
-		for (StorageType storageTmp : resourceList.getResourceList()
-				.getStorageList()) {
+		for (StorageType storageTmp : resourceList.getResourceList().getStorageList()) {
 			for (DDIResourceType ddiResource : storageTmp.getDDIResourceList()) {
 				if (ddiResource.getOrgName().equals(orgName)) {
 					return storageTmp;
@@ -769,10 +726,8 @@ public class PersistenceManager {
 	 * @return DDI resource
 	 * @throws DDIFtpException
 	 */
-	public DDIResourceType getResourceByOrgName(String orgName)
-			throws DDIFtpException {
-		for (StorageType storageTmp : resourceList.getResourceList()
-				.getStorageList()) {
+	public DDIResourceType getResourceByOrgName(String orgName) throws DDIFtpException {
+		for (StorageType storageTmp : resourceList.getResourceList().getStorageList()) {
 			for (DDIResourceType ddiResource : storageTmp.getDDIResourceList()) {
 				if (ddiResource.getOrgName().equals(orgName)) {
 					return ddiResource;
@@ -790,8 +745,7 @@ public class PersistenceManager {
 	 */
 	public List<DDIResourceType> getResources() throws DDIFtpException {
 		List<DDIResourceType> result = new ArrayList<DDIResourceType>();
-		for (StorageType storage : resourceList.getResourceList()
-				.getStorageList()) {
+		for (StorageType storage : resourceList.getResourceList().getStorageList()) {
 			for (DDIResourceType resource : storage.getDDIResourceList()) {
 				result.add(resource);
 			}
@@ -805,19 +759,16 @@ public class PersistenceManager {
 		query.append("for $x in ");
 		query.append(PersistenceManager.getInstance().getResourcePath());
 		if (validUrnsOnly) {
-			query
-					.append("//* where exists($x/@id) and exists($x/@version) and exists($x/@agency) return ");
+			query.append("//* where exists($x/@id) and exists($x/@version) and exists($x/@agency) return ");
 		} else {
 			query.append("//* where exists($x/@id) return ");
 		}
-		query
-				.append("<TopURN xmlns=\"ddieditor-resoure-list\" element=\"{node-name($x)}\" id=\"{$x/@id/string()}\" version=\"{$x/@version/string()}\" agency=\"{$x/@agency/string()}\" urn=\"\"/>");
-		List<String> resultSet = PersistenceManager.getInstance().query(
-				query.toString());
+		query.append("<TopURN xmlns=\"ddieditor-resoure-list\" element=\"{node-name($x)}\" id=\"{$x/@id/string()}\" version=\"{$x/@version/string()}\" agency=\"{$x/@agency/string()}\" urn=\"\"/>");
+		List<String> resultSet = PersistenceManager.getInstance().query(query.toString());
 
 		// process xquery result
-		Set<String> maintainableElementsList = DdiManager.getInstance()
-				.getDdi3NamespaceHelper().getMaintainableElementsList();
+		Set<String> maintainableElementsList = DdiManager.getInstance().getDdi3NamespaceHelper()
+				.getMaintainableElementsList();
 		List<TopURNType> result = new ArrayList<TopURNType>();
 		TopURNDocument doc = null;
 		TopURNType type = null;
@@ -830,8 +781,7 @@ public class PersistenceManager {
 		xmlOptions.setSavePrettyPrint();
 
 		for (String topUrnNode : resultSet) {
-			localName = XmlBeansUtil.getXmlAttributeValue(topUrnNode,
-					"element=\"");
+			localName = XmlBeansUtil.getXmlAttributeValue(topUrnNode, "element=\"");
 
 			// cleanup element name for xmlns prefix
 			index = localName.indexOf(":");
@@ -847,8 +797,7 @@ public class PersistenceManager {
 			type = doc.getTopURN();
 			type.setElement(localName);
 
-			if (!type.getAgency().equals(empty)
-					&& !type.getVersion().equals(empty)) {
+			if (!type.getAgency().equals(empty) && !type.getVersion().equals(empty)) {
 				// generate urn
 				Urn urn = new Urn();
 				urn.setMaintainableId(type.getId());
@@ -862,29 +811,24 @@ public class PersistenceManager {
 		}
 
 		// storage to update
-		StorageType storage = PersistenceManager.getInstance()
-				.getStorageByResourceOrgName(
-						PersistenceManager.getInstance().getWorkingResource());
-		storage.getDDIResourceList().get(0).setTopURNArray(
-				result.toArray(new TopURNType[] {}));
+		StorageType storage = PersistenceManager.getInstance().getStorageByResourceOrgName(
+				PersistenceManager.getInstance().getWorkingResource());
+		storage.getDDIResourceList().get(0).setTopURNArray(result.toArray(new TopURNType[] {}));
 
 		// update storage
-		String resourceId = PersistenceManager.getInstance()
-				.getWorkingResource();
+		String resourceId = PersistenceManager.getInstance().getWorkingResource();
 		XQuery xQuery = new XQuery();
 		try {
 			setResource();
 			xQuery.query.append("for $x in ");
-			xQuery.query.append(PersistenceManager.getInstance()
-					.getResourcePath());
+			xQuery.query.append(PersistenceManager.getInstance().getResourcePath());
 			xQuery.query
 					.append("//*[namespace-uri()='ddieditor-resoure-list' and local-name()='ResourceList']//*[namespace-uri()='ddieditor-resoure-list' and local-name()='Storage']");
 			xQuery.query.append(" where $x/@id = '");
 			xQuery.query.append(storage.getId());
 			xQuery.query.append("'");
 			xQuery.query.append(" return $x");
-			StorageDocument storageDocument = StorageDocument.Factory
-					.newInstance();
+			StorageDocument storageDocument = StorageDocument.Factory.newInstance();
 			storageDocument.setStorage(storage);
 			updateNode(xQuery, storageDocument.xmlText(xmlOptions));
 		} catch (Exception e) {
@@ -895,8 +839,7 @@ public class PersistenceManager {
 		rebuildResources();
 
 		if (log.isDebugEnabled()) {
-			log.debug("Found validUrnsOnly:" + validUrnsOnly + ", top urns: "
-					+ result.size());
+			log.debug("Found validUrnsOnly:" + validUrnsOnly + ", top urns: " + result.size());
 		}
 	}
 
@@ -906,10 +849,8 @@ public class PersistenceManager {
 	 * @return list of top URNs
 	 * @throws DDIFtpException
 	 */
-	public List<TopURNType> getTopUrnsByWorkingResource()
-			throws DDIFtpException {
-		String resourceId = PersistenceManager.getInstance()
-				.getWorkingResource();
+	public List<TopURNType> getTopUrnsByWorkingResource() throws DDIFtpException {
+		String resourceId = PersistenceManager.getInstance().getWorkingResource();
 		for (DDIResourceType resource : getResources()) {
 			if (resource.getOrgName().equals(resourceId)) {
 				return resource.getTopURNList();
@@ -928,12 +869,11 @@ public class PersistenceManager {
 	 * @return list top URNs
 	 * @throws DDIFtpException
 	 */
-	public List<TopURNType> getTopUrnsByIdAndVersionByWorkingResource(
-			String agency, String id, String version) throws DDIFtpException {
+	public List<TopURNType> getTopUrnsByIdAndVersionByWorkingResource(String agency, String id, String version)
+			throws DDIFtpException {
 		List<TopURNType> result = new ArrayList<TopURNType>();
 		for (TopURNType topURN : getTopUrnsByWorkingResource()) {
-			if (topURN.getAgency().equals(agency) && topURN.getId().equals(id)
-					&& topURN.getVersion().equals(version)) {
+			if (topURN.getAgency().equals(agency) && topURN.getId().equals(id) && topURN.getVersion().equals(version)) {
 				result.add(topURN);
 			}
 		}
@@ -953,11 +893,9 @@ public class PersistenceManager {
 			XQuery position = new XQuery();
 			position.query.append(" ");
 			position.query.append(getResourcePath());
-			position.query
-					.append("//*[namespace-uri()='ddieditor-resoure-list' and local-name()='ResourceList'][1]");
+			position.query.append("//*[namespace-uri()='ddieditor-resoure-list' and local-name()='ResourceList'][1]");
 			List<String> result = query(position.getFullQueryString());
-			ResourceListDocument resourceListDocument = ResourceListDocument.Factory
-					.parse(result.get(0));
+			ResourceListDocument resourceListDocument = ResourceListDocument.Factory.parse(result.get(0));
 
 			if (!file.exists()) {
 				file.createNewFile();
@@ -976,7 +914,7 @@ public class PersistenceManager {
 			resetWorkingResource();
 		}
 	}
-	
+
 	/**
 	 * Export a resource from persistent storage to a file
 	 * 
@@ -986,8 +924,7 @@ public class PersistenceManager {
 	 *            in file system
 	 * @throws DDIFtpException
 	 */
-	public void exportResoure(String resource, File file)
-			throws DDIFtpException {
+	public void exportResoure(String resource, File file) throws DDIFtpException {
 		setWorkingResource(resource);
 		try {
 			workingPersistenceStorage.exportResource(resource, file);
@@ -1003,8 +940,7 @@ public class PersistenceManager {
 		return paramatizedQueryCache.get(queryName);
 	}
 
-	public void setParamatizedQuery(String queryName,
-			ParamatizedXquery paramatizedQuery) {
+	public void setParamatizedQuery(String queryName, ParamatizedXquery paramatizedQuery) {
 		this.paramatizedQueryCache.put(queryName, paramatizedQuery);
 	}
 }
