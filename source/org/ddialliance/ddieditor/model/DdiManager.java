@@ -2082,7 +2082,7 @@ public class DdiManager {
 		if (lightXmlObjectListDocument.getLightXmlObjectList()
 				.getLightXmlObjectList().isEmpty()) {
 			lightXmlObjectListDocument = queryLightXmlBeans(id, version,
-					parentId, parentVersion, "*", "CategoryScheme", null,
+					parentId, parentVersion, "//", "CategoryScheme", null,
 					"reusable__Label");
 		}
 		return lightXmlObjectListDocument;
