@@ -1602,7 +1602,7 @@ public class DdiManager {
 				"QuestionScheme", parentId, parentVersion,
 				"datacollection__DataCollection"));
 		schemeQuery
-				.setElementConversionNames(new String[] { "reusable__Label" });
+				.setElementConversionNames(new String[] { "reusable__Label", "Description" });
 		schemeQuery.setMaintainableTarget("QuestionScheme");
 		schemeQuery.setStopElementNames(new String[] { "QuestionItem" });
 
