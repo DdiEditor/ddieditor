@@ -17,6 +17,12 @@ public interface IdentificationGenerator {
 			throws DDIFtpException;
 
 	/**
+	 * Access delimiter
+	 * @return delimiter
+	 */
+	public String getDelimiter();
+	
+	/**
 	 * Retrieve user identification
 	 * @return user ID
 	 * @throws DDIFtpException

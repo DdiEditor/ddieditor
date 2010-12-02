@@ -2,6 +2,9 @@ package org.ddialliance.ddieditor.logic.identification;
 
 import org.ddialliance.ddiftp.util.DDIFtpException;
 
+/**
+ * Id generation is based on system current time in milli seconds  
+ */
 public class DefaultIdGenerator implements IdentificationGenerator {
 	private String delimiter = "-";
 
@@ -29,5 +32,10 @@ public class DefaultIdGenerator implements IdentificationGenerator {
 	@Override
 	public String getUserId() throws DDIFtpException {
 		return System.getProperty("user.name");
+	}
+
+	@Override
+	public String getDelimiter() {
+		return delimiter;
 	}
 }
