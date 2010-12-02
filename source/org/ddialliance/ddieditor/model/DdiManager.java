@@ -1072,6 +1072,17 @@ public class DdiManager {
 						positionQuery.toString());
 	}
 
+	public static LightXmlObjectType createLightXmlObject(String parentId,
+			String parentVersion, String id, String version) {
+		LightXmlObjectType lightXmlObject = LightXmlObjectType.Factory
+				.newInstance();
+		lightXmlObject.setParentId(parentId);
+		lightXmlObject.setParentVersion(parentVersion);
+		lightXmlObject.setId(id);
+		lightXmlObject.setVersion(version);
+		return lightXmlObject;
+	}
+
 	public MaintainableLightLabelQueryResult queryMaintainableLightLabel(
 			MaintainableLabelQuery schemeQuery) throws DDIFtpException {
 		// conversion names to local element names
@@ -2021,7 +2032,8 @@ public class DdiManager {
 			String version, String parentId, String parentVersion)
 			throws Exception {
 		return queryLightXmlBeans(id, version, parentId, parentVersion,
-				"ControlConstructScheme", "RepeatUntil", null, "reusable__Label");
+				"ControlConstructScheme", "RepeatUntil", null,
+				"reusable__Label");
 	}
 
 	public RepeatWhileDocument getRepeatWhile(String id, String version,
@@ -2035,7 +2047,8 @@ public class DdiManager {
 			String version, String parentId, String parentVersion)
 			throws Exception {
 		return queryLightXmlBeans(id, version, parentId, parentVersion,
-				"ControlConstructScheme", "RepeatWhile", null, "reusable__Label");
+				"ControlConstructScheme", "RepeatWhile", null,
+				"reusable__Label");
 	}
 
 	public LoopDocument getLoop(String id, String version, String parentId,
