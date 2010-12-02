@@ -25,7 +25,7 @@ public class IdentificationManager {
 	private static Log log = LogFactory.getLog(LogType.SYSTEM,
 			IdentificationManager.class);
 	private static IdentificationManager instance;
-	private String deleimiter = ".";
+	private String deleimiter = ".";	
 	private IdentificationGenerator idGenerator = null;
 	private ReferenceGenerator refGenerator = null;
 	private Map<String, String> properties;
@@ -67,6 +67,10 @@ public class IdentificationManager {
 		}
 		return instance;
 	}
+	
+	public IdentificationGenerator getIdentificationGenerator() {
+		return idGenerator;
+	}
 
 	/**
 	 * Initialize the identification manager with policy
@@ -80,7 +84,7 @@ public class IdentificationManager {
 	 */
 	public void reloadPolicy(Map<String, String> properties) {
 		// dynamically class load implementations
-		idGenerator = new DefaultIdGenerator();
+		idGenerator = new UuidGenerator();
 		refGenerator = new DefaultReferenceGenereator();
 
 		// setup rules and preferences for agency etc
