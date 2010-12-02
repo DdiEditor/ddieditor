@@ -18,6 +18,22 @@ public class ParamatizedXquery {
 		paramatizeXquery(query);
 	}
 
+	public String[] getParameters() {
+		return parameters;
+	}
+
+	public void setParameters(String[] parameters) {
+		this.parameters = parameters;
+	}
+
+	public String[] getxQuery() {
+		return xQuery;
+	}
+
+	public void setxQuery(String[] xQuery) {
+		this.xQuery = xQuery;
+	}
+
 	private void paramatizeXquery(String query) {
 		List<String> xQueryList = new ArrayList<String>();
 		boolean inQuotes = false;
