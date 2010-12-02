@@ -62,7 +62,6 @@ import org.ddialliance.ddiftp.util.log.LogFactory;
 import org.ddialliance.ddiftp.util.log.LogType;
 import org.ddialliance.ddiftp.util.xml.XmlBeansUtil;
 import org.perf4j.aop.Profiled;
-import org.w3c.dom.Node;
 
 /**
  * Defines accessors for the contents of a DDI document with the focus on
@@ -416,10 +415,10 @@ public class DdiManager {
 	 *            version of parent element
 	 * @param parentElementType
 	 *            local name of DDI parent element
-	 * @return xml result as string
+	 * @return pramatized xquery
 	 * @throws DDIFtpException
 	 */
-	protected String getQueryElementString(String id, String version,
+	protected ParamatizedXquery getQueryElement(String id, String version,
 			String elementType, String parentId, String parentVersion,
 			String parentElementType) throws DDIFtpException {
 		ParamatizedXquery xQuery = xQueryElement(id, version, elementType,
@@ -518,7 +517,32 @@ public class DdiManager {
 			}
 		}
 
-		return xQuery.getParamatizedQuery();
+		return xQuery;
+	}
+
+	/**
+	 * Generates a XQuery string for DDI elements
+	 * 
+	 * @param id
+	 *            id of element
+	 * @param version
+	 *            version of element
+	 * @param elementType
+	 *            local name of DDI element
+	 * @param parentId
+	 *            id of parent element
+	 * @param parentVersion
+	 *            version of parent element
+	 * @param parentElementType
+	 *            local name of DDI parent element
+	 * @return XQuery string
+	 * @throws DDIFtpException
+	 */
+	protected String getQueryElementString(String id, String version,
+			String elementType, String parentId, String parentVersion,
+			String parentElementType) throws DDIFtpException {
+		return getQueryElement(id, version, elementType, parentId,
+				parentVersion, parentElementType).getParamatizedQuery();
 	}
 
 	private ParamatizedXquery xQueryElement(String id, String version,
@@ -886,7 +910,7 @@ public class DdiManager {
 		String updatePosition = "";
 		String nodeValue = "";
 		// Note: Delete from behind
-		for (int i = elements.size()-1; i >= 0; i--) {
+		for (int i = elements.size() - 1; i >= 0; i--) {
 			MaintainableLabelUpdateElement element = elements.get(i);
 			// guard
 			if (element.getCrudValue() == null) {
@@ -1033,7 +1057,8 @@ public class DdiManager {
 		}
 		// delete
 		else if (element.getCrudValue() < 0) {
-			System.out.println("************Remove*********: "+((element.getCrudValue() * -1) - 1));
+			System.out.println("************Remove*********: "
+					+ ((element.getCrudValue() * -1) - 1));
 			result.getResult().get(localName)
 					.remove((element.getCrudValue() * -1) - 1);
 		}
@@ -1449,7 +1474,7 @@ public class DdiManager {
 		if (lightXmlObjectListDocument.getLightXmlObjectList()
 				.getLightXmlObjectList().isEmpty()) {
 			lightXmlObjectListDocument = queryLightXmlBeans(id, version,
-					parentId, parentVersion, "//", "ConceptualComponent", null,
+					parentId, parentVersion, "*", "ConceptualComponent", null,
 					"reusable__Label");
 		}
 		return lightXmlObjectListDocument;
@@ -1464,7 +1489,7 @@ public class DdiManager {
 		if (lightXmlObjectListDocument.getLightXmlObjectList()
 				.getLightXmlObjectList().isEmpty()) {
 			lightXmlObjectListDocument = queryLightXmlBeans(id, version,
-					parentId, parentVersion, "//", "ConceptScheme", null,
+					parentId, parentVersion, "*", "ConceptScheme", null,
 					"reusable__Label");
 		}
 		return lightXmlObjectListDocument;
@@ -1552,7 +1577,7 @@ public class DdiManager {
 		if (lightXmlObjectListDocument.getLightXmlObjectList()
 				.getLightXmlObjectList().isEmpty()) {
 			lightXmlObjectListDocument = queryLightXmlBeans(id, version,
-					parentId, parentVersion, "//",
+					parentId, parentVersion, "*",
 					"datacollection__DataCollection", null, "reusable__Name");
 		}
 		return lightXmlObjectListDocument;
@@ -1601,8 +1626,8 @@ public class DdiManager {
 		schemeQuery.setQuery(getQueryElementString(id, version,
 				"QuestionScheme", parentId, parentVersion,
 				"datacollection__DataCollection"));
-		schemeQuery
-				.setElementConversionNames(new String[] { "reusable__Label", "Description" });
+		schemeQuery.setElementConversionNames(new String[] { "reusable__Label",
+				"Description" });
 		schemeQuery.setMaintainableTarget("QuestionScheme");
 		schemeQuery.setStopElementNames(new String[] { "QuestionItem" });
 
@@ -1734,9 +1759,28 @@ public class DdiManager {
 			throws DDIFtpException {
 		MaintainableLabelQuery query = new MaintainableLabelQuery(parentId,
 				parentVersion, null);
-		query.setQuery(getQueryElementString(id, version,
+		ParamatizedXquery paramatizedXquery = getQueryElement(id, version,
 				"ControlConstructScheme", parentId, parentVersion,
-				"datacollection__DataCollection"));
+				"datacollection__DataCollection");
+
+		if ((parentVersion == null || parentVersion.equals(""))
+				&& (version == null || version.equals(""))) {
+			paramatizedXquery.getParameters()[paramatizedXquery
+					.getParameterSize() - 1] = "";
+		} else if (version == null || version.equals("")) {
+			String param = paramatizedXquery.getParameters()[paramatizedXquery
+					.getParameterSize() - 1];
+			paramatizedXquery.getParameters()[paramatizedXquery
+					.getParameterSize() - 1] = param.replace(
+					"and empty($child/@version)", "");
+		} else if ((parentVersion == null || parentVersion.equals(""))) {
+			String param = paramatizedXquery.getParameters()[paramatizedXquery
+					.getParameterSize() - 1];
+			paramatizedXquery.getParameters()[paramatizedXquery
+					.getParameterSize() - 1] = param.replace(
+					"empty($element/@version) and", "");
+		}
+		query.setQuery(paramatizedXquery.getParamatizedQuery());
 
 		String[] elements = { "ControlConstructScheme",
 
@@ -1836,6 +1880,58 @@ public class DdiManager {
 		return queryLightXmlBeans(id, version, parentId, parentVersion,
 				"datacollection__DataCollection", "ControlConstructScheme",
 				null, "reusable__Name");
+	}
+
+	public Map<String, LightXmlObjectType> getControlConstructsLightasMap()
+			throws Exception {
+		Map<String, LightXmlObjectType> result = new HashMap<String, LightXmlObjectType>();
+
+		// all control construct schemes
+		LightXmlObjectListDocument listDoc = DdiManager.getInstance()
+				.getControlConstructSchemesLight(null, null, null, null);
+
+		for (LightXmlObjectType lightXmlObject : listDoc
+				.getLightXmlObjectList().getLightXmlObjectList()) {
+			// all control constructs in scheme
+			MaintainableLightLabelQueryResult mlqr = DdiManager.getInstance()
+					.getInstrumentLabel(lightXmlObject.getId(),
+							lightXmlObject.getVersion(),
+							lightXmlObject.getParentId(),
+							lightXmlObject.getParentVersion());
+
+			// map all cc by [id, value]
+			for (LinkedList<LightXmlObjectType> lightXmlObjectList : mlqr
+					.getResult().values()) {
+				for (LightXmlObjectType ccLightXmlObject : lightXmlObjectList) {
+					result.put(ccLightXmlObject.getId(), ccLightXmlObject);
+				}
+			}
+		}
+		return result;
+	}
+
+	public List<LightXmlObjectType> getControlConstructsLight()
+			throws Exception {
+		List<LightXmlObjectType> result = new ArrayList<LightXmlObjectType>();
+
+		// all control construct schemes
+		LightXmlObjectListDocument listDoc = DdiManager.getInstance()
+				.getControlConstructSchemesLight(null, null, null, null);
+
+		for (LightXmlObjectType lightXmlObject : listDoc
+				.getLightXmlObjectList().getLightXmlObjectList()) {
+			// all control constructs in scheme
+			MaintainableLightLabelQueryResult mlqr = DdiManager.getInstance()
+					.getInstrumentLabel(lightXmlObject.getId(),
+							lightXmlObject.getVersion(),
+							lightXmlObject.getParentId(),
+							lightXmlObject.getParentVersion());
+			for (LinkedList<LightXmlObjectType> lightXmlObjectList : mlqr
+					.getResult().values()) {
+				result.addAll(lightXmlObjectList);
+			}
+		}
+		return result;
 	}
 
 	public QuestionConstructDocument getQuestionConstruct(String id,
@@ -2017,6 +2113,21 @@ public class DdiManager {
 	//
 	// logical product
 	//
+	public LightXmlObjectListDocument getLogicalProductsLight(String id,
+			String version, String parentId, String parentVersion)
+			throws Exception {
+		LightXmlObjectListDocument lightXmlObjectListDocument = queryLightXmlBeans(
+				id, version, parentId, parentVersion, "studyunit__StudyUnit",
+				"logicalproduct__LogicalProduct", null, "reusable__Name");
+		if (lightXmlObjectListDocument.getLightXmlObjectList()
+				.getLightXmlObjectList().isEmpty()) {
+			lightXmlObjectListDocument = queryLightXmlBeans(id, version,
+					parentId, parentVersion, "*",
+					"logicalproduct__LogicalProduct", null, "reusable__Name");
+		}
+		return lightXmlObjectListDocument;
+	}
+
 	public MaintainableLabelQueryResult getCodeSchemeLabel(String id,
 			String version, String parentId, String parentVersion)
 			throws Exception {
@@ -2056,7 +2167,7 @@ public class DdiManager {
 		if (lightXmlObjectListDocument.getLightXmlObjectList()
 				.getLightXmlObjectList().isEmpty()) {
 			lightXmlObjectListDocument = queryLightXmlBeans(id, version,
-					parentId, parentVersion, "//", "CodeScheme", null,
+					parentId, parentVersion, "*", "CodeScheme", null,
 					"reusable__Label");
 		}
 		return lightXmlObjectListDocument;
