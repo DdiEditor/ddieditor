@@ -1993,7 +1993,7 @@ public class DdiManager {
 			String version, String parentId, String parentVersion)
 			throws Exception {
 		return queryLightXmlBeans(id, version, parentId, parentVersion,
-				"ControlConstructScheme", "Sequence", null, "reusable__Name");
+				"ControlConstructScheme", "Sequence", null, "reusable__Label");
 	}
 
 	public IfThenElseDocument getIfThenElse(String id, String version,
@@ -2007,7 +2007,7 @@ public class DdiManager {
 			String version, String parentId, String parentVersion)
 			throws Exception {
 		return queryLightXmlBeans(id, version, parentId, parentVersion,
-				"ControlConstructScheme", "IfThenElse", null, "reusable__Name");
+				"ControlConstructScheme", "IfThenElse", null, "reusable__Label");
 	}
 
 	public RepeatUntilDocument getRepeatUntil(String id, String version,
@@ -2021,7 +2021,7 @@ public class DdiManager {
 			String version, String parentId, String parentVersion)
 			throws Exception {
 		return queryLightXmlBeans(id, version, parentId, parentVersion,
-				"ControlConstructScheme", "RepeatUntil", null, "reusable__Name");
+				"ControlConstructScheme", "RepeatUntil", null, "reusable__Label");
 	}
 
 	public RepeatWhileDocument getRepeatWhile(String id, String version,
@@ -2035,7 +2035,7 @@ public class DdiManager {
 			String version, String parentId, String parentVersion)
 			throws Exception {
 		return queryLightXmlBeans(id, version, parentId, parentVersion,
-				"ControlConstructScheme", "RepeatWhile", null, "reusable__Name");
+				"ControlConstructScheme", "RepeatWhile", null, "reusable__Label");
 	}
 
 	public LoopDocument getLoop(String id, String version, String parentId,
@@ -2048,7 +2048,7 @@ public class DdiManager {
 	public LightXmlObjectListDocument getLoopsLight(String id, String version,
 			String parentId, String parentVersion) throws Exception {
 		return queryLightXmlBeans(id, version, parentId, parentVersion,
-				"ControlConstructScheme", "Loop", null, "reusable__Name");
+				"ControlConstructScheme", "Loop", null, "reusable__Label");
 	}
 
 	public UniverseSchemeDocument getUniverseScheme(String id, String version,
@@ -2118,12 +2118,12 @@ public class DdiManager {
 			throws Exception {
 		LightXmlObjectListDocument lightXmlObjectListDocument = queryLightXmlBeans(
 				id, version, parentId, parentVersion, "studyunit__StudyUnit",
-				"logicalproduct__LogicalProduct", null, "reusable__Name");
+				"logicalproduct__LogicalProduct", null, "reusable__Label");
 		if (lightXmlObjectListDocument.getLightXmlObjectList()
 				.getLightXmlObjectList().isEmpty()) {
 			lightXmlObjectListDocument = queryLightXmlBeans(id, version,
 					parentId, parentVersion, "*",
-					"logicalproduct__LogicalProduct", null, "reusable__Name");
+					"logicalproduct__LogicalProduct", null, "reusable__Label");
 		}
 		return lightXmlObjectListDocument;
 	}
