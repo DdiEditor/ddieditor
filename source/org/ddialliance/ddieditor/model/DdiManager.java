@@ -701,7 +701,7 @@ public class DdiManager {
 		}
 		PersistenceManager.getInstance().insert(
 				getDdi3NamespaceHelper().substitutePrefixesFromElements(
-						xmlObject.xmlText(options)), XQueryInsertKeyword.INTO,
+						xmlObject.xmlText(options)), XQueryInsertKeyword.AS_FIRST_NODE,
 				xQuery);
 	}
 
@@ -1414,6 +1414,17 @@ public class DdiManager {
 		return lightXmlObjectListDocument;
 	}
 
+	public LightXmlObjectListDocument getNotesLight(String id, String version,
+			String parentId, String parentVersion) throws Exception {
+		LightXmlObjectListDocument doc = LightXmlObjectListDocument.Factory
+				.newInstance();
+		doc.addNewLightXmlObjectList();
+
+		// TODO as notes are scattered in various places around the ddi3 return
+		// empty list
+		return doc;
+	}
+
 	//
 	// study unit
 	//
@@ -1657,10 +1668,9 @@ public class DdiManager {
 	public LightXmlObjectListDocument getMultipleQuestionItemsLight(String id,
 			String version, String parentId, String parentVersion)
 			throws Exception {
-		// TODO Multiple Question Item has currently no Label - it should
 		return queryLightXmlBeans(id, version, parentId, parentVersion,
 				"QuestionScheme", "MultipleQuestionItem", null,
-				"reusable__Label");
+				"MultipleQuestionItemName");
 	}
 
 	@Profiled(tag = "getMultipleQuestionItem")
@@ -1711,7 +1721,7 @@ public class DdiManager {
 			throws Exception {
 		// TODO Question Item has currently no Label - it should
 		return queryLightXmlBeans(id, version, parentId, parentVersion,
-				"QuestionScheme", "QuestionItem", null, "reusable__Label");
+				"QuestionScheme", "QuestionItem", null, "QuestionItemName");
 	}
 
 	@Profiled(tag = "getMultipleQuestionQuestionItemsLight")
