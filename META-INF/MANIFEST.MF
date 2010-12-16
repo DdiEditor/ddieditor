@@ -25,7 +25,7 @@ Export-Package:
 Bundle-ClassPath: .,
  build/
 Require-Bundle: lib-java;bundle-version="0.2.0",
- org.eclipse.osgi;bundle-version="3.5.0",
+ org.eclipse.osgi;bundle-version="3.6.1",
  util;bundle-version="0.8.0"
 Import-Package: 
  com.sleepycat.db,
