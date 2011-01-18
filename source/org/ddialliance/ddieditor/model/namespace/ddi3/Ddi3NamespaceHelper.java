@@ -60,6 +60,9 @@ public class Ddi3NamespaceHelper {
 	private Set<String> maintainalbeList;
 	private HashMap<String, String> qualifiedNsCache = new HashMap<String, String>();
 	private UrnRelationhipList urnRelationhipList;
+	
+	// added dda relations
+	public final static String QUEI_VAR_USER_ID_TYPE = "dk.dda:queitopseudovariid-0.1";
 
 	// sub prefix variables
 	private final String NO_SPACE = "";
