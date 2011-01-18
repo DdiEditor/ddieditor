@@ -34,11 +34,12 @@ public class ReferenceResolution {
 		// TODO ref.addIdentifyingAgency(lightXmlObject.getAgency());
 		
 		// id
+		id = lightXmlObject.getId();
 		ref.addNewID().setStringValue(lightXmlObject.getId());
 		
 		// version
 		if (lightXmlObject.getVersion() != null
-				&& !lightXmlObject.getVersion().equals("")) {
+				&& !lightXmlObject.getVersion().equals("")) {			
 			ref.addNewVersion().setStringValue(lightXmlObject.getVersion());
 		}
 	}
