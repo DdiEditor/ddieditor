@@ -127,6 +127,16 @@ public class DdiManager {
 		return this.ddi3NamespaceHelper;
 	}
 
+	protected LightXmlObjectListDocument queryLightXmlBeans(String id,
+			String version, String parentId, String parentVersion,
+			String rootElement, String parentChildElement,
+			String childChildElement, String labelElement, XQuery extraQuery)
+			throws DDIFtpException {
+		return queryLightXmlBeansImpl(id, version, parentId, parentVersion,
+				rootElement, parentChildElement, childChildElement,
+				labelElement, extraQuery);
+	}
+
 	/**
 	 * Generates and executes a XQuery for light xml beans objects
 	 * 
@@ -156,8 +166,19 @@ public class DdiManager {
 			String rootElement, String parentChildElement,
 			String childChildElement, String labelElement)
 			throws DDIFtpException {
+		return queryLightXmlBeansImpl(id, version, parentId, parentVersion,
+				rootElement, parentChildElement, childChildElement,
+				labelElement, null);
+	}
+
+	private LightXmlObjectListDocument queryLightXmlBeansImpl(String id,
+			String version, String parentId, String parentVersion,
+			String rootElement, String parentChildElement,
+			String childChildElement, String labelElement, XQuery extraQuery)
+			throws DDIFtpException {
+		// add extra parameter
 		ParamatizedXquery query = xQueryLightXmlBeans(parentId,
-				childChildElement, parentChildElement);
+				childChildElement, parentChildElement, extraQuery);
 
 		// functions
 		int i = 1;
@@ -257,10 +278,16 @@ public class DdiManager {
 
 	@Profiled(tag = "xQueryLightXmlBeans")
 	private ParamatizedXquery xQueryLightXmlBeans(String parentId,
-			String childChildElement, String parentChildElement)
-			throws DDIFtpException {
+			String childChildElement, String parentChildElement,
+			XQuery extraQuery) throws DDIFtpException {
 		if (parentId != null && parentId.equals("")) {
 			parentId = null;
+		}
+
+		if (extraQuery != null) {
+			XQuery query = buildLightXmlBeansXquery(parentId,
+					childChildElement, parentChildElement, extraQuery);
+			return new ParamatizedXquery(query.getFullQueryString());
 		}
 
 		String xQueryName = null;
@@ -294,84 +321,127 @@ public class DdiManager {
 		if (xQuery != null) {
 			return xQuery;
 		} else {
-
-			XQuery query = new XQuery();
-			query.namespaceDeclaration.append(FUNCTION_NS_DECLARATION);
-
-			// functions
-			if (childChildElement != null) {
-				query.function.append("declare function ");
-				query.function.append(FUNCTION_NS_PREFIX);
-				query.function
-						.append(":label_lang($element) {  for $z in $element?");
-				// ddi3NamespaceGenerator.addFullyQualifiedNamespaceDeclarationToElements(childChildElement)
-				query.function
-						.append(" return if($z/@xml:lang/string()=\"\") then <Label>{ddieditor:label_text($z)}</Label> else <Label lang=\"{$z/@xml:lang/string()}\">{ddieditor:label_text($z)}</Label> }; declare function ");
-				query.function.append(FUNCTION_NS_PREFIX);
-				query.function
-						.append(":label_text($element) { for $q in $element?");
-				// ddi3NamespaceGenerator.addFullyQualifiedNamespaceDeclarationToElements(labelElement)
-				query.function.append(" return $q/text() }; ");
-			} else {
-				query.function
-						.append("declare function ddieditor:label_lang($element) { for $z in $element?");
-				// ddi3NamespaceGenerator.addFullyQualifiedNamespaceDeclarationToElements(labelElement)
-				query.function
-						.append(" return if($z/@xml:lang/string()=\"\") then <Label>{$z/text()}</Label> else <Label lang=\"{$z/@xml:lang/string()}\">{$z/text()}</Label>}; ");
-			}
-
-			if (parentId != null) {
-				// add filter for parent
-				query.function.append("declare function ");
-				query.function.append(FUNCTION_NS_PREFIX);
-				query.function.append(":root_by_id() { for $x in ?/?");
-				// PersistenceManager.getInstance().getResourcePath());
-				// ddi3NamespaceGenerator.addFullyQualifiedNamespaceDeclarationToElements(rootElement));
-				query.function.append(" where $x/@id = ?? return $x}; ");
-				// parentId
-				// if (parentVersion != null && !parentVersion.equals("")) {
-				// " and $x/@ersion ='"+parentVersion+"' "
-				// }
-			}
-
-			// query
-			query.query
-					.append("<dl:LightXmlObjectList xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"ddieditor-lightobject ddieditor-lightxmlobject.xsd\" xmlns:dl=\"ddieditor-lightobject\">{");
-
-			if (parentId == null) {
-				query.query.append(" for $x in ??");
-				// PersistenceManager.getInstance().getResourcePath());
-				// ddi3NamespaceGenerator.addFullyQualifiedNamespaceDeclarationToElements(rootElement));
-			} else {
-				query.query.append(" for $x in ");
-				query.query.append(FUNCTION_NS_PREFIX);
-				query.query.append(":root_by_id()");
-			}
-
-			if (parentChildElement != null) {
-				query.query.append(" for $y in $x? ?");
-				// ddi3NamespaceGenerator.addFullyQualifiedNamespaceDeclarationToElements(parentChildElement));
-				// where $y/@id = 'qi_1' and $y/@version = '3.0'
-				query.query
-						.append(" return <LightXmlObject element=\"?\" id=\"{$y/@id/string()}\" version=\"{$y/@version/string()}\" parentId=\"{$x/@id/string()}\" parentVersion=\"{$x/@version/string()}\">{ddieditor:label_lang($y)}</LightXmlObject>}</dl:LightXmlObjectList>");
-				// parentChildElement
-
-			} else {
-				query.query
-						.append(" return <LightXmlObject element=\"?\" id=\"{$x/@id/string()}\" version=\"{$x/@version/string()}\" parentId=\"{$x/parent::node()/@id/string()}\" parentVersion=\"{$x/parent::node()/@version/string()}\">{ddieditor:label_lang($x)}</LightXmlObject>}</dl:LightXmlObjectList>");
-				// rootElement
-			}
-
-			// construct paramatized query and store
+			XQuery query = buildLightXmlBeansXquery(parentId,
+					childChildElement, parentChildElement, extraQuery);
 			xQuery = new ParamatizedXquery(query.getFullQueryString());
+			// construct paramatized query and store
 			PersistenceManager.getInstance().setParamatizedQuery(xQueryName,
 					xQuery);
 			return xQuery;
 		}
 	}
 
+	private XQuery buildLightXmlBeansXquery(String parentId,
+			String childChildElement, String parentChildElement,
+			XQuery extraQuery) {
+		XQuery query = new XQuery();
+		query.namespaceDeclaration.append(FUNCTION_NS_DECLARATION);
+
+		// functions
+		if (childChildElement != null) {
+			query.function.append("declare function ");
+			query.function.append(FUNCTION_NS_PREFIX);
+			query.function
+					.append(":label_lang($element) {  for $z in $element?");
+			// ddi3NamespaceGenerator.addFullyQualifiedNamespaceDeclarationToElements(childChildElement)
+			query.function
+					.append(" return if($z/@xml:lang/string()=\"\") then <Label>{ddieditor:label_text($z)}</Label> else <Label lang=\"{$z/@xml:lang/string()}\">{ddieditor:label_text($z)}</Label> }; declare function ");
+			query.function.append(FUNCTION_NS_PREFIX);
+			query.function
+					.append(":label_text($element) { for $q in $element?");
+			// ddi3NamespaceGenerator.addFullyQualifiedNamespaceDeclarationToElements(labelElement)
+			query.function.append(" return $q/text() }; ");
+		} else {
+			query.function
+					.append("declare function ddieditor:label_lang($element) { for $z in $element?");
+			// ddi3NamespaceGenerator.addFullyQualifiedNamespaceDeclarationToElements(labelElement)
+			query.function
+					.append(" return if($z/@xml:lang/string()=\"\") then <Label>{$z/text()}</Label> else <Label lang=\"{$z/@xml:lang/string()}\">{$z/text()}</Label>}; ");
+		}
+
+		if (parentId != null) {
+			// add filter for parent
+			query.function.append("declare function ");
+			query.function.append(FUNCTION_NS_PREFIX);
+			query.function.append(":root_by_id() { for $x in ?/?");
+			// PersistenceManager.getInstance().getResourcePath());
+			// ddi3NamespaceGenerator.addFullyQualifiedNamespaceDeclarationToElements(rootElement));
+			query.function.append(" where $x/@id = ?? return $x}; ");
+			// parentId
+			// if (parentVersion != null && !parentVersion.equals("")) {
+			// " and $x/@ersion ='"+parentVersion+"' "
+			// }
+		}
+
+		// query
+		query.query
+				.append("<dl:LightXmlObjectList xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"ddieditor-lightobject ddieditor-lightxmlobject.xsd\" xmlns:dl=\"ddieditor-lightobject\">{");
+
+		if (parentId == null) {
+			query.query.append(" for $x in ??");
+			// PersistenceManager.getInstance().getResourcePath());
+			// ddi3NamespaceGenerator.addFullyQualifiedNamespaceDeclarationToElements(rootElement));
+		} else {
+			query.query.append(" for $x in ");
+			query.query.append(FUNCTION_NS_PREFIX);
+			query.query.append(":root_by_id()");
+		}
+
+		if (parentChildElement != null) {
+			query.query.append(" for $y in $x? ?");
+			// ddi3NamespaceGenerator.addFullyQualifiedNamespaceDeclarationToElements(parentChildElement));
+			// where $y/@id = 'qi_1' and $y/@version = '3.0'
+			query.query
+					.append(" return <LightXmlObject element=\"?\" id=\"{$y/@id/string()}\" version=\"{$y/@version/string()}\" parentId=\"{$x/@id/string()}\" parentVersion=\"{$x/@version/string()}\">{ddieditor:label_lang($y)}");
+			// parentChildElement
+
+		} else {
+			query.query
+					.append(" return <LightXmlObject element=\"?\" id=\"{$x/@id/string()}\" version=\"{$x/@version/string()}\" parentId=\"{$x/parent::node()/@id/string()}\" parentVersion=\"{$x/parent::node()/@version/string()}");
+
+			// rootElement
+		}
+
+		// add extra query
+		if (extraQuery != null) {
+			if (extraQuery.namespaceDeclaration.length() > 0) {
+				query.namespaceDeclaration.insert(0,
+						extraQuery.namespaceDeclaration + " ");
+			}
+			if (extraQuery.function.length() > 0) {
+				query.function.append(" ");
+				query.function.append(extraQuery.function);
+			}
+			if (extraQuery.query.length() > 0) {
+				query.query.append(" ");
+				query.query.append(extraQuery.query);
+			}
+		}
+
+		// finish query
+		if (parentChildElement != null) {
+			query.query.append("</LightXmlObject>}</dl:LightXmlObjectList>");
+		} else {
+			query.query.append("\">{ddieditor:label_lang($x)}");
+		}
+		return query;
+	}
+
 	/**
-	 * Generates and executes a XQuery for DDI elements
+	 * Generates and executes a XQuery for light xml beans objects
+	 * 
+	 * @param id
+	 *            id of element
+	 * @param version
+	 *            version of element
+	 * @param parentId
+	 *            id of parent element
+	 * @param parentVersion
+	 * 
+	 * 
+	 *            }
+	 * 
+	 *            /** Generates and executes a XQuery for DDI elements
 	 * 
 	 * @param id
 	 *            id of element
@@ -538,7 +608,7 @@ public class DdiManager {
 	 * @return XQuery string
 	 * @throws DDIFtpException
 	 */
-	protected String getQueryElementString(String id, String version,
+	public String getQueryElementString(String id, String version,
 			String elementType, String parentId, String parentVersion,
 			String parentElementType) throws DDIFtpException {
 		return getQueryElement(id, version, elementType, parentId,
@@ -701,8 +771,8 @@ public class DdiManager {
 		}
 		PersistenceManager.getInstance().insert(
 				getDdi3NamespaceHelper().substitutePrefixesFromElements(
-						xmlObject.xmlText(options)), XQueryInsertKeyword.AS_FIRST_NODE,
-				xQuery);
+						xmlObject.xmlText(options)),
+				XQueryInsertKeyword.AS_FIRST_NODE, xQuery);
 	}
 
 	public void createElement(String xml, String parentId,
@@ -1632,11 +1702,12 @@ public class DdiManager {
 				id, version, parentId, parentVersion,
 				"datacollection__DataCollection", "QuestionScheme", null,
 				"reusable__Label");
-		if (lightXmlObjectListDocument.getLightXmlObjectList()
-				.getLightXmlObjectList().isEmpty()) {
-			queryLightXmlBeans(id, version, parentId, parentVersion,
-					"QuestionScheme", null, null, "reusable__Label");
-		}
+//		if (lightXmlObjectListDocument.getLightXmlObjectList()
+//				.getLightXmlObjectList().isEmpty()) {
+//			lightXmlObjectListDocument = queryLightXmlBeans(id, version,
+//					parentId, parentVersion, "ResourcePacket", "QuestionScheme", null,
+//					"reusable__Label");
+//		}
 		return lightXmlObjectListDocument;
 	}
 
@@ -1719,9 +1790,64 @@ public class DdiManager {
 	public LightXmlObjectListDocument getQuestionItemsLight(String id,
 			String version, String parentId, String parentVersion)
 			throws Exception {
-		// TODO Question Item has currently no Label - it should
 		return queryLightXmlBeans(id, version, parentId, parentVersion,
 				"QuestionScheme", "QuestionItem", null, "QuestionItemName");
+	}
+
+	public LightXmlObjectListDocument getQuestionItemsLightPlus(String id,
+			String version, String parentId, String parentVersion)
+			throws Exception {
+		XQuery xquery = new XQuery();
+
+		// func userid
+		xquery.function
+				.append(" declare function ddieditor:userid($element) {");
+		xquery.function
+				.append("for $z in $element/*[namespace-uri()='ddi:reusable:3_1' and local-name()='UserID'] ");
+		xquery.function
+				.append("return <Custom option=\"{$z/@type/string()}\">{$z/string()}</Custom>};");
+
+		// func text
+		xquery.function
+				.append(" declare function ddieditor:queitext($element) { ");
+		xquery.function
+				.append("for $z in $element/*[namespace-uri()='ddi:datacollection:3_1' and local-name()='QuestionText'] ");
+		xquery.function
+				.append("return <Custom option=\"lang\"  value=\"{string($z/@xml:lang)}\">{string($z");
+		xquery.function
+				.append("/*[namespace-uri()='ddi:datacollection:3_1' and local-name()='LiteralText']");
+		xquery.function
+				.append("/*[namespace-uri()='ddi:datacollection:3_1' and local-name()='Text'])}</Custom>};");
+
+		// func response domain
+		xquery.function
+				.append(" declare function ddieditor:queidomain($element) { ");
+		xquery.function.append("for $element in $element ");
+		xquery.function
+				.append("return if(exists($element/*[namespace-uri()='ddi:datacollection:3_1' and local-name()='TextDomain'])) then <Custom>Text</Custom> else ");
+		xquery.function
+				.append("if(exists($element/*[namespace-uri()='ddi:datacollection:3_1' and local-name()='NumericDomain'])) then <Custom>Numeric</Custom> else ");
+		xquery.function
+				.append("if(exists($element/*[namespace-uri()='ddi:datacollection:3_1' and local-name()='CodeDomain'])) then <Custom>Code</Custom> else ");
+		xquery.function
+				.append("if(exists($element/*[namespace-uri()='ddi:datacollection:3_1' and local-name()='DateTimeDomain'])) then <Custom>DateTime</Custom> else ''};");
+
+		// query
+		xquery.query.append(" <CustomList type =\"UserID\">");
+		xquery.query.append("{ddieditor:userid($y)}");
+		xquery.query.append("</CustomList>");
+
+		xquery.query.append(" <CustomList type =\"Text\">");
+		xquery.query.append("{ddieditor:queitext($y)}");
+		xquery.query.append("</CustomList>");
+
+		xquery.query.append(" <CustomList type =\"ResponseDomain\">");
+		xquery.query.append("{ddieditor:queidomain($y)}");
+		xquery.query.append("</CustomList>");
+
+		return queryLightXmlBeans(id, version, parentId, parentVersion,
+				"QuestionScheme", "QuestionItem", null, "QuestionItemName",
+				xquery);
 	}
 
 	@Profiled(tag = "getMultipleQuestionQuestionItemsLight")
@@ -2357,6 +2483,65 @@ public class DdiManager {
 		LightXmlObjectListDocument lightXmlObjectListDocument = queryLightXmlBeans(
 				id, version, parentId, parentVersion, "VariableScheme",
 				"Variable", null, "reusable__Label");
+		return lightXmlObjectListDocument;
+	}
+
+	public LightXmlObjectListDocument getVariablesLightPlus(String id,
+			String version, String parentId, String parentVersion)
+			throws Exception {
+		XQuery xquery = new XQuery();
+		xquery.function
+				.append("declare function ddieditor:variname($element) { ");
+		xquery.function
+				.append("for $z in $element/*[namespace-uri()='ddi:logicalproduct:3_1' and local-name()='VariableName'] ");
+		xquery.function
+				.append("return <Custom option=\"lang\"  value=\"{string($z/@xml:lang)}\">{string($z/string())}</Custom>};");
+
+		xquery.function
+				.append("declare function ddieditor:varirep($element) { ");
+		xquery.function
+				.append("for $z in $element/*[namespace-uri()='ddi:logicalproduct:3_1' and local-name()='Representation'] ");
+		xquery.function
+				.append("return if(exists($z/*[namespace-uri()='ddi:logicalproduct:3_1' and local-name()='TextRepresentation'])) then <Custom>Text</Custom> else ");
+		xquery.function
+				.append("if(exists($z/*[namespace-uri()='ddi:logicalproduct:3_1' and local-name()='NumericRepresentation'])) then <Custom>Numeric</Custom> else ");
+		xquery.function
+				.append("if(exists($z/*[namespace-uri()='ddi:logicalproduct:3_1' and local-name()='CodeRepresentation'])) then <Custom>Code</Custom> else ");
+		xquery.function
+				.append("if(exists($z/*[namespace-uri()='ddi:logicalproduct:3_1' and local-name()='DateTimeRepresentation'])) then <Custom>DateTime</Custom> else ''};");
+
+		xquery.function
+				.append("declare function ddieditor:queiref($element) { ");
+		xquery.function
+				.append("for $z in $element/*[namespace-uri()='ddi:logicalproduct:3_1' and local-name()='QuestionReference'] ");
+		xquery.function.append("return ddieditor:ref($z)};");
+
+		xquery.function.append("declare function ddieditor:ref($element) { ");
+		xquery.function.append("for $a in $element/* ");
+		xquery.function
+				.append("return if(string($a)='') then '' else if(local-name($a) = 'Scheme') then ddieditor:refscheme($a) else  <Custom value=\"{local-name($a)}\">{string($a)}</Custom>};");
+
+		xquery.function
+				.append("declare function ddieditor:refscheme($element) { ");
+		xquery.function.append("for $a in $element/* ");
+		xquery.function
+				.append("return if(string($a)='') then '' else <Custom type=\"Scheme\" value=\"{local-name($a)}\">{string($a)}</Custom>};");
+
+		xquery.query.append("<CustomList type =\"Name\">");
+		xquery.query.append("{ddieditor:variname($y)}");
+		xquery.query.append("</CustomList>");
+
+		xquery.query.append("<CustomList type =\"ValueRepresentation\">");
+		xquery.query.append("{ddieditor:varirep($y)}");
+		xquery.query.append("</CustomList>");
+
+		xquery.query.append("<CustomList type =\"QuestionReference\">");
+		xquery.query.append("{ddieditor:queiref($y)}");
+		xquery.query.append("</CustomList>");
+
+		LightXmlObjectListDocument lightXmlObjectListDocument = queryLightXmlBeans(
+				id, version, parentId, parentVersion, "VariableScheme",
+				"Variable", null, "reusable__Label", xquery);
 		return lightXmlObjectListDocument;
 	}
 
