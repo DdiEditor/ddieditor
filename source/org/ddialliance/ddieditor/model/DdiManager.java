@@ -2331,6 +2331,14 @@ public class DdiManager {
 		}
 		return (text == "" ? null : CodeSchemeDocument.Factory.parse(text));
 	}
+	
+	@Profiled(tag = "getCodesLight")
+	public LightXmlObjectListDocument getCodesLight(String id,
+			String version, String parentId, String parentVersion)
+			throws Exception {
+		return queryLightXmlBeans(id, version, parentId, parentVersion,
+				"CodeScheme", "Code", null, "reusable__Label");
+	}
 
 	public LightXmlObjectListDocument getCategorySchemesLight(String id,
 			String version, String parentId, String parentVersion)
@@ -2451,7 +2459,7 @@ public class DdiManager {
 		if (lightXmlObjectListDocument.getLightXmlObjectList()
 				.getLightXmlObjectList().isEmpty()) {
 			lightXmlObjectListDocument = queryLightXmlBeans(id, version,
-					parentId, parentVersion, "//", "Category", null,
+					parentId, parentVersion, "*", "Category", null,
 					"reusable__Label");
 		}
 		return lightXmlObjectListDocument;
