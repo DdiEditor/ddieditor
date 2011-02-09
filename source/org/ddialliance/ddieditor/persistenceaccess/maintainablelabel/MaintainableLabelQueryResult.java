@@ -120,13 +120,16 @@ public class MaintainableLabelQueryResult {
 	 */
 	public XmlObject[] getSubElement(String elementName) throws DDIFtpException {
 		// guard
-		if (result.get(elementName) == null || result.get(elementName).isEmpty()) {
+		if (result.get(elementName) == null
+				|| result.get(elementName).isEmpty()) {
 			return new XmlObject[] {};
 		}
 
 		// build class name
-		StringBuilder className = new StringBuilder(DdiManager.getInstance()
-				.getDdi3NamespaceHelper().getModuleNameByElement(
+		StringBuilder className = new StringBuilder(DdiManager
+				.getInstance()
+				.getDdi3NamespaceHelper()
+				.getModuleNameByElement(
 						localNamesToConversionLocalNames.get(elementName)));
 		className.append(".");
 		className.append(DdiManager.getInstance().getDdi3NamespaceHelper()
@@ -137,9 +140,10 @@ public class MaintainableLabelQueryResult {
 		int size = result.get(elementName).size();
 		XmlObject[] xmlObjects = new XmlObject[size];
 		for (String xmlText : result.get(elementName)) {
-			xmlObjects[count] = XmlBeansUtil.openDDI(DdiManager.getInstance()
-					.getDdi3NamespaceHelper().substitutePrefixesFromElements(
-							xmlText), null, className.toString());
+			xmlObjects[count] = XmlBeansUtil.openDDI(
+					DdiManager.getInstance().getDdi3NamespaceHelper()
+							.substitutePrefixesFromElements(xmlText), null,
+					className.toString());
 			count++;
 		}
 		return xmlObjects;
@@ -159,7 +163,7 @@ public class MaintainableLabelQueryResult {
 		StringBuilder result = new StringBuilder("Local name: ");
 		result.append(localName);
 		result.append(", map: ");
-		result.append(result);
+		result.append(this.result.size());
 		result.append(", query: ");
 		result.append(query);
 		return result.toString();
