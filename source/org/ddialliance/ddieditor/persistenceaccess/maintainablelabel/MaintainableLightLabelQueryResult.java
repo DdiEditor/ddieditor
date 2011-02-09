@@ -21,7 +21,7 @@ public class MaintainableLightLabelQueryResult {
 		this.setParentVersion(query.getParentVersion());
 		this.setAgency(query.getAgency());
 	}
-	
+
 	public String getId() {
 		return id;
 	}
@@ -100,7 +100,14 @@ public class MaintainableLightLabelQueryResult {
 	@Override
 	public String toString() {
 		StringBuilder result = new StringBuilder("Map: ");
-		result.append(result);
+		result.append(getResult().size());
 		return result.toString();
+	}
+
+	@Override
+	public int hashCode() {
+		int hash = (1717 * (getId() == null ? "".hashCode() : getId()
+				.hashCode()));
+		return hash;
 	}
 }
