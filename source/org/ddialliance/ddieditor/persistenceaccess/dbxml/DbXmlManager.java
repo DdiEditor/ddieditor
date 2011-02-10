@@ -8,11 +8,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import javax.xml.namespace.QName;
 
 import org.ddialliance.ddieditor.model.DdiManager;
 import org.ddialliance.ddieditor.model.lightxmlobject.LabelType;
+import org.ddialliance.ddieditor.model.lightxmlobject.LightXmlObjectListDocument;
 import org.ddialliance.ddieditor.model.lightxmlobject.LightXmlObjectType;
 import org.ddialliance.ddieditor.model.namespace.ddi3.Ddi3NamespacePrefix;
 import org.ddialliance.ddieditor.model.resource.StorageType;
@@ -65,8 +67,9 @@ public class DbXmlManager implements PersistenceStorage {
 
 	private Environment environment;
 	private EnvironmentConfig environmentConfig;
-	public static final String ENVIROMENT_HOME = new File(DdiEditorConfig
-			.get(DdiEditorConfig.DBXML_ENVIROMENT_HOME)).getAbsolutePath();
+	public static final String ENVIROMENT_HOME = new File(
+			DdiEditorConfig.get(DdiEditorConfig.DBXML_ENVIROMENT_HOME))
+			.getAbsolutePath();
 
 	private XmlManager xmlManager = null;
 	private XmlManagerConfig xmlManagerConfig;
@@ -262,8 +265,8 @@ public class DbXmlManager implements PersistenceStorage {
 						logSystem.debug("Creating dbxml container: "
 								+ file.getAbsolutePath());
 					}
-					XmlContainer xmlContainer = xmlManager.createContainer(file
-							.getName(), instance.getXmlContainerConfig());
+					XmlContainer xmlContainer = xmlManager.createContainer(
+							file.getName(), instance.getXmlContainerConfig());
 					openContainers.put(file.getName(), xmlContainer);
 
 					// create indices
@@ -277,9 +280,10 @@ public class DbXmlManager implements PersistenceStorage {
 						logSystem.debug("Opening dbxml container: "
 								+ file.getAbsolutePath());
 					}
-					openContainers.put(file.getName(), xmlManager
-							.openContainer(file.getName(), instance
-									.getXmlContainerConfig()));
+					openContainers.put(
+							file.getName(),
+							xmlManager.openContainer(file.getName(),
+									instance.getXmlContainerConfig()));
 				}
 			} catch (Exception e) {
 				throw new DDIFtpException(
@@ -532,9 +536,9 @@ public class DbXmlManager implements PersistenceStorage {
 		XmlDocumentConfig xmlDocumentConfig = new XmlDocumentConfig();
 
 		for (int i = 0; i < Ddi3NamespacePrefix.values().length; i++) {
-			xmlQueryContext.setNamespace(Ddi3NamespacePrefix.values()[i]
-					.getPrefix(), Ddi3NamespacePrefix.values()[i]
-					.getNamespace());
+			xmlQueryContext.setNamespace(
+					Ddi3NamespacePrefix.values()[i].getPrefix(),
+					Ddi3NamespacePrefix.values()[i].getNamespace());
 		}
 
 		try {
@@ -638,8 +642,10 @@ public class DbXmlManager implements PersistenceStorage {
 
 		// populate result
 		String localName;
-		String localMaintainableName = DdiManager.getInstance()
-				.getDdi3NamespaceHelper().getLocalSchemaName(
+		String localMaintainableName = DdiManager
+				.getInstance()
+				.getDdi3NamespaceHelper()
+				.getLocalSchemaName(
 						maintainableLabelQuery.getMaintainableTarget());
 		String prevLocalName = "";
 
@@ -732,8 +738,8 @@ public class DbXmlManager implements PersistenceStorage {
 									insertKey = key;
 								}
 							}
-							maintainableLabelQueryResult.getResult().get(
-									localName).addLast(element.toString());
+							maintainableLabelQueryResult.getResult()
+									.get(localName).addLast(element.toString());
 						}
 					}
 
@@ -929,16 +935,45 @@ public class DbXmlManager implements PersistenceStorage {
 
 		// populate result
 		String localName;
-		String localMaintainableName = DdiManager.getInstance()
-				.getDdi3NamespaceHelper().getLocalSchemaName(
+		String localMaintainableName = DdiManager
+				.getInstance()
+				.getDdi3NamespaceHelper()
+				.getLocalSchemaName(
 						maintainableLabelQuery.getMaintainableTarget());
 
 		boolean end = false;
 		String prevLocalName = "";
 		LightXmlObjectType lightXmlObject = null;
 
+		// target labels
+		LightXmlObjectType tagetLabels;
+		// TODO a bit of a hotfix with boiler plate code ...
 		if (xmlValue.isNode()) {
 			XmlEventReader reader = xmlValue.asEventReader();
+			while (reader.hasNext()) {
+				int type = reader.next();
+				if (type == XmlEventReader.StartElement) {
+					localName = reader.getLocalName();
+
+					// target light xmlobject
+					if (localName.equals(localMaintainableName)) {
+						tagetLabels = LightXmlObjectListDocument.Factory
+								.newInstance().addNewLightXmlObjectList()
+								.addNewLightXmlObject();
+						tagetLabels.setElement(localName);
+						setLabelsOnMaintainableLightSubelement(reader,
+								tagetLabels, maintainableLightLabelQueryResult
+										.getResult().keySet());
+						maintainableLightLabelQueryResult
+								.setLabelList(tagetLabels.getLabelList());
+						break;
+					}
+				}
+			}
+			reader.close();
+
+			// maintainable target attr and sub elements
+			reader = xmlValue.asEventReader();
 			while (reader.hasNext()) {
 				int type = reader.next();
 				if (type == XmlEventReader.StartElement) {
@@ -964,7 +999,7 @@ public class DbXmlManager implements PersistenceStorage {
 										.setAgency(reader.getAttributeValue(i));
 							}
 						}
-						// insert
+
 						// skip sub elements of maintainable target
 						continue;
 					}
@@ -973,42 +1008,11 @@ public class DbXmlManager implements PersistenceStorage {
 					for (String queryLocalName : maintainableLightLabelQueryResult
 							.getResult().keySet()) {
 						if (queryLocalName.equals(localName)) {
-
-							// init light xml object
-							// lightXmlObject = LightXmlObjectType.Factory
-							// .newInstance();
-							// lightXmlObject
-							// .setParentId(maintainableLightLabelQueryResult
-							// .getId());
-							// lightXmlObject
-							// .setParentVersion(maintainableLightLabelQueryResult
-							// .getVersion());
-							// lightXmlObject.setElement(localName);
-
-							// attributes
-							// int attrs = reader.getAttributeCount();
-							// for (int i = 0; i < attrs; i++) {
-							// if (reader.getAttributeLocalName(i)
-							// .equals("id")) {
-							// lightXmlObject.setId(reader
-							// .getAttributeValue(i));
-							// }
-							// if (reader.getAttributeLocalName(i).equals(
-							// "version")) {
-							// lightXmlObject.setVersion(reader
-							// .getAttributeValue(i));
-							// }
-							// }
-
-							// labels
-							// setLabelsOnMaintainableLightSubelement(reader,
-							// lightXmlObject);
-
 							// insert
 							lightXmlObject = extractLightXmlObject(localName,
 									reader, maintainableLightLabelQueryResult);
-							maintainableLightLabelQueryResult.getResult().get(
-									localName).addLast(lightXmlObject);
+							maintainableLightLabelQueryResult.getResult()
+									.get(localName).addLast(lightXmlObject);
 							break;
 						}
 					}
@@ -1066,18 +1070,19 @@ public class DbXmlManager implements PersistenceStorage {
 		}
 
 		// labels
-		setLabelsOnMaintainableLightSubelement(reader, lightXmlObject);
+		setLabelsOnMaintainableLightSubelement(reader, lightXmlObject, null);
 		return lightXmlObject;
 	}
 
 	private void setLabelsOnMaintainableLightSubelement(XmlEventReader reader,
-			LightXmlObjectType lightXmlObject) throws Exception {
+			LightXmlObjectType lightXmlObject, Set<String> subElementLocalnames)
+			throws Exception {
 		// labels
 		LabelType label = null;
 		String localName, attrLang = "lang";
 		String localLabelName = DdiManager.getInstance()
-				.getDdi3NamespaceHelper().getLabelNames().getProperty(
-						lightXmlObject.getElement());
+				.getDdi3NamespaceHelper().getLabelNames()
+				.getProperty(lightXmlObject.getElement());
 		if (localLabelName == null) {
 			// guard
 			return;
@@ -1088,6 +1093,16 @@ public class DbXmlManager implements PersistenceStorage {
 			int type = reader.next();
 			if (type == XmlEventReader.StartElement) {
 				localName = reader.getLocalName();
+
+				// test when to break; when reaching sub elements ;- )
+				if (subElementLocalnames != null) {
+					for (String subLocalname : subElementLocalnames) {
+						if (subLocalname.equals(localName)) {
+							return;
+						}
+					}
+				}
+
 				if (localName.equals(localLabelName)) {
 					label = LabelType.Factory.newInstance();
 					// set attributes
