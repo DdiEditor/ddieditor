@@ -1,18 +1,19 @@
 package org.ddialliance.ddieditor.persistenceaccess.maintainablelabel;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
+import org.ddialliance.ddieditor.model.lightxmlobject.LabelType;
 import org.ddialliance.ddieditor.model.lightxmlobject.LightXmlObjectType;
 import org.ddialliance.ddiftp.util.DDIFtpException;
 
 public class MaintainableLightLabelQueryResult {
 	private String maintainableTarget;
-	private String id;
-	private String version;
-	private String agency;
-	private String parentId, parentVersion;
+	private String id, version, agency, parentId, parentVersion;
+	private List<LabelType> labelList = new ArrayList<LabelType>();
 	private Map<String, LinkedList<LightXmlObjectType>> result = new HashMap<String, LinkedList<LightXmlObjectType>>();
 
 	public MaintainableLightLabelQueryResult(MaintainableLabelQuery query) {
@@ -68,6 +69,14 @@ public class MaintainableLightLabelQueryResult {
 
 	public void setParentVersion(String parentVersion) {
 		this.parentVersion = parentVersion;
+	}
+
+	public List<LabelType> getLabelList() {
+		return labelList;
+	}
+
+	public void setLabelList(List<LabelType> labelList) {
+		this.labelList = labelList;
 	}
 
 	/**
