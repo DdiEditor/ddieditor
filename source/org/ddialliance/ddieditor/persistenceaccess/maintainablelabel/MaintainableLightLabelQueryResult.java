@@ -2,13 +2,18 @@ package org.ddialliance.ddieditor.persistenceaccess.maintainablelabel;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
+import org.apache.xmlbeans.XmlObject;
 import org.ddialliance.ddieditor.model.lightxmlobject.LabelType;
+import org.ddialliance.ddieditor.model.lightxmlobject.LightXmlObjectListDocument;
 import org.ddialliance.ddieditor.model.lightxmlobject.LightXmlObjectType;
 import org.ddialliance.ddiftp.util.DDIFtpException;
+import org.ddialliance.ddiftp.util.xml.XmlBeansUtil;
 
 public class MaintainableLightLabelQueryResult {
 	private String maintainableTarget;
@@ -51,6 +56,23 @@ public class MaintainableLightLabelQueryResult {
 		return maintainableTarget;
 	}
 
+	public LightXmlObjectType getMaintainableTargetAsLightXmlObject() {
+		LightXmlObjectType result = LightXmlObjectListDocument.Factory
+				.newInstance().addNewLightXmlObjectList()
+				.addNewLightXmlObject();
+
+		// TODO agency
+		result.setElement(getMaintainableTarget());
+		result.setId(getId());
+		result.setVersion(getVersion());
+		result.setLabelArray(labelList.toArray(new LabelType[] {}));
+
+		result.setParentId(getParentId());
+		result.setParentVersion(getParentVersion());
+
+		return result;
+	}
+
 	public void setMaintainableTarget(String maintainableTarget) {
 		this.maintainableTarget = maintainableTarget;
 	}
@@ -79,6 +101,40 @@ public class MaintainableLightLabelQueryResult {
 		this.labelList = labelList;
 	}
 
+	public String getTargetLabel() throws DDIFtpException{
+		StringBuilder result = new StringBuilder();
+		
+		// target label
+		if (!getLabelList().isEmpty()) {
+			result.append(XmlBeansUtil
+						.getTextOnMixedElement((XmlObject) XmlBeansUtil
+								.getDefaultLangElement(getLabelList())));
+		} else {
+			// id label
+			result.append(getMaintainableTarget());
+			if (getId() != null) {
+				result.append(": ");
+				result.append(getId());
+			}
+		}
+		return result.toString();
+	}
+
+	public String getSubElementLabels() {
+		StringBuilder result = new StringBuilder();
+		int count = 0;
+		for (Entry<String, LinkedList<LightXmlObjectType>> entry : getResult().entrySet()) {
+			result.append(entry.getKey());
+			result.append(": ");
+			result.append(entry.getValue().size());
+			if (count<(getResult().entrySet().size())) {
+				result.append(", ");
+			}
+			count++;
+		}
+		return result.toString();
+	}
+	
 	/**
 	 * Retrieve a sub elements as light XmlObjects
 	 * 
