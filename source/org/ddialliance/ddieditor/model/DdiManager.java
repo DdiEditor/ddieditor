@@ -1702,12 +1702,12 @@ public class DdiManager {
 				id, version, parentId, parentVersion,
 				"datacollection__DataCollection", "QuestionScheme", null,
 				"reusable__Label");
-//		if (lightXmlObjectListDocument.getLightXmlObjectList()
-//				.getLightXmlObjectList().isEmpty()) {
-//			lightXmlObjectListDocument = queryLightXmlBeans(id, version,
-//					parentId, parentVersion, "ResourcePacket", "QuestionScheme", null,
-//					"reusable__Label");
-//		}
+		// if (lightXmlObjectListDocument.getLightXmlObjectList()
+		// .getLightXmlObjectList().isEmpty()) {
+		// lightXmlObjectListDocument = queryLightXmlBeans(id, version,
+		// parentId, parentVersion, "ResourcePacket", "QuestionScheme", null,
+		// "reusable__Label");
+		// }
 		return lightXmlObjectListDocument;
 	}
 
@@ -2331,11 +2331,10 @@ public class DdiManager {
 		}
 		return (text == "" ? null : CodeSchemeDocument.Factory.parse(text));
 	}
-	
+
 	@Profiled(tag = "getCodesLight")
-	public LightXmlObjectListDocument getCodesLight(String id,
-			String version, String parentId, String parentVersion)
-			throws Exception {
+	public LightXmlObjectListDocument getCodesLight(String id, String version,
+			String parentId, String parentVersion) throws Exception {
 		return queryLightXmlBeans(id, version, parentId, parentVersion,
 				"CodeScheme", "Code", null, "reusable__Label");
 	}
@@ -2551,6 +2550,47 @@ public class DdiManager {
 				id, version, parentId, parentVersion, "VariableScheme",
 				"Variable", null, "reusable__Label", xquery);
 		return lightXmlObjectListDocument;
+	}
+
+	//
+	// physical data product
+	//
+	public MaintainableLightLabelQueryResult getRecordLayoutSchemeLabel(
+			String id, String version, String parentId, String parentVersion)
+			throws DDIFtpException {
+		MaintainableLabelQuery query = new MaintainableLabelQuery(parentId,
+				parentVersion, null);
+		ParamatizedXquery paramatizedXquery = getQueryElement(id, version,
+				"RecordLayoutScheme", parentId, parentVersion,
+				"physicaldataproduct__PhysicalDataProduct");
+
+//		if ((parentVersion == null || parentVersion.equals(""))
+//				&& (version == null || version.equals(""))) {
+//			paramatizedXquery.getParameters()[paramatizedXquery
+//					.getParameterSize() - 1] = "";
+//		} else if (version == null || version.equals("")) {
+//			String param = paramatizedXquery.getParameters()[paramatizedXquery
+//					.getParameterSize() - 1];
+//			paramatizedXquery.getParameters()[paramatizedXquery
+//					.getParameterSize() - 1] = param.replace(
+//					"and empty($child/@version)", "");
+//		} else if ((parentVersion == null || parentVersion.equals(""))) {
+//			String param = paramatizedXquery.getParameters()[paramatizedXquery
+//					.getParameterSize() - 1];
+//			paramatizedXquery.getParameters()[paramatizedXquery
+//					.getParameterSize() - 1] = param.replace(
+//					"empty($element/@version) and", "");
+//		}
+		query.setQuery(paramatizedXquery.getParamatizedQuery());
+
+		String[] elements = { "RecordLayout", "ProprietaryRecordLayout" };
+		query.setElementConversionNames(elements);
+
+		query.setMaintainableTarget("RecordLayoutScheme");
+		query.setStopElementNames(new String[] { "DataItem" });
+
+		MaintainableLightLabelQueryResult maLightLabelQueryResult = queryMaintainableLightLabel(query);
+		return maLightLabelQueryResult;
 	}
 
 	//
