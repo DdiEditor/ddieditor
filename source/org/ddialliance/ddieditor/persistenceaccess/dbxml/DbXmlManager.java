@@ -158,14 +158,15 @@ public class DbXmlManager implements PersistenceStorage {
 			// log subsystem
 			environmentConfig.setInitializeLogging(true);
 			environmentConfig.setLogAutoRemove(true);
+			// teori: cachesize/pagesize ~ cache logBuffer
 			environmentConfig.setLogBufferSize(128 * 1024); // default 32KB
 			environmentConfig.setInitializeCache(true); // shared memory region
-			environmentConfig.setCacheSize(100 * 1024 * 1024); // 100MB cache
+			environmentConfig.setCacheSize(256 * 1024 * 1024); // 256MB cache
 
 			// transaction
 			environmentConfig.setTransactional(true);
 			environmentConfig.setTxnMaxActive(20000);
-			// teori: cachesize/pagesize ~ cache logBuffer
+			environmentConfig.setTxnWriteNoSync(true); 
 			environmentConfig.setTxnTimeout(0); // live forever, no timeout
 
 			// locking subsystem
@@ -178,7 +179,8 @@ public class DbXmlManager implements PersistenceStorage {
 
 			// deadlock detection
 			environmentConfig.setLockDetectMode(LockDetectMode.MINWRITE);
-			// environmentConfig.setDsyncDatabases(true);
+			//environmentConfig.setDsyncDatabases(true);
+			
 			// error stream
 			// change to property definition of dbxml log level
 			// XmlManager.setLogLevel(XmlManager.LEVEL_ALL, true);
