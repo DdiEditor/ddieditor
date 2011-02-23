@@ -1,6 +1,7 @@
 package org.ddialliance.ddieditor.model;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -775,20 +776,131 @@ public class DdiManager {
 				XQueryInsertKeyword.AS_FIRST_NODE, xQuery);
 	}
 
+	// TODO add same functionality as createElement(XmlObject xmlObject ...
 	public void createElement(String xml, String parentId,
 			String parentVersion, String parentElementType,
 			String subParentElementType) throws DDIFtpException {
 		XQuery xQuery = xQueryCrudPosition(parentId, parentVersion,
 				parentElementType, null, null, null);
-		if (subParentElementType != null) {
+		if (subParentElementType != null && !subParentElementType.equals("")) {
 			xQuery.query.append(getDdi3NamespaceHelper()
 					.addFullyQualifiedNamespaceDeclarationToElements(
 							subParentElementType));
 		}
 		PersistenceManager.getInstance().insert(
 				getDdi3NamespaceHelper().substitutePrefixesFromElements(xml),
-				XQueryInsertKeyword.INTO, xQuery);
+				XQueryInsertKeyword.AFTER, xQuery);
 	}
+
+	public void createElement(XmlObject xmlObject, String parentId,
+			String parentVersion, String parentElementType, String[] subElements)
+			throws DDIFtpException {
+		XmlBeansUtil.instanceOfXmlBeanDocument(xmlObject, new Throwable());
+
+		XmlOptions options = new XmlOptions();
+		options.setSaveAggressiveNamespaces();
+		options.setSavePrettyPrint();
+
+		createElement(xmlObject.xmlText(options), parentId, parentVersion,
+				parentElementType, subElements);
+	}
+
+	/**
+	 * Create an element in a parent of after possible existence of sub
+	 * elements. Sub element choice is FIFO
+	 * 
+	 * @param xml
+	 *            element to create
+	 * @param parentId
+	 *            parent id
+	 * @param parentVersion
+	 *            arent version
+	 * @param parentElementType
+	 *            local name
+	 * @param parentSubElements
+	 *            array of parent sub elements
+	 * @throws DDIFtpException
+	 */
+	public void createElement(String xml, String parentId,
+			String parentVersion, String parentElementType,
+			String[] parentSubElements) throws DDIFtpException {
+		// get last element of same type to insert
+		LightXmlObjectType subElemPosition = null;
+		boolean nonIdentifiableParentSubelement = false;
+		for (String elemName : parentSubElements) {
+			if (nonIdentifiableParentSubelements.contains(elemName)
+					&& checkExistenceOfNonIdentifiable(elemName, parentId,
+							parentVersion, parentElementType)) {
+				nonIdentifiableParentSubelement = true;
+				break;
+			}
+
+			StringBuilder operation = new StringBuilder("get");
+			operation.append(elemName);
+			operation.append("sLight");
+
+			LightXmlObjectListDocument lightXmlObjectList = checkExistence(
+					operation.toString(), parentId, parentVersion);
+			if (lightXmlObjectList != null
+					&& !lightXmlObjectList.getLightXmlObjectList()
+							.getLightXmlObjectList().isEmpty()) {
+				subElemPosition = lightXmlObjectList
+						.getLightXmlObjectList()
+						.getLightXmlObjectList()
+						.get(lightXmlObjectList.getLightXmlObjectList()
+								.getLightXmlObjectList().size() - 1);
+				break;
+			}
+		}
+
+		if (subElemPosition == null && (!nonIdentifiableParentSubelement)) {
+			// default
+			createElement(xml, parentId, parentVersion, parentElementType, "");
+		} else {
+			// build query
+			XQuery xQuery = null;
+			if (nonIdentifiableParentSubelement) {
+				xQuery = new XQuery();
+				xQuery.query.append(existenceOfNonIdentifiableQuery);
+			} else if (subElemPosition != null) {
+				xQuery = xQueryCrudPosition(subElemPosition.getId(),
+						subElemPosition.getVersion(),
+						subElemPosition.getElement(), null, null, null);
+			}
+
+			// insert
+			PersistenceManager.getInstance().insert(
+					getDdi3NamespaceHelper()
+							.substitutePrefixesFromElements(xml),
+					XQueryInsertKeyword.AFTER, xQuery);
+		}
+	}
+
+	String existenceOfNonIdentifiableQuery = null;
+
+	private boolean checkExistenceOfNonIdentifiable(String elemName,
+			String parentId, String parentVersion, String parentElementType)
+			throws DDIFtpException {
+		StringBuilder query = new StringBuilder();
+		query.append(" for $element in ");
+		query.append(PersistenceManager.getInstance().getResourcePath());
+		query.append("/");
+		query.append(getDdi3NamespaceHelper()
+				.addFullyQualifiedNamespaceDeclarationToElements(
+						parentElementType));
+
+		query.append(" return $element");
+		query.append("/*[namespace-uri()='ddi:reusable:3_1' and local-name()='");
+		query.append(elemName);
+		query.append("'][1]");
+
+		existenceOfNonIdentifiableQuery = query.toString();
+		return !PersistenceManager.getInstance()
+				.query(existenceOfNonIdentifiableQuery).isEmpty();
+	}
+
+	private List<String> nonIdentifiableParentSubelements = Arrays.asList(
+			"VersionResponsibility", "VersionRationale");
 
 	/**
 	 * Update an element
@@ -1296,7 +1408,6 @@ public class DdiManager {
 		// import into existing study unit
 		if (!studyUnits.getLightXmlObjectList().getLightXmlObjectList()
 				.isEmpty()) {
-			// set: id version agency
 
 			// over write
 			// TODO support multiple study units
@@ -1434,7 +1545,8 @@ public class DdiManager {
 						.getLightXmlObjectList().getLightXmlObjectArray(0);
 				createElement(studyUnitDocument, lightXmlObject.getId(),
 						lightXmlObject.getVersion(),
-						lightXmlObject.getElement());
+						lightXmlObject.getElement(), new String[] {
+								"VersionRationale", "VersionResponsibility" });
 			}
 		}
 		// TODO avail group
@@ -2564,23 +2676,23 @@ public class DdiManager {
 				"RecordLayoutScheme", parentId, parentVersion,
 				"physicaldataproduct__PhysicalDataProduct");
 
-//		if ((parentVersion == null || parentVersion.equals(""))
-//				&& (version == null || version.equals(""))) {
-//			paramatizedXquery.getParameters()[paramatizedXquery
-//					.getParameterSize() - 1] = "";
-//		} else if (version == null || version.equals("")) {
-//			String param = paramatizedXquery.getParameters()[paramatizedXquery
-//					.getParameterSize() - 1];
-//			paramatizedXquery.getParameters()[paramatizedXquery
-//					.getParameterSize() - 1] = param.replace(
-//					"and empty($child/@version)", "");
-//		} else if ((parentVersion == null || parentVersion.equals(""))) {
-//			String param = paramatizedXquery.getParameters()[paramatizedXquery
-//					.getParameterSize() - 1];
-//			paramatizedXquery.getParameters()[paramatizedXquery
-//					.getParameterSize() - 1] = param.replace(
-//					"empty($element/@version) and", "");
-//		}
+		// if ((parentVersion == null || parentVersion.equals(""))
+		// && (version == null || version.equals(""))) {
+		// paramatizedXquery.getParameters()[paramatizedXquery
+		// .getParameterSize() - 1] = "";
+		// } else if (version == null || version.equals("")) {
+		// String param = paramatizedXquery.getParameters()[paramatizedXquery
+		// .getParameterSize() - 1];
+		// paramatizedXquery.getParameters()[paramatizedXquery
+		// .getParameterSize() - 1] = param.replace(
+		// "and empty($child/@version)", "");
+		// } else if ((parentVersion == null || parentVersion.equals(""))) {
+		// String param = paramatizedXquery.getParameters()[paramatizedXquery
+		// .getParameterSize() - 1];
+		// paramatizedXquery.getParameters()[paramatizedXquery
+		// .getParameterSize() - 1] = param.replace(
+		// "empty($element/@version) and", "");
+		// }
 		query.setQuery(paramatizedXquery.getParamatizedQuery());
 
 		String[] elements = { "RecordLayout", "ProprietaryRecordLayout" };
