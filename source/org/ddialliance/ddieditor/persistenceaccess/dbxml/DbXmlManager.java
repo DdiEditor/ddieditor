@@ -166,7 +166,7 @@ public class DbXmlManager implements PersistenceStorage {
 			// transaction
 			environmentConfig.setTransactional(true);
 			environmentConfig.setTxnMaxActive(20000);
-			environmentConfig.setTxnWriteNoSync(true); 
+			environmentConfig.setTxnWriteNoSync(true);
 			environmentConfig.setTxnTimeout(0); // live forever, no timeout
 
 			// locking subsystem
@@ -179,8 +179,8 @@ public class DbXmlManager implements PersistenceStorage {
 
 			// deadlock detection
 			environmentConfig.setLockDetectMode(LockDetectMode.MINWRITE);
-			//environmentConfig.setDsyncDatabases(true);
-			
+			// environmentConfig.setDsyncDatabases(true);
+
 			// error stream
 			// change to property definition of dbxml log level
 			// XmlManager.setLogLevel(XmlManager.LEVEL_ALL, true);
@@ -1222,8 +1222,9 @@ public class DbXmlManager implements PersistenceStorage {
 				break;
 			}
 			case XmlEventReader.StartDocument: {
-				writeExportDocument(rafFc,
-						"<?xml version=\"1.0\" encoding=\"utf-8\"?>\n");
+				writeExportDocument(
+						rafFc,
+						"<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<?xml-stylesheet type= \"text/xsl\" href=\"ddi3_1.xsl\"?>");
 				break;
 			}
 			case XmlEventReader.EndDocument: {
