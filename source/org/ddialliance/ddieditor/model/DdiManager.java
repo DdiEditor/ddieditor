@@ -93,8 +93,13 @@ public class DdiManager {
 
 	private Ddi3NamespaceHelper ddi3NamespaceHelper;
 	private static DdiManager instance;
+	private XmlOptions options;
 
 	private DdiManager() {
+		options = new XmlOptions();
+		options.setSaveAggressiveNamespaces();
+		options.setSaveOuter();
+		options.setSavePrettyPrint();
 	}
 
 	public static synchronized DdiManager getInstance() {
@@ -126,6 +131,10 @@ public class DdiManager {
 
 	public Ddi3NamespaceHelper getDdi3NamespaceHelper() {
 		return this.ddi3NamespaceHelper;
+	}
+
+	public XmlOptions getXmloptions() {
+		return options;
 	}
 
 	protected LightXmlObjectListDocument queryLightXmlBeans(String id,
@@ -735,10 +744,6 @@ public class DdiManager {
 							.getLightXmlObjectList().size() - 1);
 		}
 
-		XmlOptions options = new XmlOptions();
-		options.setSaveAggressiveNamespaces();
-		options.setSavePrettyPrint();
-
 		// insert xml object after last element of same type
 		QName qName = xmlObject.schemaType().getDocumentElementName();
 		XQuery xQuery = null;
@@ -757,7 +762,7 @@ public class DdiManager {
 
 			PersistenceManager.getInstance().insert(
 					getDdi3NamespaceHelper().substitutePrefixesFromElements(
-							xmlObject.xmlText(options)),
+							xmlObject.xmlText(DdiManager.getInstance().getXmloptions())),
 					XQueryInsertKeyword.AFTER, xQuery);
 			return;
 		}
@@ -772,7 +777,7 @@ public class DdiManager {
 		}
 		PersistenceManager.getInstance().insert(
 				getDdi3NamespaceHelper().substitutePrefixesFromElements(
-						xmlObject.xmlText(options)),
+						xmlObject.xmlText(DdiManager.getInstance().getXmloptions())),
 				XQueryInsertKeyword.AS_FIRST_NODE, xQuery);
 	}
 
@@ -799,6 +804,7 @@ public class DdiManager {
 
 		XmlOptions options = new XmlOptions();
 		options.setSaveAggressiveNamespaces();
+		options.setSaveOuter();
 		options.setSavePrettyPrint();
 
 		createElement(xmlObject.xmlText(options), parentId, parentVersion,
@@ -933,8 +939,9 @@ public class DdiManager {
 		query.append("replace node ");
 		query.append(position.query.toString());
 		query.append(" with ");
-		query.append(xmlObject.xmlText());
-		// query.append(substitutePrefixesFromElements(xmlObject.xmlText()));
+		query.append(xmlObject.xmlText(getXmloptions()));
+//		query.append(getDdi3NamespaceHelper().substitutePrefixesFromElements(
+//				xmlObject.xmlText()));
 		PersistenceManager.getInstance().updateQuery(query.toString());
 	}
 
