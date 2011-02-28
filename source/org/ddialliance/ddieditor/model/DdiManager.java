@@ -15,6 +15,7 @@ import javax.xml.namespace.QName;
 import org.apache.xmlbeans.XmlException;
 import org.apache.xmlbeans.XmlObject;
 import org.apache.xmlbeans.XmlOptions;
+import org.ddialliance.ddi3.xml.xmlbeans.archive.ArchiveDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.conceptualcomponent.ConceptDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.conceptualcomponent.ConceptGroupDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.conceptualcomponent.ConceptSchemeDocument;
@@ -38,6 +39,7 @@ import org.ddialliance.ddi3.xml.xmlbeans.datacollection.StatementItemDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.logicalproduct.CategoryDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.logicalproduct.CategorySchemeDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.logicalproduct.CodeSchemeDocument;
+import org.ddialliance.ddi3.xml.xmlbeans.logicalproduct.DataRelationshipDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.logicalproduct.VariableDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.logicalproduct.VariableSchemeDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.studyunit.StudyUnitType;
@@ -762,7 +764,8 @@ public class DdiManager {
 
 			PersistenceManager.getInstance().insert(
 					getDdi3NamespaceHelper().substitutePrefixesFromElements(
-							xmlObject.xmlText(DdiManager.getInstance().getXmloptions())),
+							xmlObject.xmlText(DdiManager.getInstance()
+									.getXmloptions())),
 					XQueryInsertKeyword.AFTER, xQuery);
 			return;
 		}
@@ -777,7 +780,8 @@ public class DdiManager {
 		}
 		PersistenceManager.getInstance().insert(
 				getDdi3NamespaceHelper().substitutePrefixesFromElements(
-						xmlObject.xmlText(DdiManager.getInstance().getXmloptions())),
+						xmlObject.xmlText(DdiManager.getInstance()
+								.getXmloptions())),
 				XQueryInsertKeyword.AS_FIRST_NODE, xQuery);
 	}
 
@@ -809,6 +813,23 @@ public class DdiManager {
 
 		createElement(xmlObject.xmlText(options), parentId, parentVersion,
 				parentElementType, subElements);
+	}
+
+	public void createElementInto(XmlObject xmlObject, String parentId,
+			String parentVersion, String parentElementType)
+			throws DDIFtpException {
+		createElementInto(xmlObject.xmlText(options), parentId, parentVersion,
+				parentElementType);
+	}
+
+	public void createElementInto(String xml, String parentId,
+			String parentVersion, String parentElementType)
+			throws DDIFtpException {
+		XQuery xQuery = xQueryCrudPosition(parentId, parentVersion,
+				parentElementType, null, null, null);
+		PersistenceManager.getInstance().insert(
+				getDdi3NamespaceHelper().substitutePrefixesFromElements(xml),
+				XQueryInsertKeyword.INTO, xQuery);
 	}
 
 	/**
@@ -940,8 +961,8 @@ public class DdiManager {
 		query.append(position.query.toString());
 		query.append(" with ");
 		query.append(xmlObject.xmlText(getXmloptions()));
-//		query.append(getDdi3NamespaceHelper().substitutePrefixesFromElements(
-//				xmlObject.xmlText()));
+		// query.append(getDdi3NamespaceHelper().substitutePrefixesFromElements(
+		// xmlObject.xmlText()));
 		PersistenceManager.getInstance().updateQuery(query.toString());
 	}
 
@@ -2396,6 +2417,15 @@ public class DdiManager {
 		return lightXmlObjectListDocument;
 	}
 
+	public DataRelationshipDocument getDataRelationship(String id,
+			String version, String parentId, String parentVersion)
+			throws Exception {
+		String text = queryElement(id, version, "DataRelationship", parentId,
+				parentVersion, "logicalproduct__LogicalProduct");
+		return (text == "" ? null : DataRelationshipDocument.Factory
+				.parse(text));
+	}
+
 	public MaintainableLabelQueryResult getCodeSchemeLabel(String id,
 			String version, String parentId, String parentVersion)
 			throws Exception {
@@ -2715,6 +2745,22 @@ public class DdiManager {
 	//
 	// archive
 	//
+	public LightXmlObjectListDocument getArchivesLight(String id,
+			String version, String parentId, String parentVersion)
+			throws Exception {
+		LightXmlObjectListDocument lightXmlObjectListDocument = queryLightXmlBeans(
+				id, version, parentId, parentVersion, "studyunit__StudyUnit",
+				"Archive", null, "reusable__Label");
+		return lightXmlObjectListDocument;
+	}
+
+	public ArchiveDocument getAchive(String id, String version,
+			String parentId, String parentVersion) throws Exception {
+		String text = queryElement(id, version, "Archive", parentId,
+				parentVersion, "studyunit__StudyUnit");
+		return (text == "" ? null : ArchiveDocument.Factory.parse(text));
+	}
+
 	public LightXmlObjectListDocument getOrganizationsLight(String id,
 			String version, String parentId, String parentVersion)
 			throws Exception {
