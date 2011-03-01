@@ -960,9 +960,8 @@ public class DdiManager {
 		query.append("replace node ");
 		query.append(position.query.toString());
 		query.append(" with ");
-		query.append(xmlObject.xmlText(getXmloptions()));
-		// query.append(getDdi3NamespaceHelper().substitutePrefixesFromElements(
-		// xmlObject.xmlText()));
+		query.append(getDdi3NamespaceHelper().substitutePrefixesFromElements(
+				xmlObject.xmlText(getXmloptions())));
 		PersistenceManager.getInstance().updateQuery(query.toString());
 	}
 
