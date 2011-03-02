@@ -135,7 +135,7 @@ public class DdiManager {
 		return this.ddi3NamespaceHelper;
 	}
 
-	public XmlOptions getXmloptions() {
+	public XmlOptions getXmlOptions() {
 		return options;
 	}
 
@@ -765,7 +765,7 @@ public class DdiManager {
 			PersistenceManager.getInstance().insert(
 					getDdi3NamespaceHelper().substitutePrefixesFromElements(
 							xmlObject.xmlText(DdiManager.getInstance()
-									.getXmloptions())),
+									.getXmlOptions())),
 					XQueryInsertKeyword.AFTER, xQuery);
 			return;
 		}
@@ -781,7 +781,7 @@ public class DdiManager {
 		PersistenceManager.getInstance().insert(
 				getDdi3NamespaceHelper().substitutePrefixesFromElements(
 						xmlObject.xmlText(DdiManager.getInstance()
-								.getXmloptions())),
+								.getXmlOptions())),
 				XQueryInsertKeyword.AS_FIRST_NODE, xQuery);
 	}
 
@@ -805,12 +805,6 @@ public class DdiManager {
 			String parentVersion, String parentElementType, String[] subElements)
 			throws DDIFtpException {
 		XmlBeansUtil.instanceOfXmlBeanDocument(xmlObject, new Throwable());
-
-		XmlOptions options = new XmlOptions();
-		options.setSaveAggressiveNamespaces();
-		options.setSaveOuter();
-		options.setSavePrettyPrint();
-
 		createElement(xmlObject.xmlText(options), parentId, parentVersion,
 				parentElementType, subElements);
 	}
@@ -961,7 +955,7 @@ public class DdiManager {
 		query.append(position.query.toString());
 		query.append(" with ");
 		query.append(getDdi3NamespaceHelper().substitutePrefixesFromElements(
-				xmlObject.xmlText(getXmloptions())));
+				xmlObject.xmlText(getXmlOptions())));
 		PersistenceManager.getInstance().updateQuery(query.toString());
 	}
 
@@ -1447,9 +1441,6 @@ public class DdiManager {
 
 			List<MaintainableLabelUpdateElement> updates = new ArrayList<MaintainableLabelUpdateElement>();
 			StudyUnitType type = studyUnitDocument.getStudyUnit();
-			XmlOptions xmlOptions = new XmlOptions();
-			xmlOptions.setSavePrettyPrint();
-			xmlOptions.setSaveOuter();
 
 			// insert study level info
 			LinkedList<String> existingObj = null;
@@ -1624,14 +1615,12 @@ public class DdiManager {
 	}
 
 	public LightXmlObjectListDocument getNotesLight(String id, String version,
-			String parentId, String parentVersion) throws Exception {
-		LightXmlObjectListDocument doc = LightXmlObjectListDocument.Factory
-				.newInstance();
-		doc.addNewLightXmlObjectList();
-
-		// TODO as notes are scattered in various places around the ddi3 return
-		// empty list
-		return doc;
+			String parentId, String parentVersion, String parentElement)
+			throws Exception {
+		LightXmlObjectListDocument lightXmlObjectListDocument = queryLightXmlBeans(
+				id, version, parentId, parentVersion, parentElement, "Note",
+				null, "UserID");
+		return lightXmlObjectListDocument;
 	}
 
 	//
@@ -1826,6 +1815,21 @@ public class DdiManager {
 		return (text == "" ? null : DataCollectionDocument.Factory.parse(text));
 	}
 
+	public LightXmlObjectListDocument getMethodologysLight(String id,
+			String version, String parentId, String parentVersion)
+			throws Exception {
+		return queryLightXmlBeans(id, version, parentId, parentVersion,
+				"datacollection__DataCollection", "Methodology", null, "UserID");
+	}
+
+	public LightXmlObjectListDocument getCollectionEventsLight(String id,
+			String version, String parentId, String parentVersion)
+			throws Exception {
+		return queryLightXmlBeans(id, version, parentId, parentVersion,
+				"datacollection__DataCollection", "CollectionEvent", null,
+				"UserID");
+	}
+
 	@Profiled(tag = "getQuestionSchemesLight")
 	public LightXmlObjectListDocument getQuestionSchemesLight(String id,
 			String version, String parentId, String parentVersion)
@@ -1996,14 +2000,10 @@ public class DdiManager {
 		LightXmlObjectListDocument doc = queryLightXmlBeans(id, version,
 				parentId, parentVersion, "MultipleQuestionItem",
 				"SubQuestions/QuestionItem", "QuestionItem", "QuestionItemName");
-		// Change element name from 'SubQuestions/QuestionItem' to
-		// 'SubQuestions/QuestionItem'
-		List<LightXmlObjectType> lightXmlList = doc.getLightXmlObjectList()
-				.getLightXmlObjectList();
-		for (Iterator iterator = lightXmlList.iterator(); iterator.hasNext();) {
-			LightXmlObjectType lightXmlObjectType = (LightXmlObjectType) iterator
-					.next();
+		for (LightXmlObjectType lightXmlObjectType : doc
+				.getLightXmlObjectList().getLightXmlObjectList()) {
 			lightXmlObjectType.setElement("QuestionItem");
+			System.out.println("here");
 		}
 		return doc;
 	}
