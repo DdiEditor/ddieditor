@@ -642,7 +642,7 @@ public class DbXmlManager implements PersistenceStorage {
 					}
 					if (jumpName != null) {
 						continue;
-					}					
+					}
 					if (jumpEnd) {
 						break;
 					}
@@ -677,8 +677,26 @@ public class DbXmlManager implements PersistenceStorage {
 			return query;
 		} else {
 			StringBuilder result = new StringBuilder(query);
-			result.append(DdiManager.getInstance().getDdi3NamespaceHelper()
-					.addFullyQualifiedNamespaceDeclarationToElements(located));
+			try {
+				result.append(DdiManager
+						.getInstance()
+						.getDdi3NamespaceHelper()
+						.addFullyQualifiedNamespaceDeclarationToElements(
+								located));
+			} catch (DDIFtpException e) {
+				// TODO enhance namespace conventions on locale name with out
+				// namespace, how build up and test against
+				// Ddi3NamespaceHelper.namespace properties
+				StringBuilder convention = new StringBuilder();
+				convention.append(located.toLowerCase());
+				convention.append("__");
+				convention.append(located);
+				result.append(DdiManager
+						.getInstance()
+						.getDdi3NamespaceHelper()
+						.addFullyQualifiedNamespaceDeclarationToElements(
+								convention.toString()));
+			}
 			result.append("[");
 			result.append(locatedCount);
 			result.append("]");
