@@ -554,6 +554,138 @@ public class DbXmlManager implements PersistenceStorage {
 		rs.delete();
 	}
 
+	public String defineQueryPosition(String query, String[] subElements,
+			String[] stopElements) throws Exception {
+		return defineQueryPosition(query, subElements, stopElements,
+				new String[] {});
+	}
+
+	public String defineQueryPosition(String query, String[] subElements,
+			String[] stopElements, String[] jumpElements) throws Exception {
+
+		// query
+		queryLog.info(query);
+		XmlResults rs = xQuery(query);
+
+		if (rs.isNull()) { // guard
+			throw new DDIFtpException("No results for query: " + query);
+		}
+
+		// init value
+		XmlValue xmlValue = rs.next();
+		if (xmlValue == null) { // guard
+			rs.delete();
+			rs = null;
+			commitTransaction();
+		}
+
+		String initStart = null, localName = null, foundName = null, located = null, jumpName = null;
+
+		boolean stop = false, jumpEnd = false;
+		int locatedCount = 0;
+
+		if (xmlValue.isNode()) {
+			XmlEventReader reader = xmlValue.asEventReader();
+			while (reader.hasNext()) {
+				int type = reader.next();
+
+				// end element
+				if (type == XmlEventReader.EndElement) {
+					localName = reader.getLocalName();
+
+					// jump
+					if (jumpName != null) {
+						if (jumpName.equals(located)) {
+							locatedCount++;
+						} else {
+							located = jumpName;
+							locatedCount = 1;
+						}
+						jumpName = null;
+						jumpEnd = true;
+					}
+
+					// guard
+					if (initStart.equals(localName)) {
+						break;
+					}
+				}
+
+				// start element
+				if (type == XmlEventReader.StartElement) {
+					localName = reader.getLocalName();
+					if (initStart == null) {
+						initStart = localName;
+					}
+
+					// stop elements
+					for (int i = 0; i < stopElements.length; i++) {
+						if (localName.equals(stopElements[i])) {
+							if (localName.equals(initStart)) {
+								// TODO reset all - nomarl insert with search
+								// for equal elements
+							}
+							stop = true;
+							break;
+						}
+					}
+					if (stop) {
+						break;
+					}
+
+					// jump elements
+					for (int i = 0; i < jumpElements.length; i++) {
+						if (localName.equals(jumpElements[i])) {
+							jumpName = jumpElements[i];
+							break;
+						}
+					}
+					if (jumpName != null) {
+						continue;
+					}					
+					if (jumpEnd) {
+						break;
+					}
+
+					// sub elements
+					for (int i = 0; i < subElements.length; i++) {
+						if (localName.equals(subElements[i])) {
+							foundName = subElements[i];
+							break;
+						}
+					}
+					if (foundName != null) {
+						if (located != null && located.equals(foundName)) {
+							locatedCount++;
+						} else {
+							located = foundName;
+							locatedCount = 1;
+						}
+						foundName = null;
+						continue;
+					}
+				}
+			}
+			reader.close();
+		}
+		rs.delete();
+		rs = null;
+		commitTransaction();
+
+		// build query
+		if (located == null) {
+			return query;
+		} else {
+			StringBuilder result = new StringBuilder(query);
+			result.append(DdiManager.getInstance().getDdi3NamespaceHelper()
+					.addFullyQualifiedNamespaceDeclarationToElements(located));
+			result.append("[");
+			result.append(locatedCount);
+			result.append("]");
+			return result.toString();
+		}
+	}
+
 	@Profiled(tag = "xQuery")
 	protected XmlResults xQuery(String query) throws Exception {
 		XmlQueryContext xmlQueryContext = xmlManager.createQueryContext(
