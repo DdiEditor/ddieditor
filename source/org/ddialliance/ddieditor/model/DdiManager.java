@@ -53,6 +53,7 @@ import org.ddialliance.ddieditor.model.relationship.ParentDocument.Parent;
 import org.ddialliance.ddieditor.persistenceaccess.ParamatizedXquery;
 import org.ddialliance.ddieditor.persistenceaccess.PersistenceManager;
 import org.ddialliance.ddieditor.persistenceaccess.XQueryInsertKeyword;
+import org.ddialliance.ddieditor.persistenceaccess.dbxml.DbXmlManager;
 import org.ddialliance.ddieditor.persistenceaccess.maintainablelabel.MaintainableLabelQuery;
 import org.ddialliance.ddieditor.persistenceaccess.maintainablelabel.MaintainableLabelQueryResult;
 import org.ddialliance.ddieditor.persistenceaccess.maintainablelabel.MaintainableLabelUpdateElement;
@@ -802,11 +803,12 @@ public class DdiManager {
 	}
 
 	public void createElement(XmlObject xmlObject, String parentId,
-			String parentVersion, String parentElementType, String[] subElements)
+			String parentVersion, String parentElementType,
+			String[] subElements, String[] stopElements, String[] jumpElements)
 			throws DDIFtpException {
 		XmlBeansUtil.instanceOfXmlBeanDocument(xmlObject, new Throwable());
 		createElement(xmlObject.xmlText(options), parentId, parentVersion,
-				parentElementType, subElements);
+				parentElementType, subElements, stopElements, jumpElements);
 	}
 
 	public void createElementInto(XmlObject xmlObject, String parentId,
@@ -828,7 +830,7 @@ public class DdiManager {
 
 	/**
 	 * Create an element in a parent of after possible existence of sub
-	 * elements. Sub element choice is FIFO
+	 * elements.
 	 * 
 	 * @param xml
 	 *            element to create
@@ -837,91 +839,46 @@ public class DdiManager {
 	 * @param parentVersion
 	 *            arent version
 	 * @param parentElementType
-	 *            local name
+	 *            local element name
 	 * @param parentSubElements
-	 *            array of parent sub elements
+	 *            array of elements indicating possible insert positions below
+	 *            parent element
+	 * @param stopElements
+	 *            array of elements to indicate the stop block of the scan for
+	 *            the insert position/ XPath
+	 * @param jumpElements
+	 *            array of elements to indicate elements to jump over in the
+	 *            scan for the insert position/ XPath
 	 * @throws DDIFtpException
 	 */
 	public void createElement(String xml, String parentId,
 			String parentVersion, String parentElementType,
-			String[] parentSubElements) throws DDIFtpException {
-		// get last element of same type to insert
-		LightXmlObjectType subElemPosition = null;
-		boolean nonIdentifiableParentSubelement = false;
-		for (String elemName : parentSubElements) {
-			if (nonIdentifiableParentSubelements.contains(elemName)
-					&& checkExistenceOfNonIdentifiable(elemName, parentId,
-							parentVersion, parentElementType)) {
-				nonIdentifiableParentSubelement = true;
-				break;
-			}
-
-			StringBuilder operation = new StringBuilder("get");
-			operation.append(elemName);
-			operation.append("sLight");
-
-			LightXmlObjectListDocument lightXmlObjectList = checkExistence(
-					operation.toString(), parentId, parentVersion);
-			if (lightXmlObjectList != null
-					&& !lightXmlObjectList.getLightXmlObjectList()
-							.getLightXmlObjectList().isEmpty()) {
-				subElemPosition = lightXmlObjectList
-						.getLightXmlObjectList()
-						.getLightXmlObjectList()
-						.get(lightXmlObjectList.getLightXmlObjectList()
-								.getLightXmlObjectList().size() - 1);
-				break;
-			}
+			String[] parentSubElements, String[] stopElements,
+			String[] jumpElements) throws DDIFtpException {
+		XQuery xQuery = xQueryCrudPosition(parentId, parentVersion,
+				parentElementType, null, null, null);
+		String query = null;
+		try {
+			query = DbXmlManager.getInstance().defineQueryPosition(
+					xQuery.getFullQueryString(), parentSubElements,
+					stopElements, jumpElements);
+		} catch (Exception e) {
+			throw new DDIFtpException(e);
 		}
 
-		if (subElemPosition == null && (!nonIdentifiableParentSubelement)) {
-			// default
+		if (query.length() == xQuery.getFullQueryString().length()) {
+			// default insert
 			createElement(xml, parentId, parentVersion, parentElementType, "");
 		} else {
-			// build query
-			XQuery xQuery = null;
-			if (nonIdentifiableParentSubelement) {
-				xQuery = new XQuery();
-				xQuery.query.append(existenceOfNonIdentifiableQuery);
-			} else if (subElemPosition != null) {
-				xQuery = xQueryCrudPosition(subElemPosition.getId(),
-						subElemPosition.getVersion(),
-						subElemPosition.getElement(), null, null, null);
-			}
-
-			// insert
+			// custom insert
+			XQuery customQuery = new XQuery();
+			customQuery.query.append(query);
 			PersistenceManager.getInstance().insert(
 					getDdi3NamespaceHelper()
 							.substitutePrefixesFromElements(xml),
-					XQueryInsertKeyword.AFTER, xQuery);
+					XQueryInsertKeyword.AFTER, customQuery);
 		}
 	}
-
-	String existenceOfNonIdentifiableQuery = null;
-
-	private boolean checkExistenceOfNonIdentifiable(String elemName,
-			String parentId, String parentVersion, String parentElementType)
-			throws DDIFtpException {
-		StringBuilder query = new StringBuilder();
-		query.append(" for $element in ");
-		query.append(PersistenceManager.getInstance().getResourcePath());
-		query.append("/");
-		query.append(getDdi3NamespaceHelper()
-				.addFullyQualifiedNamespaceDeclarationToElements(
-						parentElementType));
-
-		query.append(" return $element");
-		query.append("/*[namespace-uri()='ddi:reusable:3_1' and local-name()='");
-		query.append(elemName);
-		query.append("'][1]");
-
-		existenceOfNonIdentifiableQuery = query.toString();
-		return !PersistenceManager.getInstance()
-				.query(existenceOfNonIdentifiableQuery).isEmpty();
-	}
-
-	private List<String> nonIdentifiableParentSubelements = Arrays.asList(
-			"VersionResponsibility", "VersionRationale");
 
 	/**
 	 * Update an element
@@ -1564,7 +1521,8 @@ public class DdiManager {
 				createElement(studyUnitDocument, lightXmlObject.getId(),
 						lightXmlObject.getVersion(),
 						lightXmlObject.getElement(), new String[] {
-								"VersionRationale", "VersionResponsibility" });
+								"VersionRationale", "VersionResponsibility" },
+						new String[] {}, new String[] {});
 			}
 		}
 		// TODO avail group
@@ -1615,12 +1573,19 @@ public class DdiManager {
 	}
 
 	public LightXmlObjectListDocument getNotesLight(String id, String version,
-			String parentId, String parentVersion, String parentElement)
-			throws Exception {
-		LightXmlObjectListDocument lightXmlObjectListDocument = queryLightXmlBeans(
-				id, version, parentId, parentVersion, parentElement, "Note",
-				null, "UserID");
-		return lightXmlObjectListDocument;
+			String parentId, String parentVersion) throws Exception {
+		// LightXmlObjectListDocument lightXmlObjectListDocument =
+		// queryLightXmlBeans(
+		// id, version, parentId, parentVersion, parentElement, "Note",
+		// null, "UserID");
+		// return lightXmlObjectListDocument;
+		LightXmlObjectListDocument doc = LightXmlObjectListDocument.Factory
+				.newInstance();
+		doc.addNewLightXmlObjectList();
+
+		// TODO as notes are scattered in various places around the ddi3 return
+		// empty list
+		return doc;
 	}
 
 	//
@@ -2003,7 +1968,6 @@ public class DdiManager {
 		for (LightXmlObjectType lightXmlObjectType : doc
 				.getLightXmlObjectList().getLightXmlObjectList()) {
 			lightXmlObjectType.setElement("QuestionItem");
-			System.out.println("here");
 		}
 		return doc;
 	}
