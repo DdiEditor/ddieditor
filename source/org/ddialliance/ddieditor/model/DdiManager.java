@@ -1873,7 +1873,7 @@ public class DdiManager {
 				"datacollection__DataCollection"));
 
 		maintainableLabelQuery.setElementConversionNames(new String[] {
-				"QuestionText", "datacollection__ConceptReference",
+				"MultipleQuestionItemName", "QuestionText", "datacollection__ConceptReference",
 				"SubQuestionSequence" });
 
 		maintainableLabelQuery.setMaintainableTarget("MultipleQuestionItem");
