@@ -555,12 +555,6 @@ public class DbXmlManager implements PersistenceStorage {
 	}
 
 	public String defineQueryPosition(String query, String[] subElements,
-			String[] stopElements) throws Exception {
-		return defineQueryPosition(query, subElements, stopElements,
-				new String[] {});
-	}
-
-	public String defineQueryPosition(String query, String[] subElements,
 			String[] stopElements, String[] jumpElements) throws Exception {
 
 		// query
