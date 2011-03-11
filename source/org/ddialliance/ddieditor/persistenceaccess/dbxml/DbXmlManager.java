@@ -562,7 +562,8 @@ public class DbXmlManager implements PersistenceStorage {
 		XmlResults rs = xQuery(query);
 
 		if (rs.isNull()) { // guard
-			throw new DDIFtpException("No results for query: " + query);
+			throw new DDIFtpException("No results for query: " + query,
+					new Throwable());
 		}
 
 		// init value
@@ -571,6 +572,8 @@ public class DbXmlManager implements PersistenceStorage {
 			rs.delete();
 			rs = null;
 			commitTransaction();
+			throw new DDIFtpException("No results for query: " + query,
+					new Throwable());
 		}
 
 		String initStart = null, localName = null, foundName = null, located = null, jumpName = null;
