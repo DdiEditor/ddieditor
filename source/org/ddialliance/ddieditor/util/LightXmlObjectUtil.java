@@ -1,5 +1,10 @@
 package org.ddialliance.ddieditor.util;
 
+import java.util.Arrays;
+import java.util.List;
+
+import org.ddialliance.ddieditor.model.lightxmlobject.CustomListType;
+import org.ddialliance.ddieditor.model.lightxmlobject.CustomType;
 import org.ddialliance.ddieditor.model.lightxmlobject.LightXmlObjectType;
 import org.ddialliance.ddiftp.util.xml.XmlBeansUtil;
 
@@ -27,5 +32,15 @@ public class LightXmlObjectUtil {
 		} else {
 			return lightXmlObject.getId();
 		}
+	}
+		
+	public static List<CustomType> getCustomListbyType(
+			LightXmlObjectType lightXmlObject, String type) {
+		for (CustomListType cuslist : lightXmlObject.getCustomListList()) {
+			if (cuslist.getType().equals(type)) {
+				return cuslist.getCustomList();
+			}
+		}
+		return Arrays.asList(CustomType.Factory.newInstance());
 	}
 }
