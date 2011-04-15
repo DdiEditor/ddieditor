@@ -2461,7 +2461,7 @@ public class DdiManager {
 		if (lightXmlObjectListDocument.getLightXmlObjectList()
 				.getLightXmlObjectList().isEmpty()) {
 			lightXmlObjectListDocument = queryLightXmlBeans(id, version,
-					parentId, parentVersion, "//", "CategoryScheme", null,
+					parentId, parentVersion, "*", "CategoryScheme", null,
 					"reusable__Label");
 		}
 		return lightXmlObjectListDocument;
@@ -2625,7 +2625,7 @@ public class DdiManager {
 		xquery.function
 				.append("if(exists($z/*[namespace-uri()='ddi:logicalproduct:3_1' and local-name()='NumericRepresentation'])) then <Custom>Numeric</Custom> else ");
 		xquery.function
-				.append("if(exists($z/*[namespace-uri()='ddi:logicalproduct:3_1' and local-name()='CodeRepresentation'])) then <Custom>Code</Custom> else ");
+				.append("if(exists($z/*[namespace-uri()='ddi:logicalproduct:3_1' and local-name()='CodeRepresentation'])) then <Custom  value=\"{local-name($z/*/*)}\">{string($z/*/*)}</Custom> else ");
 		xquery.function
 				.append("if(exists($z/*[namespace-uri()='ddi:logicalproduct:3_1' and local-name()='DateTimeRepresentation'])) then <Custom>DateTime</Custom> else ''};");
 
