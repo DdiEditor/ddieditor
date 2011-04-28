@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: ddieditor
 Bundle-SymbolicName: ddieditor
-Bundle-Version: 0.12.0
+Bundle-Version: 0.13.0
 Bundle-Activator: org.ddialliance.ddieditor.osgi.Activator
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Service-Component: OSGI-INF/component.xml
