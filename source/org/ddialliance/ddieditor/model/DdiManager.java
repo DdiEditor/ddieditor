@@ -2623,7 +2623,7 @@ public class DdiManager {
 		xquery.function
 				.append("return if(exists($z/*[namespace-uri()='ddi:logicalproduct:3_1' and local-name()='TextRepresentation'])) then <Custom>Text</Custom> else ");
 		xquery.function
-				.append("if(exists($z/*[namespace-uri()='ddi:logicalproduct:3_1' and local-name()='NumericRepresentation'])) then <Custom>Numeric</Custom> else ");
+				.append("if(exists($z/*[namespace-uri()='ddi:logicalproduct:3_1' and local-name()='NumericRepresentation'])) then <Custom option=\"NumericTypeCodeType\" value=\"Double\">Numeric</Custom> else ");
 		xquery.function
 				.append("if(exists($z/*[namespace-uri()='ddi:logicalproduct:3_1' and local-name()='CodeRepresentation'])) then <Custom  value=\"{local-name($z/*/*)}\">{string($z/*/*)}</Custom> else ");
 		xquery.function
