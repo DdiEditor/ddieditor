@@ -18,8 +18,10 @@ import org.ddialliance.ddieditor.model.lightxmlobject.LightXmlObjectListDocument
 import org.ddialliance.ddieditor.model.lightxmlobject.LightXmlObjectType;
 import org.ddialliance.ddieditor.model.namespace.ddi3.Ddi3NamespacePrefix;
 import org.ddialliance.ddieditor.model.resource.StorageType;
+import org.ddialliance.ddieditor.persistenceaccess.DefineQueryPositionResult;
 import org.ddialliance.ddieditor.persistenceaccess.PersistenceManager;
 import org.ddialliance.ddieditor.persistenceaccess.PersistenceStorage;
+import org.ddialliance.ddieditor.persistenceaccess.XQueryInsertKeyword;
 import org.ddialliance.ddieditor.persistenceaccess.maintainablelabel.MaintainableLabelQuery;
 import org.ddialliance.ddieditor.persistenceaccess.maintainablelabel.MaintainableLabelQueryResult;
 import org.ddialliance.ddieditor.persistenceaccess.maintainablelabel.MaintainableLightLabelQueryResult;
@@ -53,7 +55,6 @@ import com.sleepycat.dbxml.XmlUpdateContext;
 import com.sleepycat.dbxml.XmlValue;
 
 /**
- * Accesses the Oracle Berkeley XML data base
  */
 public class DbXmlManager implements PersistenceStorage {
 	private static Log logSystem = LogFactory.getLog(LogType.SYSTEM,
@@ -554,8 +555,10 @@ public class DbXmlManager implements PersistenceStorage {
 		rs.delete();
 	}
 
-	public String defineQueryPosition(String query, String[] subElements,
-			String[] stopElements, String[] jumpElements) throws Exception {
+	public DefineQueryPositionResult defineQueryPosition(String elementType,
+			String query, String[] subElements, String[] stopElements,
+			String[] jumpElements) throws Exception {
+		DefineQueryPositionResult result = new DefineQueryPositionResult();
 
 		// query
 		queryLog.info(query);
@@ -590,18 +593,6 @@ public class DbXmlManager implements PersistenceStorage {
 				if (type == XmlEventReader.EndElement) {
 					localName = reader.getLocalName();
 
-					// jump
-					if (jumpName != null) {
-						if (jumpName.equals(located)) {
-							locatedCount++;
-						} else {
-							located = jumpName;
-							locatedCount = 1;
-						}
-						jumpName = null;
-						jumpEnd = true;
-					}
-
 					// guard
 					if (initStart.equals(localName)) {
 						break;
@@ -610,19 +601,31 @@ public class DbXmlManager implements PersistenceStorage {
 
 				// start element
 				if (type == XmlEventReader.StartElement) {
+					// parent:
 					localName = reader.getLocalName();
+					
 					if (initStart == null) {
 						initStart = localName;
 					}
 
 					// stop elements
 					for (int i = 0; i < stopElements.length; i++) {
+						// check if localName is part of stop list
 						if (localName.equals(stopElements[i])) {
 							if (localName.equals(initStart)) {
-								// TODO reset all - nomarl insert with search
+								// TODO reset all - normal insert with search
 								// for equal elements
 							}
 							stop = true;
+							located = localName;
+							locatedCount = 1;
+
+							// set insert key word
+							if (elementType.equals(stopElements[i])) {
+								result.insertKeyWord = XQueryInsertKeyword.AFTER;
+							} else {
+								result.insertKeyWord = XQueryInsertKeyword.BEFORE;
+							}
 							break;
 						}
 					}
@@ -632,13 +635,17 @@ public class DbXmlManager implements PersistenceStorage {
 
 					// jump elements
 					for (int i = 0; i < jumpElements.length; i++) {
+						// check if localName is part of jump list
 						if (localName.equals(jumpElements[i])) {
 							jumpName = jumpElements[i];
+							result.insertKeyWord = XQueryInsertKeyword.AFTER;
+
+							locatedCount = scanForJumpElements(locatedCount,
+									jumpName, stopElements, reader);
+							located = jumpName;
+							jumpEnd = true;
 							break;
 						}
-					}
-					if (jumpName != null) {
-						continue;
 					}
 					if (jumpEnd) {
 						break;
@@ -646,6 +653,7 @@ public class DbXmlManager implements PersistenceStorage {
 
 					// sub elements
 					for (int i = 0; i < subElements.length; i++) {
+						// check if localName is a parent sub-element
 						if (localName.equals(subElements[i])) {
 							foundName = subElements[i];
 							break;
@@ -671,11 +679,12 @@ public class DbXmlManager implements PersistenceStorage {
 
 		// build query
 		if (located == null) {
-			return query;
+			return new DefineQueryPositionResult(XQueryInsertKeyword.INTO,
+					new StringBuilder(query));
 		} else {
-			StringBuilder result = new StringBuilder(query);
+			StringBuilder queryResult = new StringBuilder(query);
 			try {
-				result.append(DdiManager
+				queryResult.append(DdiManager
 						.getInstance()
 						.getDdi3NamespaceHelper()
 						.addFullyQualifiedNamespaceDeclarationToElements(
@@ -688,17 +697,52 @@ public class DbXmlManager implements PersistenceStorage {
 				convention.append(located.toLowerCase());
 				convention.append("__");
 				convention.append(located);
-				result.append(DdiManager
+				queryResult.append(DdiManager
 						.getInstance()
 						.getDdi3NamespaceHelper()
 						.addFullyQualifiedNamespaceDeclarationToElements(
 								convention.toString()));
 			}
-			result.append("[");
-			result.append(locatedCount);
-			result.append("]");
-			return result.toString();
+			queryResult.append("[");
+			queryResult.append(locatedCount);
+			queryResult.append("]");
+			result.query = queryResult;
+			return result;
 		}
+	}
+
+	private int scanForJumpElements(int locatedCount, String jumpName,
+			String[] stopElements, XmlEventReader reader) throws XmlException {
+		String localName = null;
+
+		while (reader.hasNext()) {
+			int type = reader.next();
+
+			// end element
+			if (type == XmlEventReader.EndElement) {
+				localName = reader.getLocalName();
+
+				// jump
+				if (jumpName.equals(localName)) {
+					locatedCount++;
+					continue;
+				}
+			}
+
+			// start element
+			if (type == XmlEventReader.StartElement) {
+				localName = reader.getLocalName();
+
+				// stop elements
+				for (int i = 0; i < stopElements.length; i++) {
+					// check if localName is part of stop list
+					if (localName.equals(stopElements[i])) {
+						break;
+					}
+				}
+			}
+		}
+		return locatedCount;
 	}
 
 	@Profiled(tag = "xQuery")
