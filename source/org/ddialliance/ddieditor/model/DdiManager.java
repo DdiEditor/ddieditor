@@ -50,6 +50,7 @@ import org.ddialliance.ddieditor.model.lightxmlobject.LightXmlObjectType;
 import org.ddialliance.ddieditor.model.namespace.ddi3.Ddi3NamespaceHelper;
 import org.ddialliance.ddieditor.model.relationship.ElementDocument.Element;
 import org.ddialliance.ddieditor.model.relationship.ParentDocument.Parent;
+import org.ddialliance.ddieditor.persistenceaccess.DefineQueryPositionResult;
 import org.ddialliance.ddieditor.persistenceaccess.ParamatizedXquery;
 import org.ddialliance.ddieditor.persistenceaccess.PersistenceManager;
 import org.ddialliance.ddieditor.persistenceaccess.XQueryInsertKeyword;
@@ -66,6 +67,7 @@ import org.ddialliance.ddiftp.util.log.LogFactory;
 import org.ddialliance.ddiftp.util.log.LogType;
 import org.ddialliance.ddiftp.util.xml.XmlBeansUtil;
 import org.perf4j.aop.Profiled;
+import org.w3c.dom.Node;
 
 /**
  * Defines accessors for the contents of a DDI document with the focus on
@@ -94,7 +96,7 @@ public class DdiManager {
 	public static final String QUERY_ELEMENT = "query-element";
 	public static final String QUERY_ELEMENT_NO_PARENT = "query-element_-";
 
-	private Ddi3NamespaceHelper ddi3NamespaceHelper;
+	private static Ddi3NamespaceHelper ddi3NamespaceHelper;
 	private static DdiManager instance;
 	private XmlOptions options;
 
@@ -105,7 +107,7 @@ public class DdiManager {
 		options.setSavePrettyPrint();
 	}
 
-	public static synchronized DdiManager getInstance() {
+	public static synchronized DdiManager getInstance() throws DDIFtpException {
 		if (instance == null) {
 			log.info("Initializing DDIManager");
 			instance = new DdiManager();
@@ -113,9 +115,8 @@ public class DdiManager {
 			try {
 				instance.ddi3NamespaceHelper = new Ddi3NamespaceHelper();
 			} catch (Exception e) {
-				new DDIFtpException("Error on genrating namespace by elements",
+				throw new DDIFtpException("Error on generating namespace by elements",
 						e);
-				e.printStackTrace();
 			}
 		}
 		return instance;
@@ -807,7 +808,8 @@ public class DdiManager {
 			String[] subElements, String[] stopElements, String[] jumpElements)
 			throws DDIFtpException {
 		XmlBeansUtil.instanceOfXmlBeanDocument(xmlObject, new Throwable());
-		createElement(xmlObject.xmlText(options), parentId, parentVersion,
+		createElement(xmlObject.getDomNode().getChildNodes().item(0).getLocalName(),
+				xmlObject.xmlText(options), parentId, parentVersion,
 				parentElementType, subElements, stopElements, jumpElements);
 	}
 
@@ -832,12 +834,14 @@ public class DdiManager {
 	 * Create an element in a parent of after possible existence of sub
 	 * elements.
 	 * 
+	 * @param elementType
+	 *            localname of xml element type
 	 * @param xml
 	 *            element to create
 	 * @param parentId
 	 *            parent id
 	 * @param parentVersion
-	 *            arent version
+	 *            parent version
 	 * @param parentElementType
 	 *            local element name
 	 * @param parentSubElements
@@ -851,32 +855,34 @@ public class DdiManager {
 	 *            scan for the insert position/ XPath
 	 * @throws DDIFtpException
 	 */
-	public void createElement(String xml, String parentId,
+	public void createElement(String elementType, String xml, String parentId,
 			String parentVersion, String parentElementType,
 			String[] parentSubElements, String[] stopElements,
 			String[] jumpElements) throws DDIFtpException {
 		XQuery xQuery = xQueryCrudPosition(parentId, parentVersion,
 				parentElementType, null, null, null);
-		String query = null;
+		DefineQueryPositionResult query = null;
 		try {
-			query = DbXmlManager.getInstance().defineQueryPosition(
+			query = DbXmlManager.getInstance().defineQueryPosition(elementType,
 					xQuery.getFullQueryString(), parentSubElements,
 					stopElements, jumpElements);
 		} catch (Exception e) {
 			throw new DDIFtpException(e);
 		}
 
-		if (query.length() == xQuery.getFullQueryString().length()) {
+		if (query.query.length() == xQuery.getFullQueryString().length()) {
 			// default insert
-			createElement(xml, parentId, parentVersion, parentElementType, "");
+				PersistenceManager.getInstance().insert(
+						getDdi3NamespaceHelper().substitutePrefixesFromElements(xml),
+						query.insertKeyWord, query);
 		} else {
 			// custom insert
 			XQuery customQuery = new XQuery();
-			customQuery.query.append(query);
+			customQuery.query.append(query.query.toString());
 			PersistenceManager.getInstance().insert(
 					getDdi3NamespaceHelper()
 							.substitutePrefixesFromElements(xml),
-					XQueryInsertKeyword.AFTER, customQuery);
+					query.insertKeyWord, customQuery);
 		}
 	}
 
@@ -1873,8 +1879,8 @@ public class DdiManager {
 				"datacollection__DataCollection"));
 
 		maintainableLabelQuery.setElementConversionNames(new String[] {
-				"MultipleQuestionItemName", "QuestionText", "datacollection__ConceptReference",
-				"SubQuestionSequence" });
+				"MultipleQuestionItemName", "QuestionText",
+				"datacollection__ConceptReference", "SubQuestionSequence" });
 
 		maintainableLabelQuery.setMaintainableTarget("MultipleQuestionItem");
 		maintainableLabelQuery.setStopElementNames(new String[] {
