@@ -707,6 +707,11 @@ public class DbXmlManager implements PersistenceStorage {
 			queryResult.append(locatedCount);
 			queryResult.append("]");
 			result.query = queryResult;
+
+			// guard
+			if (result.insertKeyWord==null) {
+				result.insertKeyWord=XQueryInsertKeyword.AFTER;
+			}
 			return result;
 		}
 	}
