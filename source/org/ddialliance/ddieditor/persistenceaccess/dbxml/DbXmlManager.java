@@ -603,7 +603,7 @@ public class DbXmlManager implements PersistenceStorage {
 				if (type == XmlEventReader.StartElement) {
 					// parent:
 					localName = reader.getLocalName();
-					
+
 					if (initStart == null) {
 						initStart = localName;
 					}
@@ -639,7 +639,9 @@ public class DbXmlManager implements PersistenceStorage {
 						if (localName.equals(jumpElements[i])) {
 							jumpName = jumpElements[i];
 							result.insertKeyWord = XQueryInsertKeyword.AFTER;
+							locatedCount = 1;
 
+							// check for subsidiary jump elements
 							locatedCount = scanForJumpElements(locatedCount,
 									jumpName, stopElements, reader);
 							located = jumpName;
@@ -709,8 +711,8 @@ public class DbXmlManager implements PersistenceStorage {
 			result.query = queryResult;
 
 			// guard
-			if (result.insertKeyWord==null) {
-				result.insertKeyWord=XQueryInsertKeyword.AFTER;
+			if (result.insertKeyWord == null) {
+				result.insertKeyWord = XQueryInsertKeyword.AFTER;
 			}
 			return result;
 		}
@@ -723,8 +725,8 @@ public class DbXmlManager implements PersistenceStorage {
 		while (reader.hasNext()) {
 			int type = reader.next();
 
-			// end element
-			if (type == XmlEventReader.EndElement) {
+			// start element
+			if (type == XmlEventReader.StartElement) {
 				localName = reader.getLocalName();
 
 				// jump
@@ -732,11 +734,6 @@ public class DbXmlManager implements PersistenceStorage {
 					locatedCount++;
 					continue;
 				}
-			}
-
-			// start element
-			if (type == XmlEventReader.StartElement) {
-				localName = reader.getLocalName();
 
 				// stop elements
 				for (int i = 0; i < stopElements.length; i++) {
