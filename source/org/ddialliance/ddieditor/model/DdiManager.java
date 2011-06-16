@@ -1970,7 +1970,7 @@ public class DdiManager {
 			throws Exception {
 		LightXmlObjectListDocument doc = queryLightXmlBeans(id, version,
 				parentId, parentVersion, "MultipleQuestionItem",
-				"SubQuestions/QuestionItem", "QuestionItem", "QuestionItemName");
+				"SubQuestions/QuestionItem", "QuestionItemName", "");
 		for (LightXmlObjectType lightXmlObjectType : doc
 				.getLightXmlObjectList().getLightXmlObjectList()) {
 			lightXmlObjectType.setElement("QuestionItem");
