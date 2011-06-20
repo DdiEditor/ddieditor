@@ -43,4 +43,15 @@ public class LightXmlObjectUtil {
 		}
 		return Arrays.asList(CustomType.Factory.newInstance());
 	}
+	
+	public static LightXmlObjectType createLightXmlObject(String parentId,
+			String parentVersion, String id, String version) {
+		LightXmlObjectType lightXmlObject = LightXmlObjectType.Factory
+				.newInstance();
+		lightXmlObject.setParentId(parentId);
+		lightXmlObject.setParentVersion(parentVersion);
+		lightXmlObject.setId(id);
+		lightXmlObject.setVersion(version);
+		return lightXmlObject;
+	}
 }
