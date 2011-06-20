@@ -1652,18 +1652,18 @@ public class DdiManager {
 			} else {
 				// create
 				// define purpose insert after
-				String[] search = {"UniverseReference", "SeriesStatement",
-						"FundingInformation"}; 
+				String[] search = { "UniverseReference", "SeriesStatement",
+						"FundingInformation" };
 				String after = null;
 				for (int i = 0; i < search.length; i++) {
 					if (labelQueryResult.getSubElement(search[i]).length > 0) {
 						after = search[i];
-					}	
+					}
 				}
-				if (after==null) { // guard
+				if (after == null) { // guard
 					after = "studyunit__Abstract";
 				}
-				
+
 				PersistenceManager
 						.getInstance()
 						.insert(newPurpose,
