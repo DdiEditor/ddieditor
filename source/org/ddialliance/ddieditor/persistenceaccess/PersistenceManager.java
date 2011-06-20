@@ -274,7 +274,8 @@ public class PersistenceManager {
 		// insert keyword
 		query.query.append(' ');
 		query.query.append(insertKeyword.getKeyWord());
-
+		query.query.append(' ');
+		
 		// position
 		query.namespaceDeclaration.append(' ');
 		// xquery
