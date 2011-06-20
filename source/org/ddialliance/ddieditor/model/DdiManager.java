@@ -2316,7 +2316,7 @@ public class DdiManager {
 		xquery.query.append("</CustomList>");
 
 		return queryLightXmlBeans(id, version, parentId, parentVersion,
-				"QuestionScheme", "QuestionItem", null, "QuestionItemName",
+				"QuestionScheme", "//QuestionItem", null, "QuestionItemName",
 				xquery);
 	}
 
