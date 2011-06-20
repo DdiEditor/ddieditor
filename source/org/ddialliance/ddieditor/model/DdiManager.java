@@ -12,9 +12,12 @@ import java.util.Map.Entry;
 
 import javax.xml.namespace.QName;
 
+import org.apache.xmlbeans.SchemaType;
+import org.apache.xmlbeans.XmlAnySimpleType;
 import org.apache.xmlbeans.XmlException;
 import org.apache.xmlbeans.XmlObject;
 import org.apache.xmlbeans.XmlOptions;
+import org.apache.xmlbeans.impl.values.XmlAnyTypeImpl;
 import org.ddialliance.ddi3.xml.xmlbeans.archive.ArchiveDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.conceptualcomponent.ConceptDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.conceptualcomponent.ConceptGroupDocument;
@@ -25,8 +28,11 @@ import org.ddialliance.ddi3.xml.xmlbeans.conceptualcomponent.UniverseSchemeDocum
 import org.ddialliance.ddi3.xml.xmlbeans.datacollection.ComputationItemDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.datacollection.ControlConstructSchemeDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.datacollection.DataCollectionDocument;
+import org.ddialliance.ddi3.xml.xmlbeans.datacollection.DynamicTextType;
 import org.ddialliance.ddi3.xml.xmlbeans.datacollection.IfThenElseDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.datacollection.InstrumentDocument;
+import org.ddialliance.ddi3.xml.xmlbeans.datacollection.LiteralTextDocument;
+import org.ddialliance.ddi3.xml.xmlbeans.datacollection.LiteralTextType;
 import org.ddialliance.ddi3.xml.xmlbeans.datacollection.LoopDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.datacollection.MultipleQuestionItemDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.datacollection.QuestionConstructDocument;
@@ -36,13 +42,22 @@ import org.ddialliance.ddi3.xml.xmlbeans.datacollection.RepeatUntilDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.datacollection.RepeatWhileDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.datacollection.SequenceDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.datacollection.StatementItemDocument;
+import org.ddialliance.ddi3.xml.xmlbeans.datacollection.TextType;
 import org.ddialliance.ddi3.xml.xmlbeans.logicalproduct.CategoryDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.logicalproduct.CategorySchemeDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.logicalproduct.CodeSchemeDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.logicalproduct.DataRelationshipDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.logicalproduct.VariableDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.logicalproduct.VariableSchemeDocument;
+import org.ddialliance.ddi3.xml.xmlbeans.reusable.AbstractIdentifiableType;
+import org.ddialliance.ddi3.xml.xmlbeans.reusable.AbstractVersionableType;
+import org.ddialliance.ddi3.xml.xmlbeans.reusable.InternationalStringType;
+import org.ddialliance.ddi3.xml.xmlbeans.reusable.VersionRationaleDocument;
+import org.ddialliance.ddi3.xml.xmlbeans.studyunit.AbstractDocument;
+import org.ddialliance.ddi3.xml.xmlbeans.studyunit.PurposeDocument;
+import org.ddialliance.ddi3.xml.xmlbeans.studyunit.StudyUnitDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.studyunit.StudyUnitType;
+import org.ddialliance.ddieditor.logic.identification.IdentificationManager;
 import org.ddialliance.ddieditor.model.conceptual.ConceptualElement;
 import org.ddialliance.ddieditor.model.conceptual.ConceptualType;
 import org.ddialliance.ddieditor.model.lightxmlobject.LightXmlObjectListDocument;
@@ -60,8 +75,10 @@ import org.ddialliance.ddieditor.persistenceaccess.maintainablelabel.Maintainabl
 import org.ddialliance.ddieditor.persistenceaccess.maintainablelabel.MaintainableLabelUpdateElement;
 import org.ddialliance.ddieditor.persistenceaccess.maintainablelabel.MaintainableLightLabelQueryResult;
 import org.ddialliance.ddieditor.util.DdiEditorRefUtil;
+import org.ddialliance.ddieditor.util.LightXmlObjectUtil;
 import org.ddialliance.ddiftp.util.DDIFtpException;
 import org.ddialliance.ddiftp.util.ReflectionUtil;
+import org.ddialliance.ddiftp.util.Translator;
 import org.ddialliance.ddiftp.util.log.Log;
 import org.ddialliance.ddiftp.util.log.LogFactory;
 import org.ddialliance.ddiftp.util.log.LogType;
@@ -115,8 +132,8 @@ public class DdiManager {
 			try {
 				instance.ddi3NamespaceHelper = new Ddi3NamespaceHelper();
 			} catch (Exception e) {
-				throw new DDIFtpException("Error on generating namespace by elements",
-						e);
+				throw new DDIFtpException(
+						"Error on generating namespace by elements", e);
 			}
 		}
 		return instance;
@@ -808,9 +825,10 @@ public class DdiManager {
 			String[] subElements, String[] stopElements, String[] jumpElements)
 			throws DDIFtpException {
 		XmlBeansUtil.instanceOfXmlBeanDocument(xmlObject, new Throwable());
-		createElement(xmlObject.getDomNode().getChildNodes().item(0).getLocalName(),
-				xmlObject.xmlText(options), parentId, parentVersion,
-				parentElementType, subElements, stopElements, jumpElements);
+		createElement(xmlObject.getDomNode().getChildNodes().item(0)
+				.getLocalName(), xmlObject.xmlText(options), parentId,
+				parentVersion, parentElementType, subElements, stopElements,
+				jumpElements);
 	}
 
 	public void createElementInto(XmlObject xmlObject, String parentId,
@@ -872,9 +890,10 @@ public class DdiManager {
 
 		if (query.query.length() == xQuery.getFullQueryString().length()) {
 			// default insert
-				PersistenceManager.getInstance().insert(
-						getDdi3NamespaceHelper().substitutePrefixesFromElements(xml),
-						query.insertKeyWord, query);
+			PersistenceManager.getInstance().insert(
+					getDdi3NamespaceHelper()
+							.substitutePrefixesFromElements(xml),
+					query.insertKeyWord, query);
 		} else {
 			// custom insert
 			XQuery customQuery = new XQuery();
@@ -961,6 +980,61 @@ public class DdiManager {
 		query.append(position.function.toString());
 		query.append("delete node");
 		query.append(position.query.toString());
+		PersistenceManager.getInstance().updateQuery(query.toString());
+	}
+
+	public void updateAttribute(LightXmlObjectType lightXmlObject,
+			String parentElementType, String attributeName,
+			String attributeValue) throws DDIFtpException {
+		// position
+		XQuery position = null;
+		try {
+			position = xQueryCrudPosition(lightXmlObject.getId(),
+					lightXmlObject.getVersion(), lightXmlObject.getElement(),
+					lightXmlObject.getParentId(),
+					lightXmlObject.getParentVersion(), parentElementType);
+		} catch (Exception e) {
+			throw new DDIFtpException("Error getting id and version", e);
+		}
+
+		// query
+		StringBuilder query = new StringBuilder();
+		query.append(position.function.toString());
+		query.append("replace value of node ");
+		query.append(position.query.toString());
+		query.append("/@");
+		query.append(attributeName);
+		query.append(" with '");
+		query.append(attributeValue);
+		query.append("'");
+
+		PersistenceManager.getInstance().updateQuery(query.toString());
+	}
+
+	public void createAttribute(LightXmlObjectType lightXmlObject,
+			String parentElementType, String attributeName,
+			String attributeValue) throws DDIFtpException {
+		// position
+		XQuery position = null;
+		try {
+			position = xQueryCrudPosition(lightXmlObject.getId(),
+					lightXmlObject.getVersion(), lightXmlObject.getElement(),
+					lightXmlObject.getParentId(),
+					lightXmlObject.getParentVersion(), parentElementType);
+		} catch (Exception e) {
+			throw new DDIFtpException("Error getting id and version", e);
+		}
+
+		// query
+		StringBuilder query = new StringBuilder();
+		query.append(position.function.toString());
+		query.append("insert node attribute ");
+		query.append(attributeName);
+		query.append(" {'");
+		query.append(attributeValue);
+		query.append("'} into ");
+		query.append(position.query.toString());
+
 		PersistenceManager.getInstance().updateQuery(query.toString());
 	}
 
@@ -1086,8 +1160,17 @@ public class DdiManager {
 
 			if ((element.getCrudValue() > 0 || element.getCrudValue() == 0)
 					&& element.getValue() == null) {
-				throw new DDIFtpException(
-						"Value not specified for: " + element, new Throwable());
+				try {
+					if (element.getXmlObject() != null) {
+						element.setValue(element.getXmlObject()
+								.xmlText(options));
+					} else {
+						throw new DDIFtpException("Value not specified for: "
+								+ element, new Throwable());
+					}
+				} catch (Exception e) {
+					throw new DDIFtpException(e);
+				}
 			}
 
 			if (element.getValue() != null) {
@@ -1379,6 +1462,252 @@ public class DdiManager {
 	//
 	// import
 	//
+	public void importStudyUnitNew(
+			String resource,
+			org.ddialliance.ddi3.xml.xmlbeans.studyunit.StudyUnitDocument studDoc)
+			throws Exception {
+		DdiManager.getInstance().setWorkingDocument(resource);
+
+		// avail study units
+		LightXmlObjectListDocument studyUnits = getStudyUnitsLight(null, null,
+				null, null);
+
+		// import into existing study unit
+		if (!studyUnits.getLightXmlObjectList().getLightXmlObjectList()
+				.isEmpty()) {
+			LightXmlObjectType studLight = studyUnits.getLightXmlObjectList()
+					.getLightXmlObjectArray(0);
+			StudyUnitType studyUnit = studDoc.getStudyUnit();
+
+			// over write
+			// ddiinstance
+
+			// study unit set version responsible and rationale
+			MaintainableLabelQueryResult studyRationaleQueryResult = getStudyRationale(
+					studLight.getId(), studLight.getVersion(),
+					studLight.getParentId(), studLight.getParentVersion());
+
+			// version responsibility
+			String newVersionResponsibility = "<VersionResponsibility xmlns=\""
+					+ getDdi3NamespaceHelper().getNamespaceStringByElement(
+							"VersionResponsibility") + "\">"
+					+ studDoc.getStudyUnit().getVersionResponsibility()
+					+ "</VersionResponsibility>";
+			if (studyRationaleQueryResult.getResult()
+					.get("VersionResponsibility").size() > 0) {
+				// update
+				PersistenceManager
+						.getInstance()
+						.updateNode(
+								studyRationaleQueryResult.getQuery()
+										+ "/"
+										+ getDdi3NamespaceHelper()
+												.addFullyQualifiedNamespaceDeclarationToElements(
+														"VersionResponsibility")
+										+ "[1]", newVersionResponsibility);
+			} else if (studyRationaleQueryResult.getSubElement("UserID").length > 0) {
+				String subParentElementType = "UserID["
+						+ studyRationaleQueryResult.getSubElement("UserID").length
+						+ "]";
+				createElement(newVersionResponsibility, studLight.getId(),
+						studLight.getVersion(), "studyunit__StudyUnit",
+						subParentElementType);
+			} else {
+				// create
+				PersistenceManager.getInstance().insert(
+						newVersionResponsibility,
+						XQueryInsertKeyword.AS_FIRST_NODE,
+						studyRationaleQueryResult.getQuery());
+			}
+
+			// version rationale
+			int versionRationaleSize = studyRationaleQueryResult.getResult()
+					.get("VersionRationale").size();
+			if (versionRationaleSize > 0) {
+				// update
+				InternationalStringType oldRationale = InternationalStringType.Factory
+						.parse(studyRationaleQueryResult.getResult()
+								.get("VersionRationale")
+								.get(versionRationaleSize - 1));
+
+				studDoc.getStudyUnit()
+						.getVersionRationaleArray(0)
+						.setStringValue(
+								oldRationale.getStringValue()
+										+ " "
+										+ studDoc.getStudyUnit()
+												.getVersionRationaleArray(0)
+												.getStringValue());
+
+				String newVersionRationale = studDoc
+						.getStudyUnit()
+						.getVersionRationaleArray(0)
+						.substitute(
+								VersionRationaleDocument.type
+										.getDocumentElementName(),
+								VersionRationaleDocument.type).xmlText(options);
+
+				PersistenceManager
+						.getInstance()
+						.updateNode(
+								studyRationaleQueryResult.getQuery()
+										+ "/"
+										+ getDdi3NamespaceHelper()
+												.addFullyQualifiedNamespaceDeclarationToElements(
+														"VersionRationale")
+										+ "[" + versionRationaleSize + "]",
+								newVersionRationale);
+			} else {
+				// create
+				PersistenceManager
+						.getInstance()
+						.insert(studDoc
+								.getStudyUnit()
+								.getVersionRationaleArray(0)
+								.substitute(
+										VersionRationaleDocument.type
+												.getDocumentElementName(),
+										VersionRationaleDocument.type)
+								.xmlText(options),
+								XQueryInsertKeyword.AFTER,
+								studyRationaleQueryResult.getQuery()
+										+ "/"
+										+ getDdi3NamespaceHelper()
+												.addFullyQualifiedNamespaceDeclarationToElements(
+														"VersionResponsibility")
+										+ "[1]");
+			}
+
+			// other child elements
+			List<MaintainableLabelUpdateElement> updates = new ArrayList<MaintainableLabelUpdateElement>();
+			MaintainableLabelQueryResult labelQueryResult = getStudyLabel(
+					studLight.getId(), studLight.getVersion(),
+					studLight.getParentId(), studLight.getParentVersion());
+
+			// citation replace
+			MaintainableLabelUpdateElement citationMlue = new MaintainableLabelUpdateElement(
+					studDoc.getStudyUnit().getCitation(), 0);
+			if (labelQueryResult.getSubElement("Citation").length > 0) {
+				// update
+				citationMlue.setCrudValue(1);
+			}
+			updates.add(citationMlue);
+			updateMaintainableLabel(labelQueryResult, updates);
+
+			// abstract replace
+			String newAbstract = getDdi3NamespaceHelper()
+					.substitutePrefixesFromElements(
+							studDoc.getStudyUnit()
+									.getAbstractArray(0)
+									.substitute(
+											AbstractDocument.type
+													.getDocumentElementName(),
+											AbstractDocument.type)
+									.xmlText(options));
+			if (labelQueryResult.getSubElement("Abstract").length > 0) {
+				// update
+				PersistenceManager
+						.getInstance()
+						.updateNode(
+								studyRationaleQueryResult.getQuery()
+										+ "/"
+										+ getDdi3NamespaceHelper()
+												.addFullyQualifiedNamespaceDeclarationToElements(
+														"studyunit__Abstract")
+										+ "[" + 1 + "]", newAbstract);
+			} else {
+				// create
+				PersistenceManager
+						.getInstance()
+						.insert(newAbstract,
+								XQueryInsertKeyword.AFTER,
+								studyRationaleQueryResult.getQuery()
+										+ "/"
+										+ getDdi3NamespaceHelper()
+												.addFullyQualifiedNamespaceDeclarationToElements(
+														"Citation") + "[1]");
+			}
+
+			// purpose replace
+			String newPurpose = getDdi3NamespaceHelper()
+					.substitutePrefixesFromElements(
+							studDoc.getStudyUnit()
+									.getPurposeArray(0)
+									.substitute(
+											PurposeDocument.type
+													.getDocumentElementName(),
+											PurposeDocument.type)
+									.xmlText(options));
+			if (labelQueryResult.getSubElement("Purpose").length > 0) {
+				// update
+				PersistenceManager
+						.getInstance()
+						.updateNode(
+								studyRationaleQueryResult.getQuery()
+										+ "/"
+										+ getDdi3NamespaceHelper()
+												.addFullyQualifiedNamespaceDeclarationToElements(
+														"studyunit__Purpose")
+										+ "[" + 1 + "]", newPurpose);
+			} else {
+				// create
+				// define purpose insert after
+				String[] search = {"UniverseReference", "SeriesStatement",
+						"FundingInformation"}; 
+				String after = null;
+				for (int i = 0; i < search.length; i++) {
+					if (labelQueryResult.getSubElement(search[i]).length > 0) {
+						after = search[i];
+					}	
+				}
+				if (after==null) { // guard
+					after = "studyunit__Abstract";
+				}
+				
+				PersistenceManager
+						.getInstance()
+						.insert(newPurpose,
+								XQueryInsertKeyword.AFTER,
+								studyRationaleQueryResult.getQuery()
+										+ "/"
+										+ getDdi3NamespaceHelper()
+												.addFullyQualifiedNamespaceDeclarationToElements(
+														after) + "[1]");
+			}
+
+			//
+			// concptual compnent - update
+			// - universe scheme
+
+			// archive - replace
+			// MaintainableLabelUpdateElement archiveMlue = new
+			// MaintainableLabelUpdateElement(
+			// studDoc.getStudyUnit().getArchive(), 0);
+			// if (labelQueryResult.getSubElement("Archive").length > 0) {
+			// // update
+			// archiveMlue.setCrudValue(1);
+			// }
+			// updates.add(archiveMlue);
+
+			// study unit - id
+			DdiManager.getInstance().updateAttribute(studLight, "DDIInstance",
+					"id", studyUnit.getId());
+			studLight.setId(studyUnit.getId());
+
+			// study unit - version
+			boolean versionNull = true;
+			try {
+				DdiManager.getInstance().updateAttribute(studLight,
+						"DDIInstance", "version", studyUnit.getVersion());
+			} catch (Exception e) {
+				// guard - version is nill
+				DdiManager.getInstance().createAttribute(studLight,
+						"DDIInstance", "version", studyUnit.getVersion());
+			}
+			studLight.setVersion(studyUnit.getVersion());
+		}
+	}
+
 	public void importStudyUnit(
 			String resource,
 			org.ddialliance.ddi3.xml.xmlbeans.studyunit.StudyUnitDocument studyUnitDocument)
@@ -1615,30 +1944,57 @@ public class DdiManager {
 	public MaintainableLabelQueryResult getStudyLabel(String id,
 			String version, String parentId, String parentVersion)
 			throws DDIFtpException {
+		return executeStudyLabelQuery(id, version, parentId, parentVersion,
+				new String[] { "Citation", "studyunit__Abstract",
+						"UniverseReference", "SeriesStatement",
+						"FundingInformation", "studyunit__Purpose", "Coverage",
+						"AnalysisUnit",
+						// TODO
+						// "AnalysisUnitsCovered",
+						// left out because of potential bug on declaration in
+						// schema
+						// studyunit.xsd
+						// Bug notice mailed to DDI::TIC on 20090824
+						"KindOfData", "OtherMaterial", "Note", "Embargo" },
+				new String[] { "ConceptualComponent", "DataCollection",
+						"LogicalProduct", "PhysicalDataProduct",
+						"PhysicalInstance", "Archive", "DDIProfile",
+						"DDIProfileReference" });
+	}
+
+	public MaintainableLabelQueryResult getStudyRationale(String id,
+			String version, String parentId, String parentVersion)
+			throws DDIFtpException {
+		return executeStudyLabelQuery(id, version, parentId, parentVersion,
+				new String[] { "UserID", "VersionResponsibility",
+						"VersionRationale" }, new String[] { "Citation",
+						"studyunit__Abstract", "UniverseReference",
+						"SeriesStatement", "FundingInformation",
+						"studyunit__Purpose", "Coverage", "AnalysisUnit",
+						"KindOfData", "OtherMaterial", "Note", "Embargo",
+						"ConceptualComponent", "DataCollection",
+						"LogicalProduct", "PhysicalDataProduct",
+						"PhysicalInstance", "Archive", "DDIProfile",
+						"DDIProfileReference" });
+	}
+
+	private MaintainableLabelQueryResult executeStudyLabelQuery(String id,
+			String version, String parentId, String parentVersion,
+			String[] elementConversionNames, String[] stopElementNames)
+			throws DDIFtpException {
+		// set up query
 		MaintainableLabelQuery maintainableLabelQuery = new MaintainableLabelQuery(
 				parentId, parentVersion, null);
 		maintainableLabelQuery
 				.setQuery(getQueryElementString(id, version,
 						"studyunit__StudyUnit", parentId, parentVersion,
 						"DDIInstance"));
-
-		maintainableLabelQuery.setElementConversionNames(new String[] {
-				"Citation", "studyunit__Abstract", "UniverseReference",
-				"SeriesStatement", "FundingInformation", "studyunit__Purpose",
-				"Coverage", "AnalysisUnit",
-				// TODO
-				// "AnalysisUnitsCovered",
-				// left out because of potential bug on declaration in schema
-				// studyunit.xsd
-				// Bug notice mailed to DDI::TIC on 20090824
-				"KindOfData", "OtherMaterial", "Note", "Embargo" });
-
+		maintainableLabelQuery
+				.setElementConversionNames(elementConversionNames);
 		maintainableLabelQuery.setMaintainableTarget("studyunit__StudyUnit");
-		maintainableLabelQuery.setStopElementNames(new String[] {
-				"ConceptualComponent", "DataCollection", "LogicalProduct",
-				"PhysicalDataProduct", "PhysicalInstance", "Archive",
-				"DDIProfile", "DDIProfileReference" });
+		maintainableLabelQuery.setStopElementNames(stopElementNames);
 
+		// result
 		MaintainableLabelQueryResult result = queryMaintainableLabel(maintainableLabelQuery);
 		if (result.getId() == null) {
 			maintainableLabelQuery.setQuery(getQueryElementString(id, version,
