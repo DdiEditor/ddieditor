@@ -2264,7 +2264,7 @@ public class DdiManager {
 				"QuestionScheme", "QuestionItem", null, "QuestionItemName");
 	}
 
-	public LightXmlObjectListDocument getQuestionItemsLightPlus(String id,
+	public LightXmlObjectListDocument getQuestionItemsLightPlus(boolean deepReference, String id,
 			String version, String parentId, String parentVersion)
 			throws Exception {
 		XQuery xquery = new XQuery();
@@ -2315,8 +2315,12 @@ public class DdiManager {
 		xquery.query.append("{ddieditor:queidomain($y)}");
 		xquery.query.append("</CustomList>");
 
+		String elementType = "QuestionItem";
+		if (deepReference) {
+			elementType = "//"+elementType;
+		}
 		return queryLightXmlBeans(id, version, parentId, parentVersion,
-				"QuestionScheme", "//QuestionItem", null, "QuestionItemName",
+				"QuestionScheme", elementType, null, "QuestionItemName",
 				xquery);
 	}
 
