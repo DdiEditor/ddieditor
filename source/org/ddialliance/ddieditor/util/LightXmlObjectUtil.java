@@ -33,7 +33,7 @@ public class LightXmlObjectUtil {
 			return lightXmlObject.getId();
 		}
 	}
-		
+
 	public static List<CustomType> getCustomListbyType(
 			LightXmlObjectType lightXmlObject, String type) {
 		for (CustomListType cuslist : lightXmlObject.getCustomListList()) {
@@ -43,15 +43,16 @@ public class LightXmlObjectUtil {
 		}
 		return Arrays.asList(CustomType.Factory.newInstance());
 	}
-	
+
 	public static LightXmlObjectType createLightXmlObject(String parentId,
-			String parentVersion, String id, String version) {
+			String parentVersion, String id, String version, String elementType) {
 		LightXmlObjectType lightXmlObject = LightXmlObjectType.Factory
 				.newInstance();
 		lightXmlObject.setParentId(parentId);
 		lightXmlObject.setParentVersion(parentVersion);
 		lightXmlObject.setId(id);
 		lightXmlObject.setVersion(version);
+		lightXmlObject.setElement(elementType);
 		return lightXmlObject;
 	}
 }
