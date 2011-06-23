@@ -1,7 +1,6 @@
 package org.ddialliance.ddieditor.model;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -12,12 +11,9 @@ import java.util.Map.Entry;
 
 import javax.xml.namespace.QName;
 
-import org.apache.xmlbeans.SchemaType;
-import org.apache.xmlbeans.XmlAnySimpleType;
 import org.apache.xmlbeans.XmlException;
 import org.apache.xmlbeans.XmlObject;
 import org.apache.xmlbeans.XmlOptions;
-import org.apache.xmlbeans.impl.values.XmlAnyTypeImpl;
 import org.ddialliance.ddi3.xml.xmlbeans.archive.ArchiveDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.conceptualcomponent.ConceptDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.conceptualcomponent.ConceptGroupDocument;
@@ -28,11 +24,8 @@ import org.ddialliance.ddi3.xml.xmlbeans.conceptualcomponent.UniverseSchemeDocum
 import org.ddialliance.ddi3.xml.xmlbeans.datacollection.ComputationItemDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.datacollection.ControlConstructSchemeDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.datacollection.DataCollectionDocument;
-import org.ddialliance.ddi3.xml.xmlbeans.datacollection.DynamicTextType;
 import org.ddialliance.ddi3.xml.xmlbeans.datacollection.IfThenElseDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.datacollection.InstrumentDocument;
-import org.ddialliance.ddi3.xml.xmlbeans.datacollection.LiteralTextDocument;
-import org.ddialliance.ddi3.xml.xmlbeans.datacollection.LiteralTextType;
 import org.ddialliance.ddi3.xml.xmlbeans.datacollection.LoopDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.datacollection.MultipleQuestionItemDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.datacollection.QuestionConstructDocument;
@@ -42,22 +35,17 @@ import org.ddialliance.ddi3.xml.xmlbeans.datacollection.RepeatUntilDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.datacollection.RepeatWhileDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.datacollection.SequenceDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.datacollection.StatementItemDocument;
-import org.ddialliance.ddi3.xml.xmlbeans.datacollection.TextType;
 import org.ddialliance.ddi3.xml.xmlbeans.logicalproduct.CategoryDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.logicalproduct.CategorySchemeDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.logicalproduct.CodeSchemeDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.logicalproduct.DataRelationshipDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.logicalproduct.VariableDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.logicalproduct.VariableSchemeDocument;
-import org.ddialliance.ddi3.xml.xmlbeans.reusable.AbstractIdentifiableType;
-import org.ddialliance.ddi3.xml.xmlbeans.reusable.AbstractVersionableType;
 import org.ddialliance.ddi3.xml.xmlbeans.reusable.InternationalStringType;
 import org.ddialliance.ddi3.xml.xmlbeans.reusable.VersionRationaleDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.studyunit.AbstractDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.studyunit.PurposeDocument;
-import org.ddialliance.ddi3.xml.xmlbeans.studyunit.StudyUnitDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.studyunit.StudyUnitType;
-import org.ddialliance.ddieditor.logic.identification.IdentificationManager;
 import org.ddialliance.ddieditor.model.conceptual.ConceptualElement;
 import org.ddialliance.ddieditor.model.conceptual.ConceptualType;
 import org.ddialliance.ddieditor.model.lightxmlobject.LightXmlObjectListDocument;
@@ -75,16 +63,13 @@ import org.ddialliance.ddieditor.persistenceaccess.maintainablelabel.Maintainabl
 import org.ddialliance.ddieditor.persistenceaccess.maintainablelabel.MaintainableLabelUpdateElement;
 import org.ddialliance.ddieditor.persistenceaccess.maintainablelabel.MaintainableLightLabelQueryResult;
 import org.ddialliance.ddieditor.util.DdiEditorRefUtil;
-import org.ddialliance.ddieditor.util.LightXmlObjectUtil;
 import org.ddialliance.ddiftp.util.DDIFtpException;
 import org.ddialliance.ddiftp.util.ReflectionUtil;
-import org.ddialliance.ddiftp.util.Translator;
 import org.ddialliance.ddiftp.util.log.Log;
 import org.ddialliance.ddiftp.util.log.LogFactory;
 import org.ddialliance.ddiftp.util.log.LogType;
 import org.ddialliance.ddiftp.util.xml.XmlBeansUtil;
 import org.perf4j.aop.Profiled;
-import org.w3c.dom.Node;
 
 /**
  * Defines accessors for the contents of a DDI document with the focus on
@@ -2264,9 +2249,9 @@ public class DdiManager {
 				"QuestionScheme", "QuestionItem", null, "QuestionItemName");
 	}
 
-	public LightXmlObjectListDocument getQuestionItemsLightPlus(boolean deepReference, String id,
-			String version, String parentId, String parentVersion)
-			throws Exception {
+	public LightXmlObjectListDocument getQuestionItemsLightPlus(
+			boolean deepReference, String id, String version, String parentId,
+			String parentVersion) throws Exception {
 		XQuery xquery = new XQuery();
 
 		// func userid
@@ -2317,11 +2302,10 @@ public class DdiManager {
 
 		String elementType = "QuestionItem";
 		if (deepReference) {
-			elementType = "//"+elementType;
+			elementType = "//" + elementType;
 		}
 		return queryLightXmlBeans(id, version, parentId, parentVersion,
-				"QuestionScheme", elementType, null, "QuestionItemName",
-				xquery);
+				"QuestionScheme", elementType, null, "QuestionItemName", xquery);
 	}
 
 	@Profiled(tag = "getMultipleQuestionQuestionItemsLight")
