@@ -1690,6 +1690,24 @@ public class DdiManager {
 						"DDIInstance", "version", studyUnit.getVersion());
 			}
 			studLight.setVersion(studyUnit.getVersion());
+		} else {
+			// avail ddi instance
+			LightXmlObjectListDocument ddiInstances = getDdiInstanceLight(null,
+					null, null, null);
+
+			// import into existing ddi instance
+			if (!ddiInstances.getLightXmlObjectList().getLightXmlObjectList()
+					.isEmpty()) {
+				// no study unit import all
+				// insert all into ddi instance
+				LightXmlObjectType lightXmlObject = ddiInstances
+						.getLightXmlObjectList().getLightXmlObjectArray(0);
+				createElement(studDoc, lightXmlObject.getId(),
+						lightXmlObject.getVersion(),
+						lightXmlObject.getElement(), new String[] {
+								"VersionRationale", "VersionResponsibility" },
+						new String[] {}, new String[] {});
+			}
 		}
 	}
 
