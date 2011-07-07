@@ -856,6 +856,7 @@ public class DdiManager {
 	 * @param jumpElements
 	 *            array of elements to indicate elements to jump over in the
 	 *            scan for the insert position/ XPath
+	 *            Note: Jump Elements should not be Stop Elements as well
 	 * @throws DDIFtpException
 	 */
 	public void createElement(String elementType, String xml, String parentId,
