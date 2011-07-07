@@ -77,8 +77,11 @@ public class DbXmlManager implements PersistenceStorage {
 	private XmlQueryContext xmlQueryContext;
 	private XmlContainerConfig xmlContainerConfig;
 	private ThreadLocal<XmlTransaction> transaction = new ThreadLocal<XmlTransaction>();
-	private String currentWorikingContainer = "";
+	private String currentWorkingContainer = "";
 	private HashMap<String, XmlContainer> openContainers = new HashMap<String, XmlContainer>();
+
+	private int jumpLocation;
+	private String jumpName;
 
 	private DbXmlManager() {
 	}
@@ -244,7 +247,7 @@ public class DbXmlManager implements PersistenceStorage {
 	}
 
 	private XmlContainer getWorkingContainer() {
-		return openContainers.get(currentWorikingContainer);
+		return openContainers.get(currentWorkingContainer);
 	}
 
 	public void setWorkingConnection(StorageType storage) throws Exception {
@@ -297,7 +300,7 @@ public class DbXmlManager implements PersistenceStorage {
 			logSystem.debug("Is open dbxml container: "
 					+ file.getAbsolutePath());
 		}
-		this.currentWorikingContainer = file.getName();
+		this.currentWorkingContainer = file.getName();
 	}
 
 	@Override
@@ -476,7 +479,7 @@ public class DbXmlManager implements PersistenceStorage {
 		// ingest
 		XmlContainer xmlContainer = null;
 		try {
-			xmlContainer = getContainer(currentWorikingContainer);
+			xmlContainer = getContainer(currentWorkingContainer);
 			xmlContainer.putDocument(getTransaction(), path.getName(),
 					xmlInputStream, getXmlDocumentConfig());
 		} catch (XmlException e) {
@@ -495,7 +498,7 @@ public class DbXmlManager implements PersistenceStorage {
 		if (documents.contains(docName)) {
 			if (logSystem.isInfoEnabled()) {
 				logSystem.info("Remove doc: " + docName + " from container: "
-						+ currentWorikingContainer);
+						+ currentWorkingContainer);
 			}
 
 			// remove xml file
@@ -608,7 +611,7 @@ public class DbXmlManager implements PersistenceStorage {
 						initStart = localName;
 					}
 
-					// stop elements
+					// check against stop elements
 					for (int i = 0; i < stopElements.length; i++) {
 						// check if localName is part of stop list
 						if (localName.equals(stopElements[i])) {
@@ -633,7 +636,7 @@ public class DbXmlManager implements PersistenceStorage {
 						break;
 					}
 
-					// jump elements
+					// check against jump elements
 					for (int i = 0; i < jumpElements.length; i++) {
 						// check if localName is part of jump list
 						if (localName.equals(jumpElements[i])) {
@@ -642,9 +645,11 @@ public class DbXmlManager implements PersistenceStorage {
 							locatedCount = 1;
 
 							// check for subsidiary jump elements
-							locatedCount = scanForJumpElements(locatedCount,
-									jumpName, stopElements, reader);
-							located = jumpName;
+							JumpResult jumpResult = scanForJumpElements(
+									locatedCount, jumpName, jumpElements,
+									stopElements, reader);
+							located = jumpResult.getName();
+							locatedCount = jumpResult.getLocation();
 							jumpEnd = true;
 							break;
 						}
@@ -714,14 +719,36 @@ public class DbXmlManager implements PersistenceStorage {
 			if (result.insertKeyWord == null) {
 				result.insertKeyWord = XQueryInsertKeyword.AFTER;
 			}
+
 			return result;
 		}
 	}
 
-	private int scanForJumpElements(int locatedCount, String jumpName,
-			String[] stopElements, XmlEventReader reader) throws XmlException {
+	private class JumpResult {
+		int location;
+		String name;
+
+		JumpResult(int location, String name) {
+			this.location = location;
+			this.name = name;
+		}
+
+		public int getLocation() {
+			return this.location;
+		}
+
+		public String getName() {
+			return this.name;
+		}
+	}
+
+	// Check if other Jump Elements follows
+	private JumpResult scanForJumpElements(int locatedCount, String jumpName,
+			String[] jumpElements, String[] stopElements, XmlEventReader reader)
+			throws XmlException {
 		String localName = null;
 
+		// continue reading
 		while (reader.hasNext()) {
 			int type = reader.next();
 
@@ -729,13 +756,20 @@ public class DbXmlManager implements PersistenceStorage {
 			if (type == XmlEventReader.StartElement) {
 				localName = reader.getLocalName();
 
-				// jump
-				if (jumpName.equals(localName)) {
-					locatedCount++;
-					continue;
+				for (int i = 0; i < jumpElements.length; i++) {
+					// look for jump element
+					if (jumpElements[i].equals(localName)) {
+						if (localName.equals(jumpName)) {
+							locatedCount++;
+						} else {
+							locatedCount = 1;
+							jumpName = localName;
+						}
+						continue;
+					}
 				}
 
-				// stop elements
+				// look for stop elements
 				for (int i = 0; i < stopElements.length; i++) {
 					// check if localName is part of stop list
 					if (localName.equals(stopElements[i])) {
@@ -744,7 +778,9 @@ public class DbXmlManager implements PersistenceStorage {
 				}
 			}
 		}
-		return locatedCount;
+		// this.jumpName = jumpName; // temp!!!!!!
+		// return locatedCount;
+		return new JumpResult(locatedCount, jumpName);
 	}
 
 	@Profiled(tag = "xQuery")
