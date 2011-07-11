@@ -1029,7 +1029,7 @@ public class DdiManager {
 			String elementType, String parentId, String parentVersion,
 			String parentElementType) throws DDIFtpException {
 		XQuery query = new XQuery();
-		// parent not defined
+		//  no defined parent - only one is expected!
 		if (parentElementType == null || parentId == null) {
 			query.query.append(" for $element in ");
 			query.query.append(PersistenceManager.getInstance()
@@ -1038,15 +1038,12 @@ public class DdiManager {
 			query.query
 					.append(ddi3NamespaceHelper
 							.addFullyQualifiedNamespaceDeclarationToElements(elementType));
-			query.query.append(" where $element/@id = '");
-			query.query.append(id);
-			query.query.append("'");
 			if (version != null && !version.equals("")) {
-				query.query.append(" and $element/@version = '");
+				query.query.append(" where $element/@version = '");
 				query.query.append(version);
 				query.query.append("'");
 			} else {
-				query.query.append(" and empty($element/@version)");
+				query.query.append(" where empty($element/@version)");
 			}
 			query.query.append(" return $element");
 		}
