@@ -1038,12 +1038,17 @@ public class DdiManager {
 			query.query
 					.append(ddi3NamespaceHelper
 							.addFullyQualifiedNamespaceDeclarationToElements(elementType));
-			if (version != null && !version.equals("")) {
-				query.query.append(" where $element/@version = '");
-				query.query.append(version);
+			if (id != null) {
+				query.query.append(" where $element/@id = '");
+				query.query.append(id);
 				query.query.append("'");
-			} else {
-				query.query.append(" where empty($element/@version)");
+				if (version != null && !version.equals("")) {
+					query.query.append(" and $element/@version = '");
+					query.query.append(version);
+					query.query.append("'");
+				} else {
+					query.query.append(" and empty($element/@version)");
+				}
 			}
 			query.query.append(" return $element");
 		}
