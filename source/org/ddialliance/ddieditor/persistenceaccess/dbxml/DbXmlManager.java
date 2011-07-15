@@ -33,6 +33,7 @@ import org.ddialliance.ddiftp.util.log.LogType;
 import org.ddialliance.ddiftp.util.xml.XmlBeansUtil;
 import org.perf4j.aop.Profiled;
 
+import com.sleepycat.db.CheckpointConfig;
 import com.sleepycat.db.Environment;
 import com.sleepycat.db.EnvironmentConfig;
 import com.sleepycat.db.LockDetectMode;
@@ -193,7 +194,7 @@ public class DbXmlManager implements PersistenceStorage {
 			// true);
 			// be aware of log level may affect execution to hang!
 			// environmentConfig.setErrorStream(new Log4jLogOutputStream(
-			// logPersistence, LogLevel.INFO));
+			// logPersistence, LogLevel.INFO));			
 		}
 		return environmentConfig;
 	}
@@ -324,6 +325,15 @@ public class DbXmlManager implements PersistenceStorage {
 	}
 
 	public void close() throws Exception {
+		// create checkpoint
+		logSystem.info("Begin Check Point");
+		CheckpointConfig cpc= new CheckpointConfig();
+		getEnvironment().checkpoint(cpc);
+		logSystem.info("End Check Point");
+		
+		getEnvironment().removeOldLogFiles();
+		logSystem.info("Log files removed");
+		
 		// close all open containers
 		try {
 			getTransaction().abort();
