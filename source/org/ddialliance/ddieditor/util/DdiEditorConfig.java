@@ -10,6 +10,9 @@ public class DdiEditorConfig extends Config {
 	public static final String DBXML_IMPORT_VALIDATE = "dbxml.import.validate";
 	public static final String DBXML_DDI_INDEX = "dbxml.index.ddi";
 	public static final String DDI_ELEMENTS_RELATIONSHIP_LIST = "ddi.elements.relationshiplist";
+	public static final String DDI_AGENCY = "ddi.agency";
+	public static final String DDI_LANGUAGE = "ddi.lang";
+	public static final String DDI_INSTRUMENT_PROGRAM_LANG = "ddi.inst.programlang";
 	
 	public static void init() {
 		LogFactory.getLog(LogType.SYSTEM, DdiEditorConfig.class).info(
