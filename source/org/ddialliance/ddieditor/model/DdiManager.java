@@ -2137,7 +2137,7 @@ public class DdiManager {
 			throws Exception {
 		return queryLightXmlBeans(id, version, parentId, parentVersion,
 				"ControlConstructScheme", "QuestionConstruct", null,
-				"reusable__Name");
+				"reusable__Label");
 	}
 
 	public StatementItemDocument getStatementItem(String id, String version,
