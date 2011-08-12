@@ -2461,12 +2461,12 @@ public class DdiManager {
 		LightXmlObjectListDocument lightXmlObjectListDocument = queryLightXmlBeans(
 				id, version, parentId, parentVersion,
 				"logicalproduct__LogicalProduct", "VariableScheme", null,
-				"VariableSchemeName");
+				"reusable__Label");
 		if (lightXmlObjectListDocument.getLightXmlObjectList()
 				.getLightXmlObjectList().isEmpty()) {
 			lightXmlObjectListDocument = queryLightXmlBeans(id, version,
 					parentId, parentVersion, "//", "VariableScheme", null,
-					"VariableSchemeName");
+					"reusable__Label");
 		}
 		return lightXmlObjectListDocument;
 	}
