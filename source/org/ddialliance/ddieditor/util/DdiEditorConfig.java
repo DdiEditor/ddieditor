@@ -13,6 +13,7 @@ public class DdiEditorConfig extends Config {
 	public static final String DDI_AGENCY = "ddi.agency";
 	public static final String DDI_LANGUAGE = "ddi.lang";
 	public static final String DDI_INSTRUMENT_PROGRAM_LANG = "ddi.inst.programlang";
+	public static final String DDA_DDI_INSTRUMENT_PROGRAM_LANG = "dda.ddi.inst.programlang";
 	
 	public static void init() {
 		LogFactory.getLog(LogType.SYSTEM, DdiEditorConfig.class).info(
