@@ -194,7 +194,7 @@ public class DbXmlManager implements PersistenceStorage {
 			// true);
 			// be aware of log level may affect execution to hang!
 			// environmentConfig.setErrorStream(new Log4jLogOutputStream(
-			// logPersistence, LogLevel.INFO));			
+			// logPersistence, LogLevel.INFO));
 		}
 		return environmentConfig;
 	}
@@ -324,7 +324,8 @@ public class DbXmlManager implements PersistenceStorage {
 		openContainers.remove(containerId);
 	}
 
-	public void close() throws Exception {
+	@Override
+	public void houseKeeping() throws Exception {
 		// create checkpoint
 		logSystem.info("Begin Check Point");
 		CheckpointConfig cpc= new CheckpointConfig();
@@ -332,7 +333,12 @@ public class DbXmlManager implements PersistenceStorage {
 		logSystem.info("End Check Point");
 		
 		getEnvironment().removeOldLogFiles();
-		logSystem.info("Log files removed");
+		logSystem.info("Log files removed");	
+	}
+
+	public void close() throws Exception {
+		// cleanup
+		houseKeeping();
 		
 		// close all open containers
 		try {

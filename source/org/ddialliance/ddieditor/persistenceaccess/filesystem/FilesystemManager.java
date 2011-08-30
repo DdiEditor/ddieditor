@@ -98,14 +98,18 @@ public class FilesystemManager implements PersistenceStorage {
 	}
 
 	@Override
+	public void houseKeeping() throws Exception {
+		// do nothing
+	}
+	
+	@Override
 	public void close() throws Exception {
-		// not implemented
+		// do nothing
 	}
 
 	@Override
 	public void exportResource(String id, File file) throws Exception {
-		// not implemented
-
+		// do nothing
 	}
 
 	@Override

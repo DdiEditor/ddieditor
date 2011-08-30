@@ -139,4 +139,10 @@ public interface PersistenceStorage {
 	 * @throws Exception
 	 */
 	public void close() throws Exception;
+	
+	/**
+	 * Perform housekeeping tasks
+	 * @throws Exception
+	 */
+	public void houseKeeping() throws Exception;
 }
