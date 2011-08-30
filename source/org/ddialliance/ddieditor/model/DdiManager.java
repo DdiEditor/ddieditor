@@ -824,7 +824,7 @@ public class DdiManager {
 				parentElementType, null, null, null);
 		PersistenceManager.getInstance().insert(
 				getDdi3NamespaceHelper().substitutePrefixesFromElements(xml),
-				XQueryInsertKeyword.INTO, xQuery);
+				XQueryInsertKeyword.AS_LAST_NODE, xQuery);
 	}
 
 	/**
