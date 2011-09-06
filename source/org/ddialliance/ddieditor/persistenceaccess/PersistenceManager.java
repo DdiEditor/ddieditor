@@ -19,6 +19,7 @@ import org.ddialliance.ddieditor.model.resource.StorageType;
 import org.ddialliance.ddieditor.model.resource.TopURNDocument;
 import org.ddialliance.ddieditor.model.resource.TopURNType;
 import org.ddialliance.ddieditor.persistenceaccess.dbxml.DbXmlManager;
+import org.ddialliance.ddieditor.util.DdiEditorConfig;
 import org.ddialliance.ddieditor.util.DdiEditorRefUtil;
 import org.ddialliance.ddiftp.util.DDIFtpException;
 import org.ddialliance.ddiftp.util.log.Log;
@@ -68,14 +69,22 @@ public class PersistenceManager {
 
 			// initialize storage cache
 			try {
-				log.info("Initializing PersistenceManager");
+				log.info("Initializing");
 				instance.workingResource = RESOURCE_LIST_FILE;
-
-				boolean test = new File(DbXmlManager.ENVIROMENT_HOME + "/"
+				boolean resourceContainerFileExists = new File(DbXmlManager
+						.getInstance().getEnvHome()
+						+ "/"
 						+ RESOURCE_LIST_CONTAINER).exists();
+
+				// create storage aka resource.dbxml
 				DbXmlManager.getInstance().addStorage(
 						new File(RESOURCE_LIST_CONTAINER));
-				if (!test) {
+
+				// if before create storage !exist resource.dbxml
+				// then add resource.xml to resource.dbxml
+				if (!resourceContainerFileExists) {
+					log.info("Add: " + RESOURCE_LIST_FILE + " to store: "
+							+ DbXmlManager.getInstance().getEnvHome());
 					DbXmlManager.getInstance().addResource(
 							new File("resources" + File.separator
 									+ RESOURCE_LIST_FILE));
@@ -91,6 +100,11 @@ public class PersistenceManager {
 			// cache is filled up lazily
 		}
 		return instance;
+	}
+
+	public void reset() {
+		instance = null;
+		log.info("Has been reset");
 	}
 
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -275,7 +289,7 @@ public class PersistenceManager {
 		query.query.append(' ');
 		query.query.append(insertKeyword.getKeyWord());
 		query.query.append(' ');
-		
+
 		// position
 		query.namespaceDeclaration.append(' ');
 		// xquery
@@ -289,11 +303,11 @@ public class PersistenceManager {
 				query.function.append(xQuery.function.toString());
 			}
 			query.query.append(xQuery.query.toString());
-		} 
+		}
 		// string
 		else if (position instanceof String) {
 			query.query.append(position.toString());
-		} 
+		}
 		// define query position result
 		else if (position instanceof DefineQueryPositionResult) {
 			query.query.append(((DefineQueryPositionResult) position).query

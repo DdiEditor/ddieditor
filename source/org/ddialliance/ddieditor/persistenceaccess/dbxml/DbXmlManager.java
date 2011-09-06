@@ -56,6 +56,7 @@ import com.sleepycat.dbxml.XmlUpdateContext;
 import com.sleepycat.dbxml.XmlValue;
 
 /**
+ * DbXml interface
  */
 public class DbXmlManager implements PersistenceStorage {
 	private static Log logSystem = LogFactory.getLog(LogType.SYSTEM,
@@ -69,9 +70,11 @@ public class DbXmlManager implements PersistenceStorage {
 
 	private Environment environment;
 	private EnvironmentConfig environmentConfig;
-	public static final String ENVIROMENT_HOME = new File(
-			DdiEditorConfig.get(DdiEditorConfig.DBXML_ENVIROMENT_HOME))
-			.getAbsolutePath();
+	// public static final String ENVIROMENT_HOME = new File(
+	// DdiEditorConfig.get(DdiEditorConfig.DBXML_ENVIROMENT_HOME))
+	// .getAbsolutePath();
+
+	private File envHome = null;
 
 	private XmlManager xmlManager = null;
 	private XmlManagerConfig xmlManagerConfig;
@@ -100,15 +103,25 @@ public class DbXmlManager implements PersistenceStorage {
 
 			try {
 				instance = new DbXmlManager();
+				instance.envHome = new File(
+						DdiEditorConfig
+								.get(DdiEditorConfig.DBXML_ENVIROMENT_HOME));
+				logSystem.info("New env home: "
+						+ instance.envHome.getAbsolutePath());
 
 				// xml manager
 				instance.xmlManager = new XmlManager(instance.getEnvironment(),
 						instance.getXmlManagerConfig());
 			} catch (Exception e) {
-				new DDIFtpException("Error on BDBXML startup", e);
+				new DDIFtpException("Error on BDBXML startup with enviroment: "
+						+ instance.envHome.getAbsolutePath(), e);
 			}
 		}
 		return instance;
+	}
+
+	public File getEnvHome() {
+		return envHome;
 	}
 
 	/**
@@ -120,6 +133,8 @@ public class DbXmlManager implements PersistenceStorage {
 		rollbackTransaction();
 		close();
 		instance = null;
+		logSystem.info("Alle connections closed for envhome: "
+				+ getEnvHome().getAbsolutePath());
 	}
 
 	/**
@@ -131,11 +146,11 @@ public class DbXmlManager implements PersistenceStorage {
 	private Environment getEnvironment() throws Exception {
 		if (environment == null) {
 			try {
-				environment = new Environment(new File(
-						DbXmlManager.ENVIROMENT_HOME), getEnvironmentConfig());
+				environment = new Environment(envHome, getEnvironmentConfig());
 			} catch (Exception e) {
 				throw new DDIFtpException(
-						"Error on setting up BDBXML enviroment", e);
+						"Error on setting up BDBXML enviroment: "
+								+ envHome.getAbsolutePath(), e);
 			}
 		}
 		return environment;
@@ -267,13 +282,15 @@ public class DbXmlManager implements PersistenceStorage {
 
 		if (getContainer(file.getName()) == null) {
 			try {
+				file = new File(envHome.getAbsoluteFile() + "/"
+						+ file.getName());
 				if (!file.exists()) {
 					if (logSystem.isDebugEnabled()) {
 						logSystem.debug("Creating dbxml container: "
-								+ file.getAbsolutePath());
+								+ file.getName());
 					}
 					XmlContainer xmlContainer = xmlManager.createContainer(
-							file.getName(), instance.getXmlContainerConfig());
+							file.getName(), getXmlContainerConfig());
 					openContainers.put(file.getName(), xmlContainer);
 
 					// create indices
@@ -284,22 +301,22 @@ public class DbXmlManager implements PersistenceStorage {
 					}
 				} else {
 					if (logSystem.isDebugEnabled()) {
+						logSystem.debug("Env home: " + xmlManager.getHome());
 						logSystem.debug("Opening dbxml container: "
-								+ file.getAbsolutePath());
+								+ file.getName());
 					}
-					openContainers.put(
-							file.getName(),
-							xmlManager.openContainer(file.getName(),
-									instance.getXmlContainerConfig()));
+					openContainers.put(file.getName(), xmlManager
+							.openContainer(file.getName(),
+									getXmlContainerConfig()));
 				}
 			} catch (Exception e) {
 				throw new DDIFtpException(
 						"Error on create/ open xml conatiner: "
-								+ file.getAbsolutePath(), e);
+								+ file.getName(), e);
 			}
 		} else if (logSystem.isDebugEnabled()) {
 			logSystem.debug("Is open dbxml container: "
-					+ file.getAbsolutePath());
+					+ file.getName());
 		}
 		this.currentWorkingContainer = file.getName();
 	}
@@ -328,18 +345,18 @@ public class DbXmlManager implements PersistenceStorage {
 	public void houseKeeping() throws Exception {
 		// create checkpoint
 		logSystem.info("Begin Check Point");
-		CheckpointConfig cpc= new CheckpointConfig();
+		CheckpointConfig cpc = new CheckpointConfig();
 		getEnvironment().checkpoint(cpc);
 		logSystem.info("End Check Point");
-		
+
 		getEnvironment().removeOldLogFiles();
-		logSystem.info("Log files removed");	
+		logSystem.info("Log files removed");
 	}
 
 	public void close() throws Exception {
 		// cleanup
 		houseKeeping();
-		
+
 		// close all open containers
 		try {
 			getTransaction().abort();

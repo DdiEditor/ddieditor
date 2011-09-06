@@ -78,7 +78,7 @@ public class DdiEditor {
 
 	public void clean() throws Exception {
 		// dbxml
-		File[] files = new File(DbXmlManager.ENVIROMENT_HOME).listFiles();
+		File[] files = DbXmlManager.getInstance().getEnvHome().listFiles();
 		for (int i = 0; i < files.length; i++) {
 			if (files[i].getName().contains("__")) {
 				files[i].delete();

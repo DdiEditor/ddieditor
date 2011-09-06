@@ -24,10 +24,10 @@ public class DdieditorTestCase {
 
 	@BeforeClass
 	public static void runOnceBeforeAllTests() throws Exception {
-		
+
 		try {
 			// clean out dbxml
-			File[] files = new File(DbXmlManager.ENVIROMENT_HOME).listFiles();
+			File[] files = DbXmlManager.getInstance().getEnvHome().listFiles();
 			for (int i = 0; i < files.length; i++) {
 				if (files[i].getName().contains("__")) {
 					log.debug("Deleting: " + files[i].getAbsolutePath());
@@ -64,7 +64,7 @@ public class DdieditorTestCase {
 
 			// no commit
 			System.setProperty("ddieditor.test", "true");
-			
+
 			// debug resources
 			PersistenceManager.getInstance().exportResourceList(
 					new File(PersistenceManager.RESOURCE_LIST_FILE));
