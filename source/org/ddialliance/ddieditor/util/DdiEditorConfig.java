@@ -14,6 +14,9 @@ public class DdiEditorConfig extends Config {
 	public static final String DDI_LANGUAGE = "ddi.lang";
 	public static final String DDI_INSTRUMENT_PROGRAM_LANG = "ddi.inst.programlang";
 	public static final String DDA_DDI_INSTRUMENT_PROGRAM_LANG = "dda.ddi.inst.programlang";
+    public static final String CHARSET_ISO = "charset.iso";
+    public static final String CHARSET_OEM = "charset.oem";
+    public static final String CHARSET_UNICODE = "charset.unicode";
 	
 	public static void init() {
 		LogFactory.getLog(LogType.SYSTEM, DdiEditorConfig.class).info(
