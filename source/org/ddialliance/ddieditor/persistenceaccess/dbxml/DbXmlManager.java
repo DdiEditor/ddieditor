@@ -181,7 +181,7 @@ public class DbXmlManager implements PersistenceStorage {
 			// teori: cachesize/pagesize ~ cache logBuffer
 			environmentConfig.setLogBufferSize(128 * 1024); // default 32KB
 			environmentConfig.setInitializeCache(true); // shared memory region
-			environmentConfig.setCacheSize(125 * 1024 * 1024); // 125MB cache
+			environmentConfig.setCacheSize(2 * 1024 * 1024); // 2MB cache
 
 			// transaction
 			environmentConfig.setTransactional(true);
