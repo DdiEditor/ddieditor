@@ -1288,8 +1288,6 @@ public class DdiManager {
 		}
 		// delete
 		else if (element.getCrudValue() < 0) {
-			System.out.println("************Remove*********: "
-					+ ((element.getCrudValue() * -1) - 1));
 			result.getResult().get(localName)
 					.remove((element.getCrudValue() * -1) - 1);
 		}
@@ -2140,6 +2138,63 @@ public class DdiManager {
 				"reusable__Label");
 	}
 
+	public QuestionConstructDocument getQuestionConstructByQuestionId(
+			String queiId) throws Exception {
+		StringBuilder query = new StringBuilder();
+		query.append("for $element in ");
+		query.append(PersistenceManager.getInstance().getResourcePath());
+		query.append(getDdi3NamespaceHelper()
+				.addFullyQualifiedNamespaceDeclarationToElements(
+						"//QuestionConstruct"));
+		query.append("where $element/");
+
+		query.append(getDdi3NamespaceHelper()
+				.addFullyQualifiedNamespaceDeclarationToElements(
+						"datacollection__QuestionReference/"));
+
+		query.append(getDdi3NamespaceHelper()
+				.addFullyQualifiedNamespaceDeclarationToElements("ID"));
+		query.append(" ='");
+		query.append(queiId);
+		query.append("' ");
+		query.append(" return $element");
+
+		List<String> result = PersistenceManager.getInstance().query(
+				query.toString());
+
+		QuestionConstructDocument doc = null;
+		if (!result.isEmpty()) {
+			return QuestionConstructDocument.Factory.parse(result.get(0));
+		}
+		return null;
+	}
+
+	public QuestionItemDocument getQuestionItembyUserId(String userId)
+			throws Exception {
+		StringBuilder query = new StringBuilder();
+		query.append("for $element in ");
+		query.append(PersistenceManager.getInstance().getResourcePath());
+		query.append(getDdi3NamespaceHelper()
+				.addFullyQualifiedNamespaceDeclarationToElements(
+						"//QuestionItem"));
+		query.append("where $element/");
+		query.append(getDdi3NamespaceHelper()
+				.addFullyQualifiedNamespaceDeclarationToElements("UserID"));
+		query.append(" ='");
+		query.append(userId);
+		query.append("' ");
+		query.append(" return $element");
+
+		List<String> result = PersistenceManager.getInstance().query(
+				query.toString());
+
+		QuestionItemDocument doc = null;
+		if (!result.isEmpty()) {
+			return QuestionItemDocument.Factory.parse(result.get(0));
+		}
+		return null;
+	}
+
 	public StatementItemDocument getStatementItem(String id, String version,
 			String parentId, String parentVersion) throws Exception {
 		String text = queryElement(id, version, "StatementItem", parentId,
@@ -2445,6 +2500,31 @@ public class DdiManager {
 		return result;
 	}
 
+	public LightXmlObjectListDocument getCategorysLight(String id,
+			String version, String parentId, String parentVersion)
+			throws Exception {
+		LightXmlObjectListDocument lightXmlObjectListDocument = queryLightXmlBeans(
+				id, version, parentId, parentVersion, "CategoryScheme",
+				"Category", null, "reusable__Label");
+		if (lightXmlObjectListDocument.getLightXmlObjectList()
+				.getLightXmlObjectList().isEmpty()) {
+			lightXmlObjectListDocument = queryLightXmlBeans(id, version,
+					parentId, parentVersion, "*", "Category", null,
+					"reusable__Label");
+		}
+		return lightXmlObjectListDocument;
+	}
+
+	public CategoryDocument getCategory(String id, String version,
+			String parentId, String parentVersion) throws Exception {
+		String text = queryElement(id, version, "Category", parentId,
+				parentVersion, "CategoryScheme");
+		if (text == null) {
+			queryElement(id, version, "Category", null, null, null);
+		}
+		return (text == "" ? null : CategoryDocument.Factory.parse(text));
+	}
+
 	public VariableSchemeDocument getVariableScheme(String id, String version,
 			String parentId, String parentVersion) throws Exception {
 		String text = queryElement(id, version, "VariableScheme", parentId,
@@ -2498,31 +2578,6 @@ public class DdiManager {
 			result = queryMaintainableLabel(maintainableLabelQuery);
 		}
 		return result;
-	}
-
-	public LightXmlObjectListDocument getCategorysLight(String id,
-			String version, String parentId, String parentVersion)
-			throws Exception {
-		LightXmlObjectListDocument lightXmlObjectListDocument = queryLightXmlBeans(
-				id, version, parentId, parentVersion, "CategoryScheme",
-				"Category", null, "reusable__Label");
-		if (lightXmlObjectListDocument.getLightXmlObjectList()
-				.getLightXmlObjectList().isEmpty()) {
-			lightXmlObjectListDocument = queryLightXmlBeans(id, version,
-					parentId, parentVersion, "*", "Category", null,
-					"reusable__Label");
-		}
-		return lightXmlObjectListDocument;
-	}
-
-	public CategoryDocument getCategory(String id, String version,
-			String parentId, String parentVersion) throws Exception {
-		String text = queryElement(id, version, "Category", parentId,
-				parentVersion, "CategoryScheme");
-		if (text == null) {
-			queryElement(id, version, "Category", null, null, null);
-		}
-		return (text == "" ? null : CategoryDocument.Factory.parse(text));
 	}
 
 	public VariableDocument getVariable(String id, String version,
@@ -2601,6 +2656,31 @@ public class DdiManager {
 				id, version, parentId, parentVersion, "VariableScheme",
 				"Variable", null, "reusable__Label", xquery);
 		return lightXmlObjectListDocument;
+	}
+
+	public VariableDocument getVariableByVariableName(String varibleName)
+			throws Exception {
+		StringBuilder query = new StringBuilder();
+		query.append("for $element in ");
+		query.append(PersistenceManager.getInstance().getResourcePath());
+		query.append(getDdi3NamespaceHelper()
+				.addFullyQualifiedNamespaceDeclarationToElements("//Variable"));
+		query.append("where $element/");
+		query.append(getDdi3NamespaceHelper()
+				.addFullyQualifiedNamespaceDeclarationToElements("VariableName"));
+		query.append(" ='");
+		query.append(varibleName);
+		query.append("' ");
+		query.append(" return $element");
+
+		List<String> result = PersistenceManager.getInstance().query(
+				query.toString());
+
+		VariableDocument var = null;
+		if (!result.isEmpty()) {
+			return VariableDocument.Factory.parse(result.get(0));
+		}
+		return null;
 	}
 
 	//
