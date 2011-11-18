@@ -1,6 +1,7 @@
 package org.ddialliance.ddieditor.persistenceaccess.dbxml;
 
 import java.io.File;
+import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
@@ -10,8 +11,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import javax.sql.rowset.spi.XmlReader;
 import javax.xml.namespace.QName;
 
+import org.apache.commons.io.IOUtils;
 import org.ddialliance.ddieditor.model.DdiManager;
 import org.ddialliance.ddieditor.model.lightxmlobject.LabelType;
 import org.ddialliance.ddieditor.model.lightxmlobject.LightXmlObjectListDocument;
@@ -1396,10 +1399,17 @@ public class DbXmlManager implements PersistenceStorage {
 		}
 		RandomAccessFile raf = new RandomAccessFile(file, "rw");
 		FileChannel rafFc = raf.getChannel();
+		XmlEventReader reader = null;
 
 		// reader
-		XmlEventReader reader = null;
 		try {
+//			String result = getWorkingContainer().getDocument(getTransaction(),
+//					document).getContentAsString();
+//			writeExportDocument(rafFc, result);
+//			if (0 == 0) {
+//				return;
+//			}
+
 			reader = getWorkingContainer().getDocument(getTransaction(),
 					document).getContentAsEventReader();
 		} catch (Exception e) {
@@ -1470,7 +1480,13 @@ public class DbXmlManager implements PersistenceStorage {
 			}
 			case XmlEventReader.Characters: {
 				characterEvent = true;
-				writeExportDocument(rafFc, reader.getValue());
+				String value = reader.getValue();
+				value= value.replaceAll("&", "&amp;");
+				value= value.replaceAll("<", "&lt;");
+				value= value.replaceAll(">", "&gt;");
+				value= value.replaceAll("\"", "&quot;");
+				value= value.replaceAll("'", "&apos;");
+				writeExportDocument(rafFc, value);
 			}
 			case XmlEventReader.Comment: {
 				if (characterEvent != true) {
@@ -1507,6 +1523,7 @@ public class DbXmlManager implements PersistenceStorage {
 				break;
 			}
 			case XmlEventReader.StartEntityReference: {
+				reader.getReportEntityInfo();
 				break;
 			}
 			case XmlEventReader.EndEntityReference: {
