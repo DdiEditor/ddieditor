@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: ddieditor
+Bundle-Name: DdiEditor
 Bundle-SymbolicName: ddieditor
 Bundle-Version: 0.16.0
 Bundle-Activator: org.ddialliance.ddieditor.osgi.Activator
@@ -47,3 +47,4 @@ Import-Package:
  org.ddialliance.ddieditor.util,
  org.osgi.framework;version="1.5.0",
  org.osgi.util.tracker;version="1.4.2"
+Bundle-Vendor: Danish Data Archive
