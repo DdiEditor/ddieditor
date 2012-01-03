@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: DdiEditor
 Bundle-SymbolicName: ddieditor
 Bundle-Version: 0.17.0
-Bundle-ClassPath: ddieditor,
+Bundle-ClassPath: .,
  build/
 Bundle-Activator: org.ddialliance.ddieditor.osgi.Activator
 Bundle-Vendor: Danish Data Archive
