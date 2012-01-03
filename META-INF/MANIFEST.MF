@@ -22,9 +22,9 @@ Export-Package: org.ddialliance.ddieditor,
  org.ddialliance.ddieditor.persistenceaccess.maintainablelabel,
  org.ddialliance.ddieditor.persistenceaccess.namespace.ddi3,
  org.ddialliance.ddieditor.util
-Require-Bundle: lib-java;bundle-version="0.2.0",
- org.eclipse.osgi;bundle-version="3.6.1",
- util;bundle-version="0.8.0"
+Require-Bundle: org.eclipse.osgi;bundle-version="3.6.1",
+ lib-java;bundle-version="0.10.0",
+ util;bundle-version="0.18.0"
 Import-Package: com.sleepycat.db,
  com.sleepycat.dbxml,
  com.sun.xml.xsom,
