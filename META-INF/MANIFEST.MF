@@ -3,11 +3,11 @@ Bundle-ManifestVersion: 2
 Bundle-Name: DdiEditor
 Bundle-SymbolicName: ddieditor
 Bundle-Version: 0.17.0
+Bundle-ClassPath: ddieditor,
+ build/
 Bundle-Activator: org.ddialliance.ddieditor.osgi.Activator
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
-Service-Component: OSGI-INF/component.xml
-Export-Package: 
- org.ddialliance.ddieditor,
+Bundle-Vendor: Danish Data Archive
+Export-Package: org.ddialliance.ddieditor,
  org.ddialliance.ddieditor.controller,
  org.ddialliance.ddieditor.logic.identification,
  org.ddialliance.ddieditor.logic.urn.ddi,
@@ -22,13 +22,10 @@ Export-Package:
  org.ddialliance.ddieditor.persistenceaccess.maintainablelabel,
  org.ddialliance.ddieditor.persistenceaccess.namespace.ddi3,
  org.ddialliance.ddieditor.util
-Bundle-ClassPath: .,
- build/
 Require-Bundle: lib-java;bundle-version="0.2.0",
  org.eclipse.osgi;bundle-version="3.6.1",
  util;bundle-version="0.8.0"
-Import-Package: 
- com.sleepycat.db,
+Import-Package: com.sleepycat.db,
  com.sleepycat.dbxml,
  com.sun.xml.xsom,
  com.sun.xml.xsom.parser,
@@ -47,4 +44,6 @@ Import-Package:
  org.ddialliance.ddieditor.util,
  org.osgi.framework;version="1.5.0",
  org.osgi.util.tracker;version="1.4.2"
-Bundle-Vendor: Danish Data Archive
+Service-Component: OSGI-INF/component.xml
+Bundle-ActivationPolicy: lazy
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
