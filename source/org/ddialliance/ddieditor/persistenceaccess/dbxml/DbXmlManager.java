@@ -1,7 +1,6 @@
 package org.ddialliance.ddieditor.persistenceaccess.dbxml;
 
 import java.io.File;
-import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
@@ -11,10 +10,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import javax.sql.rowset.spi.XmlReader;
-import javax.xml.namespace.QName;
-
-import org.apache.commons.io.IOUtils;
+import org.apache.commons.pool.ObjectPool;
+import org.apache.commons.pool.impl.StackObjectPool;
 import org.ddialliance.ddieditor.model.DdiManager;
 import org.ddialliance.ddieditor.model.lightxmlobject.LabelType;
 import org.ddialliance.ddieditor.model.lightxmlobject.LightXmlObjectListDocument;
@@ -73,22 +70,22 @@ public class DbXmlManager implements PersistenceStorage {
 
 	private Environment environment;
 	private EnvironmentConfig environmentConfig;
-	// public static final String ENVIROMENT_HOME = new File(
-	// DdiEditorConfig.get(DdiEditorConfig.DBXML_ENVIROMENT_HOME))
-	// .getAbsolutePath();
-
 	private File envHome = null;
 
 	private XmlManager xmlManager = null;
 	private XmlManagerConfig xmlManagerConfig;
 	private XmlQueryContext xmlQueryContext;
 	private XmlContainerConfig xmlContainerConfig;
+	private XmlDocumentConfig xmlDocumentConfig = new XmlDocumentConfig();
+
 	private ThreadLocal<XmlTransaction> transaction = new ThreadLocal<XmlTransaction>();
 	private String currentWorkingContainer = "";
 	private HashMap<String, XmlContainer> openContainers = new HashMap<String, XmlContainer>();
 
 	private int jumpLocation;
 	private String jumpName;
+
+	private ObjectPool pool;
 
 	private DbXmlManager() {
 	}
@@ -115,10 +112,20 @@ public class DbXmlManager implements PersistenceStorage {
 				// xml manager
 				instance.xmlManager = new XmlManager(instance.getEnvironment(),
 						instance.getXmlManagerConfig());
+				instance.xmlQueryContext = instance.xmlManager
+						.createQueryContext(XmlQueryContext.LiveValues,
+								XmlQueryContext.Lazy);
+				instance.xmlDocumentConfig = new XmlDocumentConfig();
+				instance.xmlDocumentConfig.setLazyDocs(false);
+				// instance.xmlDocumentConfig.setWellFormedOnly(true);
 			} catch (Exception e) {
 				new DDIFtpException("Error on BDBXML startup with enviroment: "
 						+ instance.envHome.getAbsolutePath(), e);
 			}
+
+			// set up factory
+			instance.pool = new StackObjectPool(new DbXmlFactory(
+					instance.xmlManager));
 		}
 		return instance;
 	}
@@ -257,10 +264,6 @@ public class DbXmlManager implements PersistenceStorage {
 		return xmlManager.createUpdateContext();
 	}
 
-	private XmlDocumentConfig getXmlDocumentConfig() throws Exception {
-		return null;
-	}
-
 	private XmlContainer getContainer(String name) {
 		return openContainers.get(name);
 	}
@@ -293,7 +296,9 @@ public class DbXmlManager implements PersistenceStorage {
 								+ file.getName());
 					}
 					XmlContainer xmlContainer = xmlManager.createContainer(
-							file.getName(), getXmlContainerConfig());
+							getTransaction(), file.getName(),
+							getXmlContainerConfig());
+					commitTransaction();
 					openContainers.put(file.getName(), xmlContainer);
 
 					// create indices
@@ -318,8 +323,7 @@ public class DbXmlManager implements PersistenceStorage {
 								+ file.getName(), e);
 			}
 		} else if (logSystem.isDebugEnabled()) {
-			logSystem.debug("Is open dbxml container: "
-					+ file.getName());
+			logSystem.debug("Is open dbxml container: " + file.getName());
 		}
 		this.currentWorkingContainer = file.getName();
 	}
@@ -460,6 +464,7 @@ public class DbXmlManager implements PersistenceStorage {
 			}
 		}
 		indexSpecification.delete();
+		commitTransaction();
 	}
 
 	public void createIndices(XmlContainer xmlContainer) throws Exception {
@@ -517,7 +522,8 @@ public class DbXmlManager implements PersistenceStorage {
 		try {
 			xmlContainer = getContainer(currentWorkingContainer);
 			xmlContainer.putDocument(getTransaction(), path.getName(),
-					xmlInputStream, getXmlDocumentConfig());
+					xmlInputStream, xmlDocumentConfig);
+			commitTransaction();
 		} catch (XmlException e) {
 			if (e.getErrorCode() == XmlException.UNIQUE_ERROR) {
 				logSystem.warn("Xml document: " + path.getName()
@@ -547,7 +553,7 @@ public class DbXmlManager implements PersistenceStorage {
 		List<String> result = new ArrayList<String>();
 
 		XmlResults xmlResults = getWorkingContainer().getAllDocuments(
-				getXmlDocumentConfig());
+				xmlDocumentConfig);
 
 		XmlDocument xmlDocument;
 		while (xmlResults.hasNext()) {
@@ -560,14 +566,19 @@ public class DbXmlManager implements PersistenceStorage {
 
 	@Profiled(tag = "query_{$0}")
 	public List<String> query(String query) throws Exception {
-		XmlResults rs = xQuery(query);
-		List<String> result = new ArrayList<String>();
-		while (rs.hasNext()) {
-			result.add(rs.next().asString());
-		}
-		rs.delete();
-		commitTransaction();
+		DbXmlWorker worker = (DbXmlWorker) pool.borrowObject();
+		List<String> result = worker.query(query);
+		pool.returnObject(worker);
 		return result;
+
+		// XmlResults rs = xQuery(query);
+		// List<String> result = new ArrayList<String>();
+		// while (rs.hasNext()) {
+		// result.add(rs.next().asString());
+		// }
+		// rs.delete();
+		// commitTransaction();
+		// return result;
 	}
 
 	@Profiled(tag = "updateQuery_{$0}")
@@ -575,7 +586,6 @@ public class DbXmlManager implements PersistenceStorage {
 		XmlResults rs = null;
 		XmlQueryContext xmlQueryContext = xmlManager.createQueryContext(
 				XmlQueryContext.LiveValues, XmlQueryContext.Lazy);
-		XmlDocumentConfig xmlDocumentConfig = new XmlDocumentConfig();
 
 		for (int i = 0; i < Ddi3NamespacePrefix.values().length; i++) {
 			xmlQueryContext.setNamespace(
@@ -821,11 +831,6 @@ public class DbXmlManager implements PersistenceStorage {
 
 	@Profiled(tag = "xQuery")
 	protected XmlResults xQuery(String query) throws Exception {
-		XmlQueryContext xmlQueryContext = xmlManager.createQueryContext(
-				XmlQueryContext.LiveValues, XmlQueryContext.Lazy);
-		XmlDocumentConfig xmlDocumentConfig = new XmlDocumentConfig();
-		// xmlDocumentConfig.setLazyDocs(false);
-		// xmlDocumentConfig.setWellFormedOnly(true);
 		// XmlQueryExpression used to requery
 		// Cache idear: hash query and store hash and query expression in
 		// hashmap
@@ -1045,57 +1050,6 @@ public class DbXmlManager implements PersistenceStorage {
 		rs = null;
 		commitTransaction();
 		return maintainableLabelQueryResult;
-	}
-
-	public void indexForProfile() throws Exception {
-		// query
-		String query = "/*";
-		queryLog.info(query);
-		XmlResults rs = xQuery(query);
-
-		if (rs.isNull()) { // guard
-			rollbackTransaction();
-			throw new DDIFtpException("No results for query: " + query);
-		}
-
-		// init value
-		XmlValue xmlValue = rs.next();
-		if (xmlValue == null) { // guard
-			rs.delete();
-			rs = null;
-			rollbackTransaction();
-		}
-
-		// populate result
-		String localName;
-		String localMaintainableName = "";
-		String prevLocalName = "";
-
-		if (xmlValue.isNode()) {
-			XmlEventReader reader = xmlValue.asEventReader();
-			while (reader.hasNext()) {
-				int type = reader.next();
-				if (type == XmlEventReader.StartElement) {
-					localName = reader.getLocalName();
-					QName qName = new QName(reader.getNamespaceURI(), localName);
-
-					// maintainable
-					if (DdiManager.getInstance().getDdi3NamespaceHelper()
-							.isMaintainable(localName)) {
-						// DdiManager.getInstance().getDdi3NamespaceHelper().
-					}
-
-					// versionables
-
-					// identifiable
-
-				}
-				reader.close();
-			}
-			rs.delete();
-			rs = null;
-			commitTransaction();
-		}
 	}
 
 	private void extractSubelementsOfSchemeQuery(StringBuffer element,
@@ -1403,13 +1357,6 @@ public class DbXmlManager implements PersistenceStorage {
 
 		// reader
 		try {
-//			String result = getWorkingContainer().getDocument(getTransaction(),
-//					document).getContentAsString();
-//			writeExportDocument(rafFc, result);
-//			if (0 == 0) {
-//				return;
-//			}
-
 			reader = getWorkingContainer().getDocument(getTransaction(),
 					document).getContentAsEventReader();
 		} catch (Exception e) {
@@ -1481,11 +1428,11 @@ public class DbXmlManager implements PersistenceStorage {
 			case XmlEventReader.Characters: {
 				characterEvent = true;
 				String value = reader.getValue();
-				value= value.replaceAll("&", "&amp;");
-				value= value.replaceAll("<", "&lt;");
-				value= value.replaceAll(">", "&gt;");
-				value= value.replaceAll("\"", "&quot;");
-				value= value.replaceAll("'", "&apos;");
+				value = value.replaceAll("&", "&amp;");
+				value = value.replaceAll("<", "&lt;");
+				value = value.replaceAll(">", "&gt;");
+				value = value.replaceAll("\"", "&quot;");
+				value = value.replaceAll("'", "&apos;");
 				writeExportDocument(rafFc, value);
 			}
 			case XmlEventReader.Comment: {
