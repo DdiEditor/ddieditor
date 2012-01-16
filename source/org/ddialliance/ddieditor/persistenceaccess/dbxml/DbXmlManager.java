@@ -251,6 +251,7 @@ public class DbXmlManager implements PersistenceStorage {
 			xmlContainerConfig = new XmlContainerConfig();
 			xmlContainerConfig.setIndexNodes(XmlContainerConfig.On);
 			xmlContainerConfig.setContainerType(XmlContainer.NodeContainer);
+			xmlContainerConfig.setCompression(XmlContainerConfig.NO_COMPRESSSION);
 			xmlContainerConfig.setTransactional(true);
 			if (DdiEditorConfig
 					.getBoolean(DdiEditorConfig.DBXML_IMPORT_VALIDATE)) {
