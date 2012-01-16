@@ -10,7 +10,8 @@ import org.ddialliance.ddieditor.model.lightxmlobject.LightXmlObjectType;
 public class ReferenceResolution {
 	String id;
 	ReferenceType ref;
-
+	String localName;
+	
 	public ReferenceResolution(String id) {
 		super();
 		this.id = id;
@@ -29,6 +30,7 @@ public class ReferenceResolution {
 
 	public ReferenceResolution(LightXmlObjectType lightXmlObject) {
 		ref = ReferenceType.Factory.newInstance();
+		localName = lightXmlObject.getElement();
 		
 		// agency 
 		// TODO ref.addIdentifyingAgency(lightXmlObject.getAgency());
@@ -50,6 +52,10 @@ public class ReferenceResolution {
 
 	public void setId(String id) {
 		this.id = id;
+	}
+
+	public String getLocalName() {
+		return localName;
 	}
 
 	public ReferenceType getReference() {
