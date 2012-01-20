@@ -18,6 +18,7 @@ import org.ddialliance.ddi3.xml.xmlbeans.archive.ArchiveDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.conceptualcomponent.ConceptDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.conceptualcomponent.ConceptGroupDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.conceptualcomponent.ConceptSchemeDocument;
+import org.ddialliance.ddi3.xml.xmlbeans.conceptualcomponent.GeographicStructureSchemeDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.conceptualcomponent.UniverseDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.conceptualcomponent.UniverseSchemeDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.datacollection.ComputationItemDocument;
@@ -2490,6 +2491,21 @@ public class DdiManager {
 		return queryLightXmlBeans(id, version, parentId, parentVersion,
 		// "UniverseScheme", "Universe", null, "HumanReadable");
 				"UniverseScheme", "Universe", null, "reusable__Label");
+	}
+	
+	public GeographicStructureSchemeDocument getGeographicStructureScheme(String id, String version,
+			String parentId, String parentVersion) throws Exception {
+		String text = queryElement(id, version, "GeographicStructureScheme", parentId,
+				parentVersion, "ConceptualComponent");
+		return (text == "" ? null : GeographicStructureSchemeDocument.Factory.parse(text));
+	}
+
+	public LightXmlObjectListDocument getGeographicStructureSchemesLight(String id,
+			String version, String parentId, String parentVersion)
+			throws Exception {
+		return queryLightXmlBeans(id, version, parentId, parentVersion,
+				"ConceptualComponent", "GeographicStructureScheme", null,
+				"reusable__Label");
 	}
 
 	//
