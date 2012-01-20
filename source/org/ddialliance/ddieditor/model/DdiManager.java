@@ -441,12 +441,99 @@ public class DdiManager {
 		return result.toString();
 	}
 
+	private String getCustomLabelLangFunction(String rootElement,
+			String parentChild, String childChildElement, String labelElement)
+			throws DDIFtpException {
+		// get query
+		ParamatizedXquery query = buildCustomLabelLangFunction(childChildElement);
+
+		// document to search
+		query.setObject(1, PersistenceManager.getInstance().getResourcePath());
+		query.setObject(2, getDdi3NamespaceHelper()
+				.addFullyQualifiedNamespaceDeclarationToElements(parentChild));
+
+		// identification
+		String prefix = getDdi3NamespaceHelper().getNamespaceObjectByElement(
+				rootElement).getPrefix();
+		query.setObject(3, prefix);
+		query.setObject(4, rootElement);
+		query.setObject(5, prefix);
+		query.setObject(6, rootElement);
+
+		// label
+		query.setObject(
+				7,
+				getDdi3NamespaceHelper()
+						.addFullyQualifiedNamespaceDeclarationToElements(
+								"/" + labelElement));
+
+		return query.getParamatizedQuery();
+	}
+
+	private ParamatizedXquery buildCustomLabelLangFunction(
+			String childChildElement) throws DDIFtpException {
+		String xQueryName = "CUSTOM_LABEL_LANG";
+		if (childChildElement != null) {
+			xQueryName += "_WITH_CHILD_CHILD";
+		}
+
+		// lookup param query
+		ParamatizedXquery xQuery = PersistenceManager.getInstance()
+				.getParamatizedQuery(xQueryName);
+		if (false) { // xQuery != null
+			return xQuery;
+		}
+		// build query
+		else {
+			XQuery query = new XQuery();
+			if (childChildElement != null) {
+				// TODO
+			} else {
+				query.function.append("declare function ");
+				query.function.append(FUNCTION_NS_PREFIX);
+				query.function.append(":custom_label_lang($id as xs:string) {");
+				query.function.append(" let $x := for $z in ?/?");
+				query.function.append(" where $z/@id/string() = $id return $z");
+
+				// identification
+				query.function.append(" let $id :=  for $z in $x return");
+				query.function
+						.append(" <Custom option=\"id\" value=\"{$x/@id/string()}\"/>");
+				query.function
+						.append("|<Custom option=\"version\" value=\"{$x/@version/string()}\"/>");
+				query.function
+						.append("|<Custom option=\"parentId\" value=\"{$x/ancestor::?:?/@id/string()}\"/>");
+				query.function
+						.append("|<Custom option=\"parentVersion\" value=\"{$x/ancestor::?:?/@version/string()}\"/>");
+
+				// label
+				query.function.append(" let $label :=  for $z in $x/? return");
+				query.function.append(" if($z/@xml:lang/string()=\"\")");
+				query.function
+						.append(" then <Custom option=\"label\" value=\"\">{$z/text()}</Custom>");
+				query.function
+						.append(" else <Custom option=\"label\" value=\"{$z/@xml:lang/string()}\">{$z/text()}</Custom>");
+
+				query.function.append(" return $id|$label};");
+			}
+			xQuery = new ParamatizedXquery(query.getFullQueryString());
+
+			// store
+			PersistenceManager.getInstance().setParamatizedQuery(xQueryName,
+					xQuery);
+		}
+		return xQuery;
+	}
+
 	private LightXmlObjectListDocument queryLightXmlByReference(
 			ReferenceResolution referenceResolution, String rootElement,
 			String parentChildElement, String childChildElement,
-			String labelElement) throws DDIFtpException {
+			String labelElement, String customFunction, String customQuery)
+			throws DDIFtpException {
 		// get query
-		ParamatizedXquery query = buildQueryLightXmlByReference(childChildElement);
+		ParamatizedXquery query = buildQueryLightXmlByReference(
+				parentChildElement, childChildElement, customFunction,
+				customQuery);
 
 		// set query
 		String prefix = getDdi3NamespaceHelper().getNamespaceObjectByElement(
@@ -454,19 +541,27 @@ public class DdiManager {
 		int i = 0;
 
 		// label function
-		query.setObject(++i, "/" + prefix + ":" + labelElement);
+		query.setObject(++i, getDdi3NamespaceHelper()
+				.addFullyQualifiedNamespaceDeclarationToElements(labelElement));
 
 		// let
 		query.setObject(++i, PersistenceManager.getInstance().getResourcePath());
 
+		// parent child
 		StringBuilder param1 = new StringBuilder();
 		param1.append(prefix);
 		param1.append(":");
 		param1.append(parentChildElement);
 		param1.append("/");
-		param1.append(prefix);
+
+		// reference / id
+		String refPrefix = getDdi3NamespaceHelper()
+				.getNamespaceObjectByElement(referenceResolution.getLocalName())
+				.getPrefix();
+		param1.append(refPrefix);
 		param1.append(":");
-		param1.append(referenceResolution.getLocalName()+"Reference");
+		param1.append(getDdi3NamespaceHelper().getLocalSchemaName(
+				referenceResolution.getLocalName()));
 		param1.append("/r:ID");
 		query.setObject(++i, param1.toString());
 
@@ -514,15 +609,18 @@ public class DdiManager {
 	}
 
 	private ParamatizedXquery buildQueryLightXmlByReference(
-			String childChildElement) throws DDIFtpException {
-		String xQueryName = "LIGHT_XML_BY_REF";
+			String parentChildElement, String childChildElement,
+			String customFunction, String customQuery) throws DDIFtpException {
+		StringBuilder xQueryName = new StringBuilder();
+		xQueryName.append("LIGHT_XML_BY_REF_");
+		xQueryName.append(customQuery);
 		if (childChildElement != null) {
-			xQueryName += "_WITH_CHILD_CHILD";
+			xQueryName.append("_WITH_CHILD_CHILD");
 		}
 
 		// lookup param query
 		ParamatizedXquery xQuery = PersistenceManager.getInstance()
-				.getParamatizedQuery(xQueryName);
+				.getParamatizedQuery(xQueryName.toString());
 		if (xQuery != null) {
 			return xQuery;
 		}
@@ -553,6 +651,9 @@ public class DdiManager {
 					.append(" declare namespace dl=\"ddieditor-lightobject\"; ");
 
 			// functions
+			if (customFunction != null) {
+				query.function.append(customFunction);
+			}
 			query.function.append(labelLangFunction(childChildElement));
 
 			// query
@@ -567,17 +668,64 @@ public class DdiManager {
 
 			query.query
 					.append(" parentVersion=\"{$x/ancestor::?:?/@version/string()}\">");
+			query.query.append("{ddieditor:label_lang($x/ancestor::?:?)}");
+			if (customFunction != null) {
+				query.query.append(customQuery);
+			}
 			query.query
-					.append("{ddieditor:label_lang($x/ancestor::?:?)}</LightXmlObject>");
-			query.query
-					.append(" return <dl:LightXmlObjectList>{$lightXml}</dl:LightXmlObjectList>");
+					.append("</LightXmlObject> return <dl:LightXmlObjectList>{$lightXml}</dl:LightXmlObjectList>");
 
 			xQuery = new ParamatizedXquery(query.getFullQueryString());
 			// store
-			PersistenceManager.getInstance().setParamatizedQuery(xQueryName,
-					xQuery);
+			PersistenceManager.getInstance().setParamatizedQuery(
+					xQueryName.toString(), xQuery);
 			return xQuery;
 		}
+	}
+
+	private String getCustomUniverseLabelLangFunction() throws DDIFtpException {
+		return getCustomLabelLangFunction("UniverseScheme", "Universe", null,
+				"reusable__Label");
+	}
+
+	private String getCustomUniverseByReferenceFunction() {
+		StringBuilder result = new StringBuilder();
+		result.append(" declare function ddieditor:custom_universe($element) {");
+		result.append(" for $z in $element/r:UniverseReference/r:ID");
+		result.append(" return <CustomList type=\"Universe\">");
+		result.append(" {ddieditor:custom_label_lang(data($z))}</CustomList>}; ");
+		return result.toString();
+	}
+
+	private String getCustomConceptLabelLangFunction() throws DDIFtpException {
+		return getCustomLabelLangFunction("ConceptScheme", "Concept", null,
+				"reusable__Label");
+	}
+
+	private String getCustomConceptByReferenceFunction() {
+		StringBuilder result = new StringBuilder();
+		result.append(" declare function ddieditor:custom_concept($element) {");
+		result.append(" for $z in $element/l:ConceptReference/r:ID");
+		result.append(" return <CustomList type=\"Concept\">");
+		result.append(" {ddieditor:custom_label_lang(data($z))}</CustomList>}; ");
+		return result.toString();
+	}
+
+	private String getCustomQuestionLabelLangFunction() throws DDIFtpException {
+		String result = getCustomLabelLangFunction("QuestionScheme",
+				"QuestionItem", null, "QuestionItemName");
+		// hack to avoid dublicate function name decleration -bare with me
+		return result
+				.replace("custom_label_lang", "custom_question_label_lang");
+	}
+
+	private String getCustomQuestionByReferenceFunction() {
+		StringBuilder result = new StringBuilder();
+		result.append(" declare function ddieditor:custom_question($element) {");
+		result.append(" for $z in $element/l:QuestionReference/r:ID");
+		result.append(" return <CustomList type=\"Question\">");
+		result.append(" {ddieditor:custom_question_label_lang(data($z))}</CustomList>}; ");
+		return result.toString();
 	}
 
 	/**
@@ -1970,7 +2118,7 @@ public class DdiManager {
 			ReferenceResolution referenceResolution) throws Exception {
 
 		return queryLightXmlByReference(referenceResolution, "QuestionScheme",
-				"QuestionItem", null, "QuestionItemName");
+				"QuestionItem", null, "QuestionItemName", null, null);
 	}
 
 	public LightXmlObjectListDocument getQuestionItemsLightPlus(
@@ -2507,7 +2655,7 @@ public class DdiManager {
 				"ConceptualComponent", "GeographicStructureScheme", null,
 				"reusable__Label");
 	}
-
+	
 	//
 	// logical product
 	//
@@ -2749,6 +2897,50 @@ public class DdiManager {
 				id, version, parentId, parentVersion, "VariableScheme",
 				"Variable", null, "reusable__Label");
 		return lightXmlObjectListDocument;
+	}
+
+	public LightXmlObjectListDocument getVariablesLightByConcept(
+			ReferenceResolution referenceResolution) throws Exception {
+		return getVariablesLightByX(referenceResolution, "Variable");
+	}
+
+	public LightXmlObjectListDocument getVariablesLightByQuestionItem(
+			ReferenceResolution referenceResolution) throws Exception {
+		return getVariablesLightByX(referenceResolution, "Variable");
+	}
+
+	private LightXmlObjectListDocument getVariablesLightByX(
+			ReferenceResolution referenceResolution, String xElement)
+			throws Exception {
+		Ddi3NamespacePrefix namespace = getDdi3NamespaceHelper()
+				.getNamespaceObjectByElement(xElement);
+		String customQuery = "{ddieditor:custom_universe($x/ancestor::"
+				+ namespace.getPrefix() + ":" + xElement + ")}";
+
+		return queryLightXmlByReference(referenceResolution, "VariableScheme",
+				"Variable", null, "reusable__Label",
+				getCustomUniverseLabelLangFunction()
+						+ getCustomUniverseByReferenceFunction(), customQuery);
+	}
+
+	public LightXmlObjectListDocument getVariablesLightByUniverse(
+			ReferenceResolution referenceResolution) throws Exception {
+		String xElement = "Variable";
+
+		Ddi3NamespacePrefix namespace = getDdi3NamespaceHelper()
+				.getNamespaceObjectByElement(xElement);
+		String customQueryConcept = "{ddieditor:custom_concept($x/ancestor::"
+				+ namespace.getPrefix() + ":" + xElement + ")}";
+
+		String customQueryQuestion = "{ddieditor:custom_question($x/ancestor::"
+				+ namespace.getPrefix() + ":" + xElement + ")}";
+		String customFunction = getCustomConceptLabelLangFunction()
+				+ getCustomConceptByReferenceFunction()
+				+ getCustomQuestionLabelLangFunction()
+				+ getCustomQuestionByReferenceFunction();
+		return queryLightXmlByReference(referenceResolution, "VariableScheme",
+				"Variable", null, "reusable__Label", customFunction,
+				customQueryConcept + customQueryQuestion);
 	}
 
 	public LightXmlObjectListDocument getVariablesLightPlus(String id,
