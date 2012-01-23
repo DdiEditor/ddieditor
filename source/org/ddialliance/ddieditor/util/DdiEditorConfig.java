@@ -17,6 +17,7 @@ public class DdiEditorConfig extends Config {
     public static final String CHARSET_ISO = "charset.iso";
     public static final String CHARSET_OEM = "charset.oem";
     public static final String CHARSET_UNICODE = "charset.unicode";
+    public static final String CODEBOOKSTYLESHEETNAME = "ddi.codebookstylesheetname";
 	
 	public static void init() {
 		LogFactory.getLog(LogType.SYSTEM, DdiEditorConfig.class).info(
