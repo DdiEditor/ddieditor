@@ -12,6 +12,7 @@ import java.util.Set;
 
 import org.apache.commons.pool.ObjectPool;
 import org.apache.commons.pool.impl.StackObjectPool;
+
 import org.ddialliance.ddieditor.model.DdiManager;
 import org.ddialliance.ddieditor.model.lightxmlobject.LabelType;
 import org.ddialliance.ddieditor.model.lightxmlobject.LightXmlObjectListDocument;
@@ -71,6 +72,7 @@ public class DbXmlManager implements PersistenceStorage {
 	private Environment environment;
 	private EnvironmentConfig environmentConfig;
 	private File envHome = null;
+	private String codebookName = null;
 
 	private XmlManager xmlManager = null;
 	private XmlManagerConfig xmlManagerConfig;
@@ -106,6 +108,7 @@ public class DbXmlManager implements PersistenceStorage {
 				instance.envHome = new File(
 						DdiEditorConfig
 								.get(DdiEditorConfig.DBXML_ENVIROMENT_HOME));
+				instance.codebookName = DdiEditorConfig.get(DdiEditorConfig.CODEBOOKSTYLESHEETNAME);
 				logSystem.info("New env home: "
 						+ instance.envHome.getAbsolutePath());
 
@@ -1448,9 +1451,20 @@ public class DbXmlManager implements PersistenceStorage {
 				break;
 			}
 			case XmlEventReader.StartDocument: {
+				String codeBookStyleSheetpath = 
+						// TODO set full path to style sheet - problem: what to do with icons etc.?
+//						System.getenv("DDIEDITOR_HOME")
+//						+ System.getProperty("file.separator")
+//						+ "resources"
+//						+ System.getProperty("file.separator")
+//						+ "ddixslt"
+//						+ System.getProperty("file.separator")
+//						+ 
+						codebookName;
 				writeExportDocument(
 						rafFc,
-						"<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<?xml-stylesheet type= \"text/xsl\" href=\"ddi3_1.xsl\"?>");
+						"<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<?xml-stylesheet type= \"text/xsl\" href=\""
+								+ codeBookStyleSheetpath + "\"?>");
 				break;
 			}
 			case XmlEventReader.EndDocument: {
