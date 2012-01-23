@@ -552,7 +552,7 @@ public class DdiManager {
 		param1.append(prefix);
 		param1.append(":");
 		param1.append(parentChildElement);
-		param1.append("/");
+		param1.append("//");
 
 		// reference / id
 		String refPrefix = getDdi3NamespaceHelper()
@@ -2116,7 +2116,12 @@ public class DdiManager {
 
 	public LightXmlObjectListDocument getQuestionItemsLightByConcept(
 			ReferenceResolution referenceResolution) throws Exception {
+		return queryLightXmlByReference(referenceResolution, "QuestionScheme",
+				"QuestionItem", null, "QuestionItemName", null, null);
+	}
 
+	public LightXmlObjectListDocument getQuestionItemsLightByCodeScheme(
+			ReferenceResolution referenceResolution) throws Exception {
 		return queryLightXmlByReference(referenceResolution, "QuestionScheme",
 				"QuestionItem", null, "QuestionItemName", null, null);
 	}
@@ -2640,22 +2645,24 @@ public class DdiManager {
 		// "UniverseScheme", "Universe", null, "HumanReadable");
 				"UniverseScheme", "Universe", null, "reusable__Label");
 	}
-	
-	public GeographicStructureSchemeDocument getGeographicStructureScheme(String id, String version,
-			String parentId, String parentVersion) throws Exception {
-		String text = queryElement(id, version, "GeographicStructureScheme", parentId,
-				parentVersion, "ConceptualComponent");
-		return (text == "" ? null : GeographicStructureSchemeDocument.Factory.parse(text));
+
+	public GeographicStructureSchemeDocument getGeographicStructureScheme(
+			String id, String version, String parentId, String parentVersion)
+			throws Exception {
+		String text = queryElement(id, version, "GeographicStructureScheme",
+				parentId, parentVersion, "ConceptualComponent");
+		return (text == "" ? null : GeographicStructureSchemeDocument.Factory
+				.parse(text));
 	}
 
-	public LightXmlObjectListDocument getGeographicStructureSchemesLight(String id,
-			String version, String parentId, String parentVersion)
+	public LightXmlObjectListDocument getGeographicStructureSchemesLight(
+			String id, String version, String parentId, String parentVersion)
 			throws Exception {
 		return queryLightXmlBeans(id, version, parentId, parentVersion,
 				"ConceptualComponent", "GeographicStructureScheme", null,
 				"reusable__Label");
 	}
-	
+
 	//
 	// logical product
 	//
@@ -2732,8 +2739,8 @@ public class DdiManager {
 			String parentId, String parentVersion) throws Exception {
 		String text = queryElement(id, version, "CodeScheme", parentId,
 				parentVersion, "logicalproduct__LogicalProduct");
-		if (text == null) {
-			queryElement(id, version, "CodeScheme", null, null, null);
+		if (text == null || text.equals("")) {
+			text = queryElement(id, version, "CodeScheme", null, null, null);
 		}
 		return (text == "" ? null : CodeSchemeDocument.Factory.parse(text));
 	}
@@ -2907,6 +2914,12 @@ public class DdiManager {
 	public LightXmlObjectListDocument getVariablesLightByQuestionItem(
 			ReferenceResolution referenceResolution) throws Exception {
 		return getVariablesLightByX(referenceResolution, "Variable");
+	}
+
+	public LightXmlObjectListDocument getVariablesLightByCodeScheme(
+			ReferenceResolution referenceResolution) throws Exception {
+		return queryLightXmlByReference(referenceResolution, "VariableScheme",
+				"Variable", null, "reusable__Label", null, null);
 	}
 
 	private LightXmlObjectListDocument getVariablesLightByX(
