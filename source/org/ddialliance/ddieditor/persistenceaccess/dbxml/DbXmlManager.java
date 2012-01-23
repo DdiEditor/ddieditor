@@ -1467,7 +1467,9 @@ public class DbXmlManager implements PersistenceStorage {
 				process.append(" ");
 				process.append(reader.getValue());
 				process.append("?>\n");
-				writeExportDocument(rafFc, process.toString());
+				if (process.indexOf("xml-stylesheet") < 0) {
+					writeExportDocument(rafFc, process.toString());
+				}
 				break;
 			}
 			case XmlEventReader.StartEntityReference: {
