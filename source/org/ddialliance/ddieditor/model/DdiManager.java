@@ -2204,6 +2204,10 @@ public class DdiManager {
 			String parentId, String parentVersion) throws Exception {
 		String text = queryElement(id, version, "QuestionItem", parentId,
 				parentVersion, "QuestionScheme");
+		if (text == "") {
+			text = queryElement(id, version, "SubQuestions/QuestionItem",
+					parentId, parentVersion, "MultipleQuestionItem");
+		}
 		return (text == "" ? null : QuestionItemDocument.Factory.parse(text));
 	}
 
