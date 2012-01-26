@@ -728,6 +728,15 @@ public class DdiManager {
 		return result.toString();
 	}
 
+	private String getCustomVariableIdFunction() {
+		StringBuilder result = new StringBuilder();
+		result.append(" declare function ddieditor:custom_variable_id($element) {");
+		result.append("let $id:=$element/l:VariableName/string()");
+		result.append(" return <CustomList type=\"VariableId\">");
+		result.append(" <Custom option=\"id\" value=\"{$id}\"/></CustomList>}; ");
+		return result.toString();
+	}
+
 	/**
 	 * Generates and executes a XQuery for DDI elements
 	 * 
@@ -2932,32 +2941,41 @@ public class DdiManager {
 		Ddi3NamespacePrefix namespace = getDdi3NamespaceHelper()
 				.getNamespaceObjectByElement(xElement);
 		String customQuery = "{ddieditor:custom_universe($x/ancestor::"
+				+ namespace.getPrefix() + ":" + xElement
+				+ ")}{ddieditor:custom_variable_id($x/ancestor::"
 				+ namespace.getPrefix() + ":" + xElement + ")}";
 
 		return queryLightXmlByReference(referenceResolution, "VariableScheme",
 				"Variable", null, "reusable__Label",
 				getCustomUniverseLabelLangFunction()
-						+ getCustomUniverseByReferenceFunction(), customQuery);
+						+ getCustomUniverseByReferenceFunction()
+						+ getCustomVariableIdFunction(), customQuery);
 	}
 
 	public LightXmlObjectListDocument getVariablesLightByUniverse(
 			ReferenceResolution referenceResolution) throws Exception {
 		String xElement = "Variable";
-
 		Ddi3NamespacePrefix namespace = getDdi3NamespaceHelper()
 				.getNamespaceObjectByElement(xElement);
+
 		String customQueryConcept = "{ddieditor:custom_concept($x/ancestor::"
 				+ namespace.getPrefix() + ":" + xElement + ")}";
 
 		String customQueryQuestion = "{ddieditor:custom_question($x/ancestor::"
 				+ namespace.getPrefix() + ":" + xElement + ")}";
+
+		String customVariableId = "{ddieditor:custom_variable_id($x/ancestor::"
+				+ namespace.getPrefix() + ":" + xElement + ")}";
+
 		String customFunction = getCustomConceptLabelLangFunction()
 				+ getCustomConceptByReferenceFunction()
 				+ getCustomQuestionLabelLangFunction()
-				+ getCustomQuestionByReferenceFunction();
+				+ getCustomQuestionByReferenceFunction()
+				+ getCustomVariableIdFunction();
+
 		return queryLightXmlByReference(referenceResolution, "VariableScheme",
 				"Variable", null, "reusable__Label", customFunction,
-				customQueryConcept + customQueryQuestion);
+				customQueryConcept + customQueryQuestion + customVariableId);
 	}
 
 	public LightXmlObjectListDocument getVariablesLightPlus(String id,
