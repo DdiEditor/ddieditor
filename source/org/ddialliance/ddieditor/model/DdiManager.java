@@ -3064,12 +3064,24 @@ public class DdiManager {
 
 	public String getVariableShort() throws DDIFtpException {
 		StringBuilder query = new StringBuilder();
-		query.append("declare namespace l=\"ddi:logicalproduct:3_1\";");
-		query.append("let $result := for $x in ");
+		
+		query.append("declare namespace ddieditor= \"http://dda.dk/ddieditor\";");
+		query.append("declare namespace l=\""+Ddi3NamespacePrefix.LOGIAL_PRODUCT.getNamespace()+"\";");
+
+		query.append("declare function ddieditor:getVarRepresentationType($rep as element())  as xs:string {");
+		query.append(" let $result := if ($rep/l:CodeRepresentation) then \"Code\" else");
+		query.append(" if ($rep/l:DateTimeRepresentation) then \"DateTime\" else");
+		query.append(" if ($rep/l:ExternalCategoryRepresentation) then \"ExternalCategory\" else");
+		query.append(" if ($rep/l:NumericRepresentation) then \"Numeric\" else");
+		query.append(" if ($rep/l:TextRepresentation) then \"Text\" else ()");
+		query.append(" return $result};");
+
+		query.append(" let $var := for $x in ");
 		query.append(PersistenceManager.getInstance().getResourcePath());
-		query.append("//l:Variable return");
-		query.append("<IdElement name=\"{$x/l:VariableName/text()}\" id=\"{$x/@id}\" version=\"{$x/@version}\" agency=\"{$x/@agency}\"  />");
-		query.append(" return <IdElementList>{$result}</IdElementList>");
+		query.append("//l:Variable return $x");
+		query.append(" let $result := for $x in $var return<IdElement repType=\"{ddieditor:getVarRepresentationType($x/l:Representation)}\" name=\"{$x/l:VariableName/text()}\" id=\"{$x/@id}\" version=\"{$x/@version}\" agency=\"{$x/@agency}\"  />");
+		query.append(" return $result");
+
 		List<String> result = PersistenceManager.getInstance().query(
 				query.toString());
 		return result.get(0);
