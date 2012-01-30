@@ -108,7 +108,8 @@ public class DbXmlManager implements PersistenceStorage {
 				instance.envHome = new File(
 						DdiEditorConfig
 								.get(DdiEditorConfig.DBXML_ENVIROMENT_HOME));
-				instance.codebookName = DdiEditorConfig.get(DdiEditorConfig.CODEBOOKSTYLESHEETNAME);
+				instance.codebookName = DdiEditorConfig
+						.get(DdiEditorConfig.CODEBOOKSTYLESHEETNAME);
 				logSystem.info("New env home: "
 						+ instance.envHome.getAbsolutePath());
 
@@ -254,7 +255,8 @@ public class DbXmlManager implements PersistenceStorage {
 			xmlContainerConfig = new XmlContainerConfig();
 			xmlContainerConfig.setIndexNodes(XmlContainerConfig.On);
 			xmlContainerConfig.setContainerType(XmlContainer.NodeContainer);
-			xmlContainerConfig.setCompression(XmlContainerConfig.NO_COMPRESSSION);
+			xmlContainerConfig
+					.setCompression(XmlContainerConfig.NO_COMPRESSSION);
 			xmlContainerConfig.setTransactional(true);
 			if (DdiEditorConfig
 					.getBoolean(DdiEditorConfig.DBXML_IMPORT_VALIDATE)) {
@@ -347,9 +349,13 @@ public class DbXmlManager implements PersistenceStorage {
 
 		// remove container
 		xmlManager.removeContainer(getTransaction(), containerId);
-
+		
 		// clean up open connections
 		openContainers.remove(containerId);
+		
+		// commit
+		commitTransaction();
+		houseKeeping();
 	}
 
 	@Override
@@ -1451,16 +1457,17 @@ public class DbXmlManager implements PersistenceStorage {
 				break;
 			}
 			case XmlEventReader.StartDocument: {
-				String codeBookStyleSheetpath = 
-						// TODO set full path to style sheet - problem: what to do with icons etc.?
-//						System.getenv("DDIEDITOR_HOME")
-//						+ System.getProperty("file.separator")
-//						+ "resources"
-//						+ System.getProperty("file.separator")
-//						+ "ddixslt"
-//						+ System.getProperty("file.separator")
-//						+ 
-						codebookName;
+				String codeBookStyleSheetpath =
+				// TODO set full path to style sheet - problem: what to do with
+				// icons etc.?
+				// System.getenv("DDIEDITOR_HOME")
+				// + System.getProperty("file.separator")
+				// + "resources"
+				// + System.getProperty("file.separator")
+				// + "ddixslt"
+				// + System.getProperty("file.separator")
+				// +
+				codebookName;
 				writeExportDocument(
 						rafFc,
 						"<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<?xml-stylesheet type= \"text/xsl\" href=\""
