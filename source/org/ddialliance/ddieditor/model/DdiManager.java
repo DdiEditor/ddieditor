@@ -3062,6 +3062,19 @@ public class DdiManager {
 		return null;
 	}
 
+	public String getVariableShort() throws DDIFtpException {
+		StringBuilder query = new StringBuilder();
+		query.append("declare namespace l=\"ddi:logicalproduct:3_1\";");
+		query.append("let $result := for $x in ");
+		query.append(PersistenceManager.getInstance().getResourcePath());
+		query.append("//l:Variable return");
+		query.append("<IdElement name=\"{$x/l:VariableName/text()}\" id=\"{$x/@id}\" version=\"{$x/@version}\" agency=\"{$x/@agency}\"  />");
+		query.append(" return <IdElementList>{$result}</IdElementList>");
+		List<String> result = PersistenceManager.getInstance().query(
+				query.toString());
+		return result.get(0);
+	}
+
 	//
 	// physical data product
 	//
