@@ -666,6 +666,17 @@ public class PersistenceManager {
 		rebuildResources();
 	}
 
+	public static String getStorageId(File file ) {
+		String containerName = file.getName();
+		containerName = containerName.replace(" ", "_");
+		
+		if (file.getName().lastIndexOf(".")>-1) {
+			containerName = file.getName().substring(0,
+					file.getName().lastIndexOf("."));				
+		}
+		
+		return containerName;
+	}
 	/**
 	 * Create a DDI resource
 	 * 
