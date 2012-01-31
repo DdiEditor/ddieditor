@@ -3080,7 +3080,7 @@ public class DdiManager {
 		query.append(PersistenceManager.getInstance().getResourcePath());
 		query.append("//l:Variable return $x");
 		query.append(" let $result := for $x in $var return<IdElement repType=\"{ddieditor:getVarRepresentationType($x/l:Representation)}\" name=\"{$x/l:VariableName/text()}\" id=\"{$x/@id}\" version=\"{$x/@version}\" agency=\"{$x/@agency}\"  />");
-		query.append(" return $result");
+		query.append(" return <IdElementList>{$result}</IdElementList>");
 
 		List<String> result = PersistenceManager.getInstance().query(
 				query.toString());
