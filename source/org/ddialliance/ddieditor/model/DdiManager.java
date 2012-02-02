@@ -3127,7 +3127,25 @@ public class DdiManager {
 		MaintainableLightLabelQueryResult maLightLabelQueryResult = queryMaintainableLightLabel(query);
 		return maLightLabelQueryResult;
 	}
-
+	
+	//
+	// phycical instance
+	//	
+	public LightXmlObjectListDocument getPhysicalInstancesLight(String id,
+			String version, String parentId, String parentVersion)
+			throws Exception {
+		LightXmlObjectListDocument lightXmlObjectListDocument = queryLightXmlBeans(
+				id, version, parentId, parentVersion, "studyunit__StudyUnit",
+				"PhysicalInstance", null, "reusable__Name");
+		if (lightXmlObjectListDocument.getLightXmlObjectList()
+				.getLightXmlObjectList().isEmpty()) {
+			lightXmlObjectListDocument = queryLightXmlBeans(id, version,
+					parentId, parentVersion, "*",
+					"PhysicalInstance", null, "reusable__Name");
+		}
+		return lightXmlObjectListDocument;
+	}
+	
 	//
 	// archive
 	//
