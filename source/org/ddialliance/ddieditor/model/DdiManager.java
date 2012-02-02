@@ -2931,8 +2931,7 @@ public class DdiManager {
 
 	public LightXmlObjectListDocument getVariablesLightByCodeScheme(
 			ReferenceResolution referenceResolution) throws Exception {
-		return queryLightXmlByReference(referenceResolution, "VariableScheme",
-				"Variable", null, "reusable__Label", null, null);
+		return getVariablesLightByX(referenceResolution, "Variable");
 	}
 
 	private LightXmlObjectListDocument getVariablesLightByX(
