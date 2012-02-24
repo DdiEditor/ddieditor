@@ -63,6 +63,7 @@ public class Ddi3NamespaceHelper {
 	
 	// added dda relations
 	public final static String QUEI_VAR_USER_ID_TYPE = "dk.dda:queitopseudovariid-0.1";
+	public final static String SEQ_USER_ID_TYPE = "dk.dda:sequencepseudovariid-0.1";
 
 	// sub prefix variables
 	private final String NO_SPACE = "";
