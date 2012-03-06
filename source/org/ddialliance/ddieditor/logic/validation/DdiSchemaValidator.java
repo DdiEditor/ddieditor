@@ -50,7 +50,7 @@ public class DdiSchemaValidator {
 
 		// compile schema either from file -url or javax transform source
 		File schemaLocation = new File(
-				"/home/ddajvj/app/ddi3/DDI_3_1_2009-10-18_Documentation_XMLSchema/XMLSchema/instance.xsd");
+				"resources/ddi/instance.xsd");
 		// URL schemaLocation = new URL(
 		// "http://www.ddialliance.org/sites/default/files/schema/ddi3.1/instance.xsd");
 		Schema schema = factory.newSchema(schemaLocation);
