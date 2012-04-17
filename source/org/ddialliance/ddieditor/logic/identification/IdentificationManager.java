@@ -264,6 +264,10 @@ public class IdentificationManager {
 		abstractMaintainable.setAgency(properties.get("agency"));
 	}
 
+	public String getAgency() {
+		return properties.get("agency");
+	}
+	
 	/**
 	 * Add reference information
 	 * 
