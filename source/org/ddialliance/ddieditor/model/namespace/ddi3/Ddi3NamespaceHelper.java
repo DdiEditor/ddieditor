@@ -578,7 +578,7 @@ public class Ddi3NamespaceHelper {
 	 *            to transform
 	 * @return local schema name
 	 */
-	public String getLocalSchemaName(String conversionName) {
+	public static String getLocalSchemaName(String conversionName) {
 		int index = conversionName.indexOf("__");
 		if (index > -1) {
 			return conversionName.substring(index + 2);

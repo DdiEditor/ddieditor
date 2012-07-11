@@ -6,7 +6,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
 
-import org.ddialliance.ddi3.xml.xmlbeans.reusable.LabelType;
 import org.ddialliance.ddieditor.model.lightxmlobject.CustomListType;
 import org.ddialliance.ddieditor.model.lightxmlobject.CustomType;
 import org.ddialliance.ddieditor.model.lightxmlobject.LightXmlObjectListDocument;
@@ -114,13 +113,34 @@ public class LightXmlObjectUtil {
 		return lightXmlObject;
 	}
 
+	/**
+	 * Use create with agency instead
+	 * @deprecated
+	 * @see org.ddialliance.ddieditor.util.createLightXmlObject(String agency, String parentId,
+			String parentVersion, String id, String version, String elementType)
+	 */
 	public static LightXmlObjectType createLightXmlObject(String parentId,
+			String parentVersion, String id, String version, String elementType) {
+				return createLightXmlObject(null, parentId, parentVersion, id, version, elementType);
+	}
+	
+	/**
+	 * Create a light xml object without labels to use for reference
+	 * @param agency identifying agency
+	 * @param parentId id of containing element
+	 * @param parentVersion version of containing element
+	 * @param id id
+	 * @param version version
+	 * @param elementType local name
+	 * @return light xml object
+	 */
+	public static LightXmlObjectType createLightXmlObject(String agency, String parentId,
 			String parentVersion, String id, String version, String elementType) {
 		LightXmlObjectType lightXmlObject = LightXmlObjectType.Factory
 				.newInstance();
-		lightXmlObject.setParentId(parentId == null ? "" : parentId);
-		lightXmlObject.setParentVersion(parentVersion == null ? ""
-				: parentVersion);
+		lightXmlObject.setAgency(agency == null ? "" : agency);
+		lightXmlObject.setParentId(parentId);
+		lightXmlObject.setParentVersion(parentVersion);
 		lightXmlObject.setId(id);
 		lightXmlObject.setVersion(version == null ? "" : version);
 		lightXmlObject.setElement(elementType);

@@ -113,6 +113,11 @@ public class FilesystemManager implements PersistenceStorage {
 	}
 
 	@Override
+	public void exportResources(String id, List<String> resources, File file) throws Exception {
+		// do nothing
+	}
+
+	@Override
 	public String getGlobalResourcePath(StorageType storage) throws Exception {
 		// not implemented
 		return null;

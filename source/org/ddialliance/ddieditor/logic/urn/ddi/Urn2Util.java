@@ -461,8 +461,7 @@ public class Urn2Util {
 		// sourceContext
 		// Content: Module?, Scheme?, (URN | (ID, IdentifyingAgency?, Version?))
 		if (!reference.getIDList().isEmpty()) {
-			return new ReferenceResolution(reference.getIDArray(0)
-					.getStringValue());
+			return new ReferenceResolution(reference);
 		}
 		return null;
 	}

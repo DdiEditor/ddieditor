@@ -14,12 +14,12 @@ import org.ddialliance.ddieditor.model.XQuery;
 import org.ddialliance.ddieditor.model.resource.DDIResourceDocument;
 import org.ddialliance.ddieditor.model.resource.DDIResourceType;
 import org.ddialliance.ddieditor.model.resource.ResourceListDocument;
+import org.ddialliance.ddieditor.model.resource.ResourceListType;
 import org.ddialliance.ddieditor.model.resource.StorageDocument;
 import org.ddialliance.ddieditor.model.resource.StorageType;
 import org.ddialliance.ddieditor.model.resource.TopURNDocument;
 import org.ddialliance.ddieditor.model.resource.TopURNType;
 import org.ddialliance.ddieditor.persistenceaccess.dbxml.DbXmlManager;
-import org.ddialliance.ddieditor.util.DdiEditorConfig;
 import org.ddialliance.ddieditor.util.DdiEditorRefUtil;
 import org.ddialliance.ddiftp.util.DDIFtpException;
 import org.ddialliance.ddiftp.util.log.Log;
@@ -104,7 +104,6 @@ public class PersistenceManager {
 
 	public void reset() {
 		instance = null;
-		log.info("Has been reset");
 	}
 
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -456,7 +455,31 @@ public class PersistenceManager {
 	public List<String> query(String query) throws DDIFtpException {
 		queryLog.info(query);
 		try {
-			return getPersistenceStorage().query(query);
+			// working resource
+			List<String> result = getPersistenceStorage().query(query);
+			
+			if (result.isEmpty()) {
+				// try in other storages
+				String tmpResource = getWorkingResource();
+				List<DDIResourceType> resources = getResources();
+				for (DDIResourceType resource : resources) {
+					if (resource.getOrgName().equals(RESOURCE_LIST_FILE)
+							|| resource.getOrgName().equals(tmpResource)) {
+						continue;
+					}
+
+					setWorkingResource(resource.getOrgName());
+					result = getPersistenceStorage().query(query);
+					if (!result.isEmpty()) {
+						break;
+					}
+				}
+
+				// reset
+				PersistenceManager.getInstance().setWorkingResource(
+						tmpResource);
+			}
+			return result;
 		} catch (Exception e) {
 			throw new DDIFtpException("Error on query execution", e);
 		}
@@ -666,17 +689,18 @@ public class PersistenceManager {
 		rebuildResources();
 	}
 
-	public static String getStorageId(File file ) {
+	public static String getStorageId(File file) {
 		String containerName = file.getName();
 		containerName = containerName.replace(" ", "_");
-		
-		if (file.getName().lastIndexOf(".")>-1) {
+
+		if (file.getName().lastIndexOf(".") > -1) {
 			containerName = file.getName().substring(0,
-					file.getName().lastIndexOf("."));				
+					file.getName().lastIndexOf("."));
 		}
-		
+
 		return containerName;
 	}
+
 	/**
 	 * Create a DDI resource
 	 * 
@@ -1028,6 +1052,24 @@ public class PersistenceManager {
 		}
 	}
 
+	/**
+	 * Export all resource from persistent storage to a file
+	 * 
+	 * @param main document
+	 *            in persistent storage
+	 * @param file
+	 *            in file system
+	 * @throws DDIFtpException
+	 */
+	public void exportResoures(String document, List<String> resources, File file)
+			throws DDIFtpException {
+		setWorkingResource(document);
+		try {
+			workingPersistenceStorage.exportResources(document, resources, file);
+		} catch (Exception e) {
+			throw new DDIFtpException("Error exporting resource: " + document);
+		}
+	}
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	// utils
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

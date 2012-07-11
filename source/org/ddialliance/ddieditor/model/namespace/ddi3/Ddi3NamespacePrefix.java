@@ -30,7 +30,7 @@ public enum Ddi3NamespacePrefix {
 	SCHEMA_INSTANCE("xsi", "http://www.w3.org/2001/XMLSchema-instance"), INSTANCE(
 			"ns1", "ddi:instance:3_1"), REUSEABLE("r", "ddi:reusable:3_1"), XHTML(
 			"xhtml", "http://www.w3.org/1999/xhtml"), DC_ELEMENTS("dce",
-			"ddi:dcelements:3_1"), DUBLIN_CORE("dc",
+			"ddi:dcelements:3_1"), DUBLIN_CORE("dc2",
 			"http://purl.org/dc/elements/1.1/"), ARCHIVE("a", "ddi:archive:3_1"), GROUP(
 			"g", "ddi:group:3_1"), COMPARATIVE("cm", "ddi:comparative:3_1"), CONCEPTUAL_COMPONENTS(
 			"c", "ddi:conceptualcomponent:3_1"), DATA_COLLECTION("d",

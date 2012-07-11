@@ -25,7 +25,7 @@ public class IdentificationManager {
 	private static Log log = LogFactory.getLog(LogType.SYSTEM,
 			IdentificationManager.class);
 	private static IdentificationManager instance;
-	private String deleimiter = ".";	
+	private String deleimiter = ".";
 	private IdentificationGenerator idGenerator = null;
 	private ReferenceGenerator refGenerator = null;
 	private Map<String, String> properties;
@@ -67,7 +67,7 @@ public class IdentificationManager {
 		}
 		return instance;
 	}
-	
+
 	public IdentificationGenerator getIdentificationGenerator() {
 		return idGenerator;
 	}
@@ -120,6 +120,21 @@ public class IdentificationManager {
 			String postfix) throws DDIFtpException {
 		abstractIdentifiable.setId(idGenerator.generateId(prefix, postfix));
 
+		// version
+		if (abstractIdentifiable instanceof AbstractVersionableType) {
+			AbstractVersionableType abstractVersionable = (AbstractVersionableType) abstractIdentifiable;
+			abstractVersionable.setVersion(generateVersion(null, null));
+
+			// user id
+			abstractVersionable.setVersionResponsibility(idGenerator
+					.getUserId());
+
+			// date
+			String time = Translator.formatIso8601DateTime(System
+					.currentTimeMillis());
+			abstractVersionable.setVersionDate(time);
+		}
+
 		// agency
 		if (abstractIdentifiable instanceof AbstractMaintainableType) {
 			addAgency((AbstractMaintainableType) abstractIdentifiable);
@@ -157,8 +172,8 @@ public class IdentificationManager {
 		// versionRationale
 		InternationalStringType str = abstractVersionable
 				.addNewVersionRationale();
-		XmlBeansUtil.addTranslationAttributes(str, Translator
-				.getLocaleLanguage(), false, true);
+		XmlBeansUtil.addTranslationAttributes(str,
+				Translator.getLocaleLanguage(), false, true);
 
 		// change info, ddi currently does not bind, version rationale to a
 		// specific version change
@@ -184,14 +199,15 @@ public class IdentificationManager {
 	/**
 	 * Retrieve version responsibility and version rationale
 	 * 
-	 * @param xmlObject of type Document
+	 * @param xmlObject
+	 *            of type Document
 	 * @return version information
 	 * @throws DDIFtpException
 	 */
 	public VersionInformation getVersionInformation(XmlObject xmlObject)
 			throws DDIFtpException {
 		XmlBeansUtil.instanceOfXmlBeanDocument(xmlObject, new Throwable());
-		
+
 		XmlObject xmlObjectType = XmlBeansUtil.getXmlObjectTypeFromXmlDocument(
 				xmlObject, new Throwable());
 		if (!(xmlObjectType instanceof AbstractVersionableType)) {
@@ -238,9 +254,9 @@ public class IdentificationManager {
 		if (oldVersion == null) {
 			return "1.0.0";
 		}
-		
+
 		// TODO apply version rules in calling code ;- )
-		if (versionChange ==null) {
+		if (versionChange == null) {
 			return oldVersion;
 		}
 
@@ -267,7 +283,7 @@ public class IdentificationManager {
 	public String getAgency() {
 		return properties.get("agency");
 	}
-	
+
 	/**
 	 * Add reference information
 	 * 
@@ -291,8 +307,8 @@ public class IdentificationManager {
 
 	private ReferenceType createReferenceByReflection(
 			LightXmlObjectType lightXmlObject) throws DDIFtpException {
-		StringBuilder clazz = new StringBuilder(Config
-				.get(Config.DDI3_XMLBEANS_BASEPACKAGE));
+		StringBuilder clazz = new StringBuilder(
+				Config.get(Config.DDI3_XMLBEANS_BASEPACKAGE));
 		clazz.append(DdiManager.getInstance().getDdi3NamespaceHelper()
 				.getModuleNameByElement(lightXmlObject.getElement()));
 		clazz.append(".");
@@ -308,11 +324,13 @@ public class IdentificationManager {
 		try {
 			Object obj = ReflectionUtil.invokeStaticMethod(clazz.toString(),
 					"newInstance");
-			ReflectionUtil.invokeMethod(obj, "addNew"
-					+ lightXmlObject.getElement() + "Reference", false, null);
+			ReflectionUtil.invokeMethod(obj,
+					"addNew" + lightXmlObject.getElement() + "Reference",
+					false, null);
 
-			result = ReflectionUtil.invokeMethod(obj, "get"
-					+ lightXmlObject.getElement() + "Reference", false, null);
+			result = ReflectionUtil.invokeMethod(obj,
+					"get" + lightXmlObject.getElement() + "Reference", false,
+					null);
 		} catch (Exception e) {
 			DDIFtpException wrapedException = new DDIFtpException(
 					"xmlbeanutil.open.error", lightXmlObject);

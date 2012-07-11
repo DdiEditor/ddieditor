@@ -134,6 +134,17 @@ public interface PersistenceStorage {
 	public void exportResource(String id, File file) throws Exception;
 
 	/**
+	 * Export all resource from storage to a file
+	 * 
+	 * @param id
+	 *            of main document in storage
+	 * @param file
+	 *            in file system
+	 * @throws Exception
+	 */
+	public void exportResources(String id, List<String> resources, File file) throws Exception;
+
+	/**
 	 * Closes down storage
 	 * 
 	 * @throws Exception

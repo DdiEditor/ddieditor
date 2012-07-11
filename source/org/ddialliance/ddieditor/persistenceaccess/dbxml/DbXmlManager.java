@@ -12,11 +12,11 @@ import java.util.Set;
 
 import org.apache.commons.pool.ObjectPool;
 import org.apache.commons.pool.impl.StackObjectPool;
-
 import org.ddialliance.ddieditor.model.DdiManager;
 import org.ddialliance.ddieditor.model.lightxmlobject.LabelType;
 import org.ddialliance.ddieditor.model.lightxmlobject.LightXmlObjectListDocument;
 import org.ddialliance.ddieditor.model.lightxmlobject.LightXmlObjectType;
+import org.ddialliance.ddieditor.model.namespace.ddi3.Ddi3NamespaceHelper;
 import org.ddialliance.ddieditor.model.namespace.ddi3.Ddi3NamespacePrefix;
 import org.ddialliance.ddieditor.model.resource.StorageType;
 import org.ddialliance.ddieditor.persistenceaccess.DefineQueryPositionResult;
@@ -349,10 +349,10 @@ public class DbXmlManager implements PersistenceStorage {
 
 		// remove container
 		xmlManager.removeContainer(getTransaction(), containerId);
-		
+
 		// clean up open connections
 		openContainers.remove(containerId);
-		
+
 		// commit
 		commitTransaction();
 		houseKeeping();
@@ -717,7 +717,8 @@ public class DbXmlManager implements PersistenceStorage {
 					// sub elements
 					for (int i = 0; i < subElements.length; i++) {
 						// check if localName is a parent sub-element
-						if (localName.equals(subElements[i])) {
+						if (localName.equals(Ddi3NamespaceHelper
+								.getLocalSchemaName(subElements[i]))) {
 							foundName = subElements[i];
 							break;
 						}
@@ -1173,7 +1174,6 @@ public class DbXmlManager implements PersistenceStorage {
 						maintainableLabelQuery.getMaintainableTarget());
 
 		boolean end = false;
-		String prevLocalName = "";
 		LightXmlObjectType lightXmlObject = null;
 
 		// target labels
@@ -1357,16 +1357,35 @@ public class DbXmlManager implements PersistenceStorage {
 	}
 
 	public void exportResource(String document, File file) throws Exception {
+		exportResourceImpl(document, null, file, false, null);
+	}
+
+	public void exportResources(String document, List<String> resources,
+			File file) throws Exception {
+		// current working container
+		exportResourceImpl(document, resources, file, false, null);
+		// re-change container
+		PersistenceManager.getInstance().setWorkingResource(document);
+	}
+
+	private void exportResourceImpl(String document, List<String> resources,
+			File file, boolean appendResourcePackage , FileChannel rafFc) throws Exception {
 		// file
-		if (file.exists()) {
+		if (!appendResourcePackage && file.exists()) {
 			file.delete();
 		}
-		RandomAccessFile raf = new RandomAccessFile(file, "rw");
-		FileChannel rafFc = raf.getChannel();
-		XmlEventReader reader = null;
+
+		// file channel
+		if (rafFc == null) {
+			RandomAccessFile raf = new RandomAccessFile(file, "rw");
+			rafFc = raf.getChannel();
+		}
 
 		// reader
+		XmlEventReader reader = null;
 		try {
+			PersistenceManager.getInstance().setWorkingResource(document);
+
 			reader = getWorkingContainer().getDocument(getTransaction(),
 					document).getContentAsEventReader();
 		} catch (Exception e) {
@@ -1384,6 +1403,22 @@ public class DbXmlManager implements PersistenceStorage {
 				// element
 				String localname = reader.getLocalName();
 				String prefix = reader.getPrefix();
+
+				// resource package case
+				if (resources != null && localname.equals("StudyUnit")) {
+					// 1 Insert all resource packages
+					for (String resource : resources) {
+						if (!resource.equals(document)) {
+							// 2 Recursive insert resource package
+							exportResourceImpl(resource, null, file, true, rafFc);
+						}
+					}
+				}
+
+				// 3 Skip when inserting resource package into study unit
+				if (appendResourcePackage && localname.equals("DDIInstance")) {
+					break;
+				}
 
 				StringBuffer startElement = new StringBuffer("<");
 				if (prefix != null) {
@@ -1421,6 +1456,12 @@ public class DbXmlManager implements PersistenceStorage {
 			}
 			case XmlEventReader.EndElement: {
 				String localName = reader.getLocalName();
+
+				// 3 Skip when inserting resource package into study unit
+				if (appendResourcePackage && localName.equals("DDIInstance")) {
+					break;
+				}
+
 				String prefix = reader.getPrefix();
 
 				StringBuffer endElement = new StringBuffer("</");
@@ -1457,17 +1498,13 @@ public class DbXmlManager implements PersistenceStorage {
 				break;
 			}
 			case XmlEventReader.StartDocument: {
-				String codeBookStyleSheetpath =
-				// TODO set full path to style sheet - problem: what to do with
-				// icons etc.?
-				// System.getenv("DDIEDITOR_HOME")
-				// + System.getProperty("file.separator")
-				// + "resources"
-				// + System.getProperty("file.separator")
-				// + "ddixslt"
-				// + System.getProperty("file.separator")
-				// +
-				codebookName;
+				// 3 Skip when inserting resource package into study unit
+				if (appendResourcePackage) {
+					break;
+				}
+
+				// add xml header and style sheet processing
+				String codeBookStyleSheetpath = codebookName;
 				writeExportDocument(
 						rafFc,
 						"<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<?xml-stylesheet type= \"text/xsl\" href=\""
@@ -1475,6 +1512,11 @@ public class DbXmlManager implements PersistenceStorage {
 				break;
 			}
 			case XmlEventReader.EndDocument: {
+				// 3 Skip when inserting resource package into study unit
+//				if (appendResourcePackage) {
+//					break;
+//				}
+
 				writeExportDocument(rafFc, "\n");
 				break;
 			}
@@ -1482,6 +1524,10 @@ public class DbXmlManager implements PersistenceStorage {
 				break;
 			}
 			case XmlEventReader.ProcessingInstruction: {
+				// 3 Skip when inserting resource package into study unit
+				if (appendResourcePackage) {
+					break;
+				}
 				StringBuffer process = new StringBuffer();
 				process.append("\n<?");
 				process.append(reader.getLocalName());

@@ -47,7 +47,7 @@ public class DdiManagerTest extends DdieditorTestCase {
 	public void getDdiInstanceLight() throws Exception {
 		PersistenceManager.getInstance().setWorkingResource(
 				DdieditorTestCase.FULLY_DECLARED_NS_DOC);
-		Assert.assertEquals(1, DdiManager.getInstance().getDdiInstanceLight(
+		Assert.assertEquals(1, DdiManager.getInstance().getDDIInstancesLight(
 				null, null, null, null).getLightXmlObjectList()
 				.getLightXmlObjectList().size());
 	}

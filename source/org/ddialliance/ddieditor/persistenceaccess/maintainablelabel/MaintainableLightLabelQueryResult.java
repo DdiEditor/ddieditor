@@ -2,7 +2,6 @@ package org.ddialliance.ddieditor.persistenceaccess.maintainablelabel;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -21,6 +20,31 @@ public class MaintainableLightLabelQueryResult {
 	private List<LabelType> labelList = new ArrayList<LabelType>();
 	private Map<String, LinkedList<LightXmlObjectType>> result = new HashMap<String, LinkedList<LightXmlObjectType>>();
 
+	/**
+	 * Constructor for one light xml object
+	 * @param maintainableTarget
+	 * @param id
+	 * @param version
+	 * @param agency
+	 * @param parentId
+	 * @param parentVersion
+	 */
+	public MaintainableLightLabelQueryResult(String maintainableTarget,
+			String id, String version, String agency, String parentId,
+			String parentVersion) {
+		super();
+		this.maintainableTarget = maintainableTarget;
+		this.id = id;
+		this.version = version;
+		this.agency = agency;
+		this.parentId = parentId;
+		this.parentVersion = parentVersion;
+	}
+
+	/**
+	 * Constructor setting properties from query
+	 * @param query query
+	 */
 	public MaintainableLightLabelQueryResult(MaintainableLabelQuery query) {
 		this.setMaintainableTarget(query.getMaintainableTarget());
 		this.setParentId(query.getParentId());
