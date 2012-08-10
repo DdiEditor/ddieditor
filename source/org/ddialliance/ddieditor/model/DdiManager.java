@@ -3041,6 +3041,16 @@ public class DdiManager {
 		return (text == "" ? null : CategorySchemeDocument.Factory.parse(text));
 	}
 
+	public CategorySchemeDocument getRPCategoryScheme(String id, String version,
+			String parentId, String parentVersion) throws Exception {
+		String text = queryElement(id, version, "CategoryScheme", parentId,
+				parentVersion, "ResourcePackage");
+		if (text == "" || text == null) {
+			text = queryElement(id, version, "CategoryScheme", null, null, "*");
+		}
+		return (text == "" ? null : CategorySchemeDocument.Factory.parse(text));
+	}
+
 	public MaintainableLabelQueryResult getCategorySchemeLabel(String id,
 			String version, String parentId, String parentVersion)
 			throws DDIFtpException {
