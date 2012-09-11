@@ -42,6 +42,7 @@ import org.ddialliance.ddi3.xml.xmlbeans.logicalproduct.DataRelationshipDocument
 import org.ddialliance.ddi3.xml.xmlbeans.logicalproduct.LogicalProductDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.logicalproduct.VariableDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.logicalproduct.VariableSchemeDocument;
+import org.ddialliance.ddi3.xml.xmlbeans.physicaldataproduct.RecordLayoutSchemeDocument;
 import org.ddialliance.ddieditor.logic.urn.ddi.ReferenceResolution;
 import org.ddialliance.ddieditor.model.conceptual.ConceptualElement;
 import org.ddialliance.ddieditor.model.conceptual.ConceptualType;
@@ -2637,8 +2638,7 @@ public class DdiManager {
 			// - Sequences
 			res = DdiManager
 					.getInstance()
-					.getSequencesLight(id, version,
-							lightXmlObject.getId(),
+					.getSequencesLight(id, version, lightXmlObject.getId(),
 							lightXmlObject.getVersion())
 					.getLightXmlObjectList().getLightXmlObjectList();
 			result.addAll(res);
@@ -2649,8 +2649,7 @@ public class DdiManager {
 			res = DdiManager
 					.getInstance()
 					.getQuestionConstructsLight(id, version,
-							lightXmlObject.getId(),
-							lightXmlObject.getVersion())
+							lightXmlObject.getId(), lightXmlObject.getVersion())
 					.getLightXmlObjectList().getLightXmlObjectList();
 			result.addAll(res);
 			if (res.size() > 0) {
@@ -3036,13 +3035,18 @@ public class DdiManager {
 		String text = queryElement(id, version, "CategoryScheme", parentId,
 				parentVersion, "logicalproduct__LogicalProduct");
 		if (text == "" || text == null) {
+			text = queryElement(id, version, "CategoryScheme", parentId,
+					parentVersion, "ResourcePackage");
+		}
+		if (text == "" || text == null) {
 			text = queryElement(id, version, "CategoryScheme", null, null, "*");
 		}
 		return (text == "" ? null : CategorySchemeDocument.Factory.parse(text));
 	}
 
-	public CategorySchemeDocument getRPCategoryScheme(String id, String version,
-			String parentId, String parentVersion) throws Exception {
+	public CategorySchemeDocument getRPCategoryScheme(String id,
+			String version, String parentId, String parentVersion)
+			throws Exception {
 		String text = queryElement(id, version, "CategoryScheme", parentId,
 				parentVersion, "ResourcePackage");
 		if (text == "" || text == null) {
@@ -3386,6 +3390,36 @@ public class DdiManager {
 
 		MaintainableLightLabelQueryResult maLightLabelQueryResult = queryMaintainableLightLabel(query);
 		return maLightLabelQueryResult;
+	}
+
+	public LightXmlObjectListDocument getRecordLayoutSchemesLight(String id,
+			String version, String parentId, String parentVersion)
+			throws Exception {
+		LightXmlObjectListDocument lightXmlObjectListDocument = queryLightXmlBeans(
+				id, version, parentId, parentVersion,
+				"physicaldataproduct__PhysicalDataProduct",
+				"RecordLayoutScheme", null, "reusable__Label");
+		if (lightXmlObjectListDocument.getLightXmlObjectList()
+				.getLightXmlObjectList().isEmpty()) {
+			lightXmlObjectListDocument = queryLightXmlBeans(id, version,
+					parentId, parentVersion, "*", "RecordLayoutScheme", null,
+					"reusable__Label");
+		}
+		return lightXmlObjectListDocument;
+	}
+
+	public RecordLayoutSchemeDocument getRecordLayoutScheme(String id,
+			String version, String parentId, String parentVersion)
+			throws Exception {
+		String text = queryElement(id, version, "RecordLayoutScheme", parentId,
+				parentVersion, "physicaldataproduct__PhysicalDataProduct");
+		if (text == null) {
+			queryElement(id, version,
+					"physicaldataproduct__PhysicalDataProduct", null, null,
+					null);
+		}
+		return (text == "" ? null : RecordLayoutSchemeDocument.Factory
+				.parse(text));
 	}
 
 	//
