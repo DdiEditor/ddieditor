@@ -11,6 +11,10 @@ public class DdiEditorConfig extends Config {
 	public static final String DBXML_DDI_INDEX = "dbxml.index.ddi";
 	public static final String DDI_ELEMENTS_RELATIONSHIP_LIST = "ddi.elements.relationshiplist";
 	public static final String DDI_AGENCY = "ddi.agency";
+	public static final String DDI_AGENCY_NAME = "ddi.agency.name";
+	public static final String DDI_AGENCY_DESCRIPTION = "ddi.agency.description";
+	public static final String DDI_AGENCY_IDENTIFIER = "ddi.agency.identifier";
+	public static final String DDI_AGENCY_HP = "ddi.agency.url";
 	public static final String DDI_LANGUAGE = "ddi.lang";
 	public static final String DDI_INSTRUMENT_PROGRAM_LANG = "ddi.inst.programlang";
 	public static final String DDA_DDI_INSTRUMENT_PROGRAM_LANG = "dda.ddi.inst.programlang";

@@ -12,6 +12,7 @@ import org.ddialliance.ddi3.xml.xmlbeans.reusable.InternationalStringType;
 import org.ddialliance.ddi3.xml.xmlbeans.reusable.ReferenceType;
 import org.ddialliance.ddieditor.model.DdiManager;
 import org.ddialliance.ddieditor.model.lightxmlobject.LightXmlObjectType;
+import org.ddialliance.ddieditor.util.DdiEditorConfig;
 import org.ddialliance.ddiftp.util.Config;
 import org.ddialliance.ddiftp.util.DDIFtpException;
 import org.ddialliance.ddiftp.util.ReflectionUtil;
@@ -173,7 +174,7 @@ public class IdentificationManager {
 		InternationalStringType str = abstractVersionable
 				.addNewVersionRationale();
 		XmlBeansUtil.addTranslationAttributes(str,
-				Translator.getLocaleLanguage(), false, true);
+				DdiEditorConfig.get(DdiEditorConfig.DDI_LANGUAGE), false, true);
 
 		// change info, ddi currently does not bind, version rationale to a
 		// specific version change

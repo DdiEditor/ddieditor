@@ -84,6 +84,12 @@ public class DbXmlWorker {
 	public List<String> query(String query) throws Exception {
 		XmlResults rs = xQuery(query);
 		List<String> result = new ArrayList<String>();
+		
+		// quick fix - check for dead lock exception instead
+		if (rs==null) {
+			return result;
+		}
+		
 		while (rs.hasNext()) {
 			result.add(rs.next().asString());
 		}

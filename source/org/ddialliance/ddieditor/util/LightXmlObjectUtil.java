@@ -53,6 +53,13 @@ public class LightXmlObjectUtil {
 			String customElementName) {
 		List<LightXmlObjectType> result = new ArrayList<LightXmlObjectType>();
 
+		if (lightXmlObjectListDoc == null
+				|| lightXmlObjectListDoc.getLightXmlObjectList() == null
+				|| lightXmlObjectListDoc.getLightXmlObjectList() // guard
+						.getLightXmlObjectList() == null) {
+			return result;
+		}
+
 		for (LightXmlObjectType lightXmlObject : lightXmlObjectListDoc
 				.getLightXmlObjectList().getLightXmlObjectList()) {
 
@@ -115,27 +122,38 @@ public class LightXmlObjectUtil {
 
 	/**
 	 * Use create with agency instead
+	 * 
 	 * @deprecated
-	 * @see org.ddialliance.ddieditor.util.createLightXmlObject(String agency, String parentId,
-			String parentVersion, String id, String version, String elementType)
+	 * @see org.ddialliance.ddieditor.util.createLightXmlObject(String agency,
+	 *      String parentId, String parentVersion, String id, String version,
+	 *      String elementType)
 	 */
 	public static LightXmlObjectType createLightXmlObject(String parentId,
 			String parentVersion, String id, String version, String elementType) {
-				return createLightXmlObject(null, parentId, parentVersion, id, version, elementType);
+		return createLightXmlObject(null, parentId, parentVersion, id, version,
+				elementType);
 	}
-	
+
 	/**
 	 * Create a light xml object without labels to use for reference
-	 * @param agency identifying agency
-	 * @param parentId id of containing element
-	 * @param parentVersion version of containing element
-	 * @param id id
-	 * @param version version
-	 * @param elementType local name
+	 * 
+	 * @param agency
+	 *            identifying agency
+	 * @param parentId
+	 *            id of containing element
+	 * @param parentVersion
+	 *            version of containing element
+	 * @param id
+	 *            id
+	 * @param version
+	 *            version
+	 * @param elementType
+	 *            local name
 	 * @return light xml object
 	 */
-	public static LightXmlObjectType createLightXmlObject(String agency, String parentId,
-			String parentVersion, String id, String version, String elementType) {
+	public static LightXmlObjectType createLightXmlObject(String agency,
+			String parentId, String parentVersion, String id, String version,
+			String elementType) {
 		LightXmlObjectType lightXmlObject = LightXmlObjectType.Factory
 				.newInstance();
 		lightXmlObject.setAgency(agency == null ? "" : agency);

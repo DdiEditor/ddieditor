@@ -638,9 +638,9 @@ public class DbXmlManager implements PersistenceStorage {
 					new Throwable());
 		}
 
-		String initStart = null, localName = null, foundName = null, located = null, jumpName = null;
+		String initStart = null, localName = null, prevLocal = null, foundName = null, located = null, jumpName = null;
 
-		boolean stop = false, jumpEnd = false;
+		boolean stop = false, jumpEnd = false, subElement = false;
 		int locatedCount = 0;
 
 		if (xmlValue.isNode()) {
@@ -656,11 +656,17 @@ public class DbXmlManager implements PersistenceStorage {
 					if (initStart.equals(localName)) {
 						break;
 					}
+					
+					// reset sub element
+					if (subElement&&!localName.equals(initStart)) {
+						located = null;
+						subElement = false;
+					}
 				}
 
 				// start element
 				if (type == XmlEventReader.StartElement) {
-					// parent:
+					// parent
 					localName = reader.getLocalName();
 
 					if (initStart == null) {
@@ -715,18 +721,22 @@ public class DbXmlManager implements PersistenceStorage {
 					}
 
 					// sub elements
+					logSystem.debug(prevLocal);
 					for (int i = 0; i < subElements.length; i++) {
 						// check if localName is a parent sub-element
 						if (localName.equals(Ddi3NamespaceHelper
 								.getLocalSchemaName(subElements[i]))) {
 							foundName = subElements[i];
+							subElement = true;
 							break;
 						}
 					}
 					if (foundName != null) {
+						// update located count
 						if (located != null && located.equals(foundName)) {
 							locatedCount++;
 						} else {
+							// init located
 							located = foundName;
 							locatedCount = 1;
 						}
@@ -1369,7 +1379,8 @@ public class DbXmlManager implements PersistenceStorage {
 	}
 
 	private void exportResourceImpl(String document, List<String> resources,
-			File file, boolean appendResourcePackage , FileChannel rafFc) throws Exception {
+			File file, boolean appendResourcePackage, FileChannel rafFc)
+			throws Exception {
 		// file
 		if (!appendResourcePackage && file.exists()) {
 			file.delete();
@@ -1410,7 +1421,8 @@ public class DbXmlManager implements PersistenceStorage {
 					for (String resource : resources) {
 						if (!resource.equals(document)) {
 							// 2 Recursive insert resource package
-							exportResourceImpl(resource, null, file, true, rafFc);
+							exportResourceImpl(resource, null, file, true,
+									rafFc);
 						}
 					}
 				}
@@ -1513,9 +1525,9 @@ public class DbXmlManager implements PersistenceStorage {
 			}
 			case XmlEventReader.EndDocument: {
 				// 3 Skip when inserting resource package into study unit
-//				if (appendResourcePackage) {
-//					break;
-//				}
+				// if (appendResourcePackage) {
+				// break;
+				// }
 
 				writeExportDocument(rafFc, "\n");
 				break;
