@@ -23,7 +23,9 @@ public class DdiEditorConfig extends Config {
     public static final String CHARSET_UNICODE = "charset.unicode";
     public static final String CODEBOOKSTYLESHEETNAME = "ddi.codebookstylesheetname";
 	public static final String DO_HOUSE_KEEPING_COUNT = "dbxml.doHouseKeeping";
-	
+	public static final String DDI_STYLE_SHEET_CODEBOOK_GUIDE_LINK = "ddi.stylesheet.codebookguidelink";
+	public static final String DDI_STYLE_SHEET_CURATION_PROCESS_LINK = "ddi.stylesheet.curationprocesslink";
+		
 	public static void init() {
 		LogFactory.getLog(LogType.SYSTEM, DdiEditorConfig.class).info(
 				"DDI editor init config done ;- )");
