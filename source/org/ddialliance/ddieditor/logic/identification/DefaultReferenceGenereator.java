@@ -35,8 +35,11 @@ public class DefaultReferenceGenereator implements ReferenceGenerator {
 
 		// version
 		reference.getVersionList().clear();
-		reference.addNewVersion().setStringValue(lightXmlObject.getVersion());
-
+		if (lightXmlObject.getVersion() != null
+				&& lightXmlObject.getVersion().length() > 0) {
+			reference.addNewVersion().setStringValue(
+					lightXmlObject.getVersion());
+		}
 		return reference;
 	}
 
