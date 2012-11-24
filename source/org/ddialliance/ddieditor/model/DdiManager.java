@@ -43,6 +43,7 @@ import org.ddialliance.ddi3.xml.xmlbeans.logicalproduct.LogicalProductDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.logicalproduct.VariableDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.logicalproduct.VariableSchemeDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.physicaldataproduct.RecordLayoutSchemeDocument;
+import org.ddialliance.ddi3.xml.xmlbeans.reusable.UserIDType;
 import org.ddialliance.ddieditor.logic.urn.ddi.ReferenceResolution;
 import org.ddialliance.ddieditor.model.conceptual.ConceptualElement;
 import org.ddialliance.ddieditor.model.conceptual.ConceptualType;
@@ -1960,6 +1961,28 @@ public class DdiManager {
 	//
 	// study unit
 	//
+	public LightXmlObjectListDocument getStudyUnitUserIDLights(String id,
+			String version, String parentId, String parentVersion)
+			throws Exception {
+		LightXmlObjectListDocument lightXmlObjectListDocument = queryLightXmlBeans(
+				id, version, parentId, parentVersion,
+				"Group/studyunit__StudyUnit", "UserID", null, "UserID");
+		if (lightXmlObjectListDocument.getLightXmlObjectList()
+				.getLightXmlObjectList().isEmpty()) {
+			lightXmlObjectListDocument = queryLightXmlBeans(id, version,
+					parentId, parentVersion, "studyunit__StudyUnit", "UserID",
+					null, "UserID");
+		}
+		return lightXmlObjectListDocument;
+	}
+
+	public UserIDType getStudyUnitUserId(String id, String version,
+			String parentId, String parentVersion) throws Exception {
+		String text = queryElement(id, version, "UserId", parentId,
+				parentVersion, "studyunit__StudyUnit");
+		return (text == "" ? null : UserIDType.Factory.parse(text));
+	}
+
 	public LightXmlObjectListDocument getStudyUnitsLight(String id,
 			String version, String parentId, String parentVersion)
 			throws Exception {
