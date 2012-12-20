@@ -3475,7 +3475,7 @@ public class DdiManager {
 		return lightXmlObjectListDocument;
 	}
 
-	public ArchiveDocument getAchive(String id, String version,
+	public ArchiveDocument getArchive(String id, String version,
 			String parentId, String parentVersion) throws Exception {
 		String text = queryElement(id, version, "Archive", parentId,
 				parentVersion, "studyunit__StudyUnit");
