@@ -137,6 +137,17 @@ public class FilesystemManager implements PersistenceStorage {
 	}
 
 	@Override
+	public boolean isReuseTransaction() {
+		// not implemented
+		return false;
+	}
+
+	@Override
+	public void setReuseTransaction(boolean reuseTransaction) {
+		// not implemented
+	}
+	
+	@Override
 	public List<String> query(String query) throws Exception {
 		// not implemented
 		return null;

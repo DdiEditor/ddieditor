@@ -10,6 +10,10 @@ import org.ddialliance.ddieditor.persistenceaccess.maintainablelabel.Maintainabl
 
 public interface PersistenceStorage {
 
+	public boolean isReuseTransaction();
+
+	public void setReuseTransaction(boolean reuseTransaction);
+	
 	/**
 	 * Execute query against persistence storage
 	 * 

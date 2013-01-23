@@ -88,6 +88,7 @@ public class DbXmlManager implements PersistenceStorage {
 	private String jumpName;
 
 	private ObjectPool pool;
+	private boolean reuseTransaction = false;
 
 	private DbXmlManager() {
 	}
@@ -149,6 +150,14 @@ public class DbXmlManager implements PersistenceStorage {
 		instance = null;
 		logSystem.info("Alle connections closed for envhome: "
 				+ getEnvHome().getAbsolutePath());
+	}
+
+	public boolean isReuseTransaction() {
+		return reuseTransaction;
+	}
+
+	public void setReuseTransaction(boolean reuseTransaction) {
+		this.reuseTransaction = reuseTransaction;
 	}
 
 	/**
@@ -656,9 +665,9 @@ public class DbXmlManager implements PersistenceStorage {
 					if (initStart.equals(localName)) {
 						break;
 					}
-					
+
 					// reset sub element
-					if (subElement&&!localName.equals(initStart)) {
+					if (subElement && !localName.equals(initStart)) {
 						located = null;
 						subElement = false;
 					}
