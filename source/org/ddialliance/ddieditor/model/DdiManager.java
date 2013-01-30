@@ -1248,6 +1248,23 @@ public class DdiManager {
 				XQueryInsertKeyword.AS_LAST_NODE, xQuery);
 	}
 
+	public void createElementAfter(String xml, String parentId,
+			String parentVersion, String parentElementType, int number,
+			String elementType) throws DDIFtpException {
+		XQuery xQuery = xQueryCrudPosition(parentId, parentVersion,
+				parentElementType, null, null, null);
+		String append = getDdi3NamespaceHelper()
+				.addFullyQualifiedNamespaceDeclarationToElements(
+						"/" + elementType);
+		xQuery.query.append(append);
+		xQuery.query.append("[");
+		xQuery.query.append(number);
+		xQuery.query.append("]");
+		PersistenceManager.getInstance().insert(
+				getDdi3NamespaceHelper().substitutePrefixesFromElements(xml),
+				XQueryInsertKeyword.AFTER, xQuery);
+	}
+
 	/**
 	 * Create an element in a parent of after possible existence of sub
 	 * elements.
