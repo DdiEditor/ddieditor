@@ -1,8 +1,5 @@
 package org.ddialliance.ddieditor.logic.urn.ddi;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.xmlbeans.XmlObject;
 import org.ddialliance.ddi3.xml.xmlbeans.reusable.ReferenceType;
 import org.ddialliance.ddieditor.model.DdiManager;
@@ -44,7 +41,7 @@ public class Urn2Util {
 			throws DDIFtpException {
 		return getUrn(lightXmlObject.getElement(), lightXmlObject.getId(),
 				lightXmlObject.getVersion(), lightXmlObject.getParentId(),
-				lightXmlObject.getParentVersion());
+				lightXmlObject.getParentVersion(), lightXmlObject.getAgency());
 	}
 
 	/**
@@ -60,11 +57,13 @@ public class Urn2Util {
 	 *            id of parent element
 	 * @param parentVersion
 	 *            version of parent
+	 * @param agency
 	 * @return urn
 	 * @throws DDIFtpException
 	 */
 	public static Urn getUrn(String elementName, String id, String version,
-			String parentId, String parentVersion) throws DDIFtpException {
+			String parentId, String parentVersion, String agency)
+			throws DDIFtpException {
 		Urn urn = new Urn();
 		boolean isMaintainable = DdiManager.getInstance()
 				.getDdi3NamespaceHelper().isMaintainable(elementName);
@@ -113,34 +112,17 @@ public class Urn2Util {
 		}
 
 		// agency
-		List<TopURNType> topUrns = PersistenceManager.getInstance()
-				.getTopUrnsByWorkingResource();
-		for (TopURNType topUrn : topUrns) {
-			// TODO better selection of top urn!
-			if (topUrn.getAgency() != null) {
-				urn.setIdentifingAgency(topUrn.getAgency());
-
-				// parent version fall back
-				if (urn.getMaintainableVersion() == null) {
-					urn.setMaintainableVersion(topUrn.getVersion());
-				}
-
-				// contained parent fall back
-				if (!isMaintainable && urn.getMaintainableId() == null) {
-					urn.setMaintainableId(topUrn.getId());
-				}
-				if (!isMaintainable && urn.getMaintainableVersion() == null) {
-					urn.setMaintainableVersion(topUrn.getVersion());
-				}
+		if (agency == null) {
+			// query for agency on parent element
+			try {
+				LightXmlObjectType lightXmlObject = DdiManager.getInstance()
+						.getAgency(parentId, parentVersion);
+				agency = lightXmlObject.getAgency();
+			} catch (Exception e) {
+				throw new DDIFtpException(e);
 			}
 		}
-
-		// urn validation
-		// TODO when urn setup is finalized check in validation
-		// urn.parseUrn(urn.toUrnString());
-		if (log.isDebugEnabled()) {
-			log.debug("Constructed urn: " + urn.toString());
-		}
+		urn.setIdentifingAgency(agency);
 		return urn;
 	}
 
@@ -184,7 +166,9 @@ public class Urn2Util {
 				.append("declare function ddieditor:find_element($top_urn) {");
 		query.function.append(" for $parent_element in $top_urn");
 		query.function.append("/");
-		query.function.append(DdiManager.getInstance().getDdi3NamespaceHelper()
+		query.function.append(DdiManager
+				.getInstance()
+				.getDdi3NamespaceHelper()
 				.addFullyQualifiedNamespaceDeclarationToElements(
 						initialParentElement));
 		query.function.append(" where $parent_element/@id='");
@@ -206,7 +190,9 @@ public class Urn2Util {
 		query.query.append(" for $x in ");
 		query.query.append(PersistenceManager.getInstance().getResourcePath());
 		query.query.append("/");
-		query.query.append(DdiManager.getInstance().getDdi3NamespaceHelper()
+		query.query.append(DdiManager
+				.getInstance()
+				.getDdi3NamespaceHelper()
 				.addFullyQualifiedNamespaceDeclarationToElements(
 						topUrn.getElement()));
 		query.query.append(" where $x/@id = '");
@@ -256,9 +242,13 @@ public class Urn2Util {
 		}
 		xQuery.setObject(i++, PersistenceManager.getInstance()
 				.getResourcePath());
-		xQuery.setObject(i++, DdiManager.getInstance().getDdi3NamespaceHelper()
-				.addFullyQualifiedNamespaceDeclarationToElements(
-						topUrn.getElement()));
+		xQuery.setObject(
+				i++,
+				DdiManager
+						.getInstance()
+						.getDdi3NamespaceHelper()
+						.addFullyQualifiedNamespaceDeclarationToElements(
+								topUrn.getElement()));
 		xQuery.setString(i++, topUrn.getId());
 		xQuery.setString(i, topUrn.getVersion());
 
@@ -286,8 +276,8 @@ public class Urn2Util {
 	public static XmlObject getXmlObjectByUrn(Urn urn) throws DDIFtpException {
 		String xmlText = getElementByUrn(urn, false);
 		StringBuilder className = new StringBuilder(DdiManager.getInstance()
-				.getDdi3NamespaceHelper().getModuleNameByElement(
-						urn.getContainedElement()));
+				.getDdi3NamespaceHelper()
+				.getModuleNameByElement(urn.getContainedElement()));
 		className.append(".");
 		className.append(urn.getContainedElement());
 		return XmlBeansUtil.openDDI(xmlText, null, className.toString());
@@ -308,9 +298,9 @@ public class Urn2Util {
 		LightXmlObjectListDocument lightXmlObjectList = null;
 		try {
 			lightXmlObjectList = (LightXmlObjectListDocument) DdiEditorRefUtil
-					.invokeMethod(DdiManager.getInstance(), methodName
-							.toString(), false, urn.getContainedElementId(),
-							"", "", "");
+					.invokeMethod(DdiManager.getInstance(),
+							methodName.toString(), false,
+							urn.getContainedElementId(), "", "", "");
 		} catch (Exception e) {
 			throw new DDIFtpException("Error on get light xml object by urn", e);
 		}
@@ -344,10 +334,10 @@ public class Urn2Util {
 		// .getDdi3NamespaceHelper().getParentElementName(
 		// urn.getContainedElement());
 		//
-		List<TopURNType> topUrns = PersistenceManager.getInstance()
-				.getTopUrnsByIdAndVersionByWorkingResource(
-						urn.getIdentifingAgency(), urn.getMaintainableId(),
-						urn.getMaintainableVersion());
+		// List<TopURNType> topUrns = PersistenceManager.getInstance()
+		// .getTopUrnsByIdAndVersionByWorkingResource(
+		// urn.getIdentifingAgency(), urn.getMaintainableId(),
+		// urn.getMaintainableVersion());
 
 		// retrieve element
 		ParamatizedXquery xQuery;
@@ -371,53 +361,53 @@ public class Urn2Util {
 			}
 		}
 
-		List<String> result = new ArrayList<String>();
+		// List<String> result = new ArrayList<String>();
 		String xmlText = null;
 		String version = null;
-		for (TopURNType tmpTopUrn : topUrns) {
-			// element lookup
-			xQuery.clearParameters();
-			xQuery.setObject(1, DdiManager.getInstance()
-					.getDdi3NamespaceHelper()
-					.addFullyQualifiedNamespaceDeclarationToElements(
-							urn.getContainedElement()));
-			xQuery.setString(2, urn.getContainedElementId());
-			xQuery.setObject(3, PersistenceManager.getInstance()
-					.getResourcePath());
-			xQuery.setObject(4, DdiManager.getInstance()
-					.getDdi3NamespaceHelper()
-					.addFullyQualifiedNamespaceDeclarationToElements(
-							tmpTopUrn.getElement()));
-			xQuery.setString(5, tmpTopUrn.getId());
-			xQuery.setString(6, tmpTopUrn.getVersion());
-
-			result = PersistenceManager.getInstance().query(
-					xQuery.getParamatizedQuery());
-
-			// element with right version
-			if (!result.isEmpty()) {
-				for (String xmlResult : result) {
-					version = getVersion(xmlResult);
-					// no version on element- inherit from topUrn
-					if (version == null
-							&& urn.getContainedElementVersion().equals(
-									urn.getMaintainableVersion())) {
-						xmlText = xmlResult;
-						break;
-					}
-
-					// element version
-					if (version != null
-							&& version.equals(urn.getContainedElementVersion())) {
-						xmlText = xmlResult;
-						break;
-					}
-				}
-			}
-			if (xmlText != null) {
-				break;
-			}
-		}
+		// for (TopURNType tmpTopUrn : topUrns) {
+		// // element lookup
+		// xQuery.clearParameters();
+		// xQuery.setObject(1, DdiManager.getInstance()
+		// .getDdi3NamespaceHelper()
+		// .addFullyQualifiedNamespaceDeclarationToElements(
+		// urn.getContainedElement()));
+		// xQuery.setString(2, urn.getContainedElementId());
+		// xQuery.setObject(3, PersistenceManager.getInstance()
+		// .getResourcePath());
+		// xQuery.setObject(4, DdiManager.getInstance()
+		// .getDdi3NamespaceHelper()
+		// .addFullyQualifiedNamespaceDeclarationToElements(
+		// tmpTopUrn.getElement()));
+		// xQuery.setString(5, tmpTopUrn.getId());
+		// xQuery.setString(6, tmpTopUrn.getVersion());
+		//
+		// result = PersistenceManager.getInstance().query(
+		// xQuery.getParamatizedQuery());
+		//
+		// // element with right version
+		// if (!result.isEmpty()) {
+		// for (String xmlResult : result) {
+		// version = getVersion(xmlResult);
+		// // no version on element- inherit from topUrn
+		// if (version == null
+		// && urn.getContainedElementVersion().equals(
+		// urn.getMaintainableVersion())) {
+		// xmlText = xmlResult;
+		// break;
+		// }
+		//
+		// // element version
+		// if (version != null
+		// && version.equals(urn.getContainedElementVersion())) {
+		// xmlText = xmlResult;
+		// break;
+		// }
+		// }
+		// }
+		// if (xmlText != null) {
+		// break;
+		// }
+		// }
 		if (log.isDebugEnabled()) {
 			log.debug("Version: " + version + " xmlText: " + xmlText);
 		}

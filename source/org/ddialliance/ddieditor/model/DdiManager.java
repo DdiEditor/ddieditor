@@ -70,6 +70,7 @@ import org.ddialliance.ddiftp.util.log.LogFactory;
 import org.ddialliance.ddiftp.util.log.LogType;
 import org.ddialliance.ddiftp.util.xml.XmlBeansUtil;
 import org.perf4j.aop.Profiled;
+import org.python.core.exceptions;
 
 /**
  * Defines accessors for the contents of a DDI document with the focus on
@@ -1820,6 +1821,33 @@ public class DdiManager {
 			}
 		}
 		return maintainableLightLabelQueryResult;
+	}
+
+	public LightXmlObjectType getAgency(String id, String version)
+			throws Exception {
+		StringBuilder query = new StringBuilder();
+		query.append(" for $element in ");
+		query.append(PersistenceManager.getInstance().getResourcePath());
+		query.append("//*");
+		query.append(" where $element/@id = '");
+		query.append(id);
+		query.append("'");
+		if (version != null && !version.equals("")) {
+			query.append(" and $element/@version = '");
+			query.append(version);
+			query.append("'");
+		} else {
+			query.append(" and empty($element/@version)");
+		}
+		query.append(" return <dl:LightXmlObjectList xmlns:dl=\"ddieditor-lightobject\"><LightXmlObject agency=\"{$element/@agency}\"/></dl:LightXmlObjectList>");
+		
+		List<String> xml = PersistenceManager.getInstance().query(query.toString());
+		LightXmlObjectListDocument list = LightXmlObjectListDocument.Factory.parse(xml.get(0));
+		if (!list.getLightXmlObjectList().getLightXmlObjectList().isEmpty()) {
+			return list.getLightXmlObjectList().getLightXmlObjectList().get(0);
+		} else {
+			return LightXmlObjectType.Factory.newInstance();
+		}
 	}
 
 	//

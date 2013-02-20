@@ -79,8 +79,6 @@ public class FilesystemManager implements PersistenceStorage {
 					ddiResourceDocument, containerName);
 			PersistenceManager.getInstance().setWorkingResource(fileName);
 			
-			// index resource storage and add urns 
-			PersistenceManager.getInstance().indexResourceUrns(true);
 		} catch (Exception e) {
 			throw e;
 		} finally {
