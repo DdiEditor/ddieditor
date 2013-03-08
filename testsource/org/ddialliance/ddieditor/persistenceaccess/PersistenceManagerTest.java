@@ -25,25 +25,6 @@ public class PersistenceManagerTest extends DdieditorTestCase {
 	}
 
 	@Test
-	public void getTopUrnsByWorkingResource() throws Exception {
-		PersistenceManager.getInstance().setWorkingResource(
-				DdieditorTestCase.FULLY_DECLARED_NS_DOC);
-		List<TopURNType> topUrns = PersistenceManager.getInstance()
-				.getTopUrnsByWorkingResource();
-		Assert.assertEquals(5, topUrns.size());
-	}
-
-	@Test
-	public void getTopUrnByIdAndVersionByWorkingResource() throws Exception {
-		PersistenceManager.getInstance().setWorkingResource(
-				DdieditorTestCase.FULLY_DECLARED_NS_DOC);
-		List<TopURNType> topUrns = PersistenceManager.getInstance()
-				.getTopUrnsByIdAndVersionByWorkingResource("hungobongo",
-						"qs_-2", "1.0.2");
-		Assert.assertEquals("hungobongo", topUrns.get(0).getAgency());
-	}
-
-	@Test
 	public void deleteResource() throws Exception {
 		String orgName = SINGLE_MANINTAINABLE_D_FD_NS_DOC;
 		PersistenceManager.getInstance().deleteResource(orgName);
