@@ -26,6 +26,8 @@ public class DdiEditorConfig extends Config {
 	public static final String DDI_STYLE_SHEET_CODEBOOK_GUIDE_LINK = "ddi.stylesheet.codebookguidelink";
 	public static final String DDI_STYLE_SHEET_CURATION_PROCESS_LINK = "ddi.stylesheet.curationprocesslink";
 	public static final String SPPS_OMS_XML_NAMESPACE = "spss.oms.xml.namespace";
+	public static final String SPSS_IMPORT_CHARSET="spss.import.charset";
+	public static final String OSIRIS_TO_DDIL_TITLE_PARTH_SPLIT="osiristoddil.title.pathsplit";
 		
 	public static void init() {
 		LogFactory.getLog(LogType.SYSTEM, DdiEditorConfig.class).info(
