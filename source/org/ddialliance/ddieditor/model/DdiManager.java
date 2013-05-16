@@ -2015,15 +2015,14 @@ public class DdiManager {
 		if (lightXmlObjectListDocument.getLightXmlObjectList()
 				.getLightXmlObjectList().isEmpty()) {
 			lightXmlObjectListDocument = queryLightXmlBeans(id, version,
-					parentId, parentVersion, "studyunit__StudyUnit", "UserID",
+					parentId, parentVersion, "DDIInstance", "studyunit__StudyUnit",
 					null, "UserID");
 		}
 		return lightXmlObjectListDocument;
 	}
 
-	public UserIDType getStudyUnitUserId(String id, String version,
-			String parentId, String parentVersion) throws Exception {
-		String text = queryElement(id, version, "UserId", parentId,
+	public UserIDType getStudyUnitUserId(String parentId, String parentVersion) throws Exception {
+		String text = queryElement(null, null, "UserID", parentId,
 				parentVersion, "studyunit__StudyUnit");
 		return (text == "" ? null : UserIDType.Factory.parse(text));
 	}
@@ -2071,6 +2070,22 @@ public class DdiManager {
 				new String[] { "UserID", "VersionResponsibility",
 						"VersionRationale" }, new String[] { "Citation",
 						"studyunit__Abstract", "UniverseReference",
+						"SeriesStatement", "FundingInformation",
+						"studyunit__Purpose", "Coverage", "AnalysisUnit",
+						"KindOfData", "OtherMaterial", "Note", "Embargo",
+						"ConceptualComponent", "DataCollection",
+						"LogicalProduct", "PhysicalDataProduct",
+						"PhysicalInstance", "Archive", "DDIProfile",
+						"DDIProfileReference" });
+	}
+
+	public MaintainableLabelQueryResult getStudyUserId(String id,
+			String version, String parentId, String parentVersion)
+			throws DDIFtpException {
+		return executeStudyLabelQuery(id, version, parentId, parentVersion,
+				new String[] { "UserID" }, new String[] {
+						"VersionResponsibility", "VersionRationale",
+						"Citation", "studyunit__Abstract", "UniverseReference",
 						"SeriesStatement", "FundingInformation",
 						"studyunit__Purpose", "Coverage", "AnalysisUnit",
 						"KindOfData", "OtherMaterial", "Note", "Embargo",
