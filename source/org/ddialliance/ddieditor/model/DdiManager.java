@@ -43,6 +43,11 @@ import org.ddialliance.ddi3.xml.xmlbeans.logicalproduct.LogicalProductDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.logicalproduct.VariableDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.logicalproduct.VariableSchemeDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.physicaldataproduct.RecordLayoutSchemeDocument;
+import org.ddialliance.ddi3.xml.xmlbeans.physicalinstance.StatisticsDocument;
+import org.ddialliance.ddi3.xml.xmlbeans.physicalinstance.StatisticsType;
+import org.ddialliance.ddi3.xml.xmlbeans.physicalinstance.VariableReferenceDocument;
+import org.ddialliance.ddi3.xml.xmlbeans.physicalinstance.VariableStatisticsType;
+import org.ddialliance.ddi3.xml.xmlbeans.reusable.ReferenceType;
 import org.ddialliance.ddi3.xml.xmlbeans.reusable.UserIDType;
 import org.ddialliance.ddieditor.logic.urn.ddi.ReferenceResolution;
 import org.ddialliance.ddieditor.model.conceptual.ConceptualElement;
@@ -3550,4 +3555,34 @@ public class DdiManager {
 				"Organization", null, "OrganizationName");
 		return lightXmlObjectListDocument;
 	}
+	
+	//
+	// Statistics Variable Reference
+	//
+	public StatisticsDocument getStatisticsVariableReference() throws Exception {
+
+		StringBuilder query = new StringBuilder();
+		query.append("for $element in ");
+		query.append(PersistenceManager.getInstance().getResourcePath());
+		query.append(getDdi3NamespaceHelper()
+				.addFullyQualifiedNamespaceDeclarationToElements("//PhysicalInstance"));
+		query.append(getDdi3NamespaceHelper()
+				.addFullyQualifiedNamespaceDeclarationToElements("Statistics"));
+		query.append(" return $element");
+		query.append(getDdi3NamespaceHelper()
+				.addFullyQualifiedNamespaceDeclarationToElements("//Statistics__VariableReference"));
+		
+		List<String> result = PersistenceManager.getInstance().query(
+				query.toString());
+
+		StatisticsDocument staticticsDoc = StatisticsDocument.Factory.newInstance();
+		StatisticsType statistics = staticticsDoc.addNewStatistics();
+		for (String string : result) {
+			VariableStatisticsType varStatistics = statistics.addNewVariableStatistics();
+			VariableReferenceDocument refdoc = VariableReferenceDocument.Factory.parse(string);
+			ReferenceType ref = refdoc.getVariableReference();
+			varStatistics.addNewVariableReference().set(ref);
+		}
+		return staticticsDoc;		
+	}	
 }
