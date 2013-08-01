@@ -647,7 +647,7 @@ public class DbXmlManager implements PersistenceStorage {
 					new Throwable());
 		}
 
-		String initStart = null, localName = null, prevLocal = null, foundName = null, located = null, jumpName = null;
+		String initStart = null, localName = null, foundName = null, located = null, jumpName = null;
 
 		boolean stop = false, jumpEnd = false, subElement = false;
 		int locatedCount = 0;
@@ -685,17 +685,20 @@ public class DbXmlManager implements PersistenceStorage {
 					// check against stop elements
 					for (int i = 0; i < stopElements.length; i++) {
 						// check if localName is part of stop list
-						if (localName.equals(stopElements[i])) {
+						if (localName.equals(Ddi3NamespaceHelper
+								.getCleanedElementName(stopElements[i]))) {
 							if (localName.equals(initStart)) {
 								// TODO reset all - normal insert with search
 								// for equal elements
 							}
 							stop = true;
-							located = localName;
+							located = stopElements[i];
+							logSystem.debug("Stop element: " + located);
 							locatedCount = 1;
 
 							// set insert key word
-							if (elementType.equals(stopElements[i])) {
+							if (elementType.equals(Ddi3NamespaceHelper
+									.getCleanedElementName(stopElements[i]))) {
 								result.insertKeyWord = XQueryInsertKeyword.AFTER;
 							} else {
 								result.insertKeyWord = XQueryInsertKeyword.BEFORE;
@@ -720,6 +723,7 @@ public class DbXmlManager implements PersistenceStorage {
 									locatedCount, jumpName, jumpElements,
 									stopElements, reader);
 							located = jumpResult.getName();
+							logSystem.debug("Jump element: " + located);
 							locatedCount = jumpResult.getLocation();
 							jumpEnd = true;
 							break;
@@ -730,12 +734,12 @@ public class DbXmlManager implements PersistenceStorage {
 					}
 
 					// sub elements
-					logSystem.debug(prevLocal);
 					for (int i = 0; i < subElements.length; i++) {
 						// check if localName is a parent sub-element
 						if (localName.equals(Ddi3NamespaceHelper
-								.getLocalSchemaName(subElements[i]))) {
+								.getCleanedElementName(subElements[i]))) {
 							foundName = subElements[i];
+							logSystem.debug("Sub element: " + foundName);
 							subElement = true;
 							break;
 						}
@@ -756,6 +760,9 @@ public class DbXmlManager implements PersistenceStorage {
 			}
 			reader.close();
 		}
+		logSystem.debug("Final located element: " + located);
+
+		// cleanup insert position
 		rs.delete();
 		rs = null;
 		commitTransaction();
