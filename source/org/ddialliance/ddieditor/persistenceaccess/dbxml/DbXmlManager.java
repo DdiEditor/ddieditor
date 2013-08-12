@@ -1532,11 +1532,12 @@ public class DbXmlManager implements PersistenceStorage {
 				}
 
 				// add xml header and style sheet processing
-				String codeBookStyleSheetpath = codebookName;
-				writeExportDocument(
-						rafFc,
-						"<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<?xml-stylesheet type= \"text/xsl\" href=\""
-								+ codeBookStyleSheetpath + "\"?>");
+				// String codeBookStyleSheetpath = codebookName;
+				writeExportDocument(rafFc,
+						"<?xml version=\"1.0\" encoding=\"utf-8\"?>");
+				// 20130805 comment out stylesheet 
+				// + "\n<?xml-stylesheet type= \"text/xsl\" href=\""+
+				// codeBookStyleSheetpath + "\"?>");
 				break;
 			}
 			case XmlEventReader.EndDocument: {
