@@ -9,24 +9,23 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import org.apache.xmlbeans.XmlOptions;
+import org.ddialliance.ddi3.xml.xmlbeans.reusable.UserIDDocument;
+import org.ddialliance.ddi3.xml.xmlbeans.reusable.UserIDType;
 import org.ddialliance.ddieditor.model.DdiManager;
 import org.ddialliance.ddieditor.model.XQuery;
+import org.ddialliance.ddieditor.model.lightxmlobject.LightXmlObjectType;
 import org.ddialliance.ddieditor.model.resource.DDIResourceDocument;
 import org.ddialliance.ddieditor.model.resource.DDIResourceType;
 import org.ddialliance.ddieditor.model.resource.ResourceListDocument;
-import org.ddialliance.ddieditor.model.resource.ResourceListType;
 import org.ddialliance.ddieditor.model.resource.StorageDocument;
 import org.ddialliance.ddieditor.model.resource.StorageType;
-import org.ddialliance.ddieditor.model.resource.TopURNDocument;
-import org.ddialliance.ddieditor.model.resource.TopURNType;
 import org.ddialliance.ddieditor.persistenceaccess.dbxml.DbXmlManager;
+import org.ddialliance.ddieditor.util.DdiEditorConfig;
 import org.ddialliance.ddieditor.util.DdiEditorRefUtil;
 import org.ddialliance.ddiftp.util.DDIFtpException;
 import org.ddialliance.ddiftp.util.log.Log;
 import org.ddialliance.ddiftp.util.log.LogFactory;
 import org.ddialliance.ddiftp.util.log.LogType;
-import org.ddialliance.ddiftp.util.xml.Urn;
-import org.ddialliance.ddiftp.util.xml.XmlBeansUtil;
 import org.perf4j.aop.Profiled;
 
 /**
@@ -457,7 +456,7 @@ public class PersistenceManager {
 		try {
 			// working resource
 			List<String> result = getPersistenceStorage().query(query);
-			
+
 			if (result.isEmpty()) {
 				// try in other storages
 				String tmpResource = getWorkingResource();
@@ -476,8 +475,8 @@ public class PersistenceManager {
 				}
 
 				// reset
-				PersistenceManager.getInstance().setWorkingResource(
-						tmpResource);
+				PersistenceManager.getInstance()
+						.setWorkingResource(tmpResource);
 			}
 			return result;
 		} catch (Exception e) {
@@ -906,31 +905,124 @@ public class PersistenceManager {
 	public void exportResoure(String resource, File file)
 			throws DDIFtpException {
 		setWorkingResource(resource);
+		UserIDDocument appVersion = getEditorVersion();
+
 		try {
+			// check for study unit
+			List<LightXmlObjectType> studyUnitList = DdiManager.getInstance()
+					.getStudyUnitsLight(null, null, null, null)
+					.getLightXmlObjectList().getLightXmlObjectList();
+			for (LightXmlObjectType lightXmlObjectType : studyUnitList) {
+				// clean up previous editor version user ids
+				cleanUpDdiEditorVersionUserIds(lightXmlObjectType.getId(),
+						lightXmlObjectType.getVersion(),
+						lightXmlObjectType.getParentId(),
+						lightXmlObjectType.getParentVersion());
+
+				// add app version as user id
+				PersistenceManager
+						.getInstance()
+						.insert(DdiManager
+								.getInstance()
+								.getDdi3NamespaceHelper()
+								.substitutePrefixesFromElements(
+										appVersion.xmlText(DdiManager
+												.getInstance().getXmlOptions())),
+								XQueryInsertKeyword.AS_FIRST_NODE,
+								DdiManager.getInstance().getQueryElementString(
+										lightXmlObjectType.getId(),
+										lightXmlObjectType.getVersion(),
+										"studyunit__StudyUnit",
+										lightXmlObjectType.getParentId(),
+										lightXmlObjectType.getParentVersion(),
+										"DDIInstance"));
+			}
+
+			// check for resource package
+			List<LightXmlObjectType> rpList = DdiManager.getInstance()
+					.getStudyUnitsLight(null, null, null, null)
+					.getLightXmlObjectList().getLightXmlObjectList();
+			for (LightXmlObjectType lightXmlObjectType : rpList) {
+				// add app version as user id
+			}
+
 			workingPersistenceStorage.exportResource(resource, file);
 		} catch (Exception e) {
 			throw new DDIFtpException("Error exporting resource: " + resource);
 		}
 	}
 
+	final String DDI_EDITOR_VERSION = "dk.dda.ddieditor.version";
+
+	private UserIDDocument getEditorVersion() {
+		UserIDDocument doc = UserIDDocument.Factory.newInstance();
+		doc.addNewUserID();
+		doc.getUserID().setType(DDI_EDITOR_VERSION);
+
+		// rcp application version not accessible!
+		// hack done load from release-note and put into config properties!
+		// @see org.ddialliance.ddieditor.ui.preference.PreferenceInitializer
+		doc.getUserID().setStringValue(
+				DdiEditorConfig.get(DdiEditorConfig.DDI_EDITOR_VERSION));
+		return doc;
+	}
+
+	private void cleanUpDdiEditorVersionUserIds(String id, String version,
+			String parentId, String parentVersion) throws Exception {
+		List<LightXmlObjectType> studyUnitUserIds = DdiManager.getInstance()
+				.getStudyUnitUserIDLights(id, version, parentId, parentVersion)
+				.getLightXmlObjectList().getLightXmlObjectList();
+		int count = 0;
+		for (LightXmlObjectType studyUnitUserId : studyUnitUserIds) {
+			count++;
+			UserIDType userIdType = DdiManager.getInstance()
+					.getStudyUnitUserId(studyUnitUserId.getId(),
+							studyUnitUserId.getVersion());
+			// delete old User IDs
+			if (userIdType != null) {
+				UserIDDocument userIdDoc = UserIDDocument.Factory
+						.parse(userIdType.xmlText(DdiManager.getInstance()
+								.getXmlOptions()));
+				if (userIdDoc.getUserID().getType().equals(DDI_EDITOR_VERSION)) {
+					PersistenceManager
+							.getInstance()
+							.delete(DdiManager.getInstance()
+									.getQueryElementString(id, version,
+											"studyunit__StudyUnit", parentId,
+											parentVersion, "DDIInstance")
+									+ DdiManager
+											.getInstance()
+											.getDdi3NamespaceHelper()
+											.addFullyQualifiedNamespaceDeclarationToElements(
+													"UserID")
+									+ "["
+									+ count
+									+ "]");
+				}
+			}
+		}
+	}
+
 	/**
 	 * Export all resource from persistent storage to a file
 	 * 
-	 * @param main document
-	 *            in persistent storage
+	 * @param main
+	 *            document in persistent storage
 	 * @param file
 	 *            in file system
 	 * @throws DDIFtpException
 	 */
-	public void exportResoures(String document, List<String> resources, File file)
-			throws DDIFtpException {
+	public void exportResoures(String document, List<String> resources,
+			File file) throws DDIFtpException {
 		setWorkingResource(document);
 		try {
-			workingPersistenceStorage.exportResources(document, resources, file);
+			workingPersistenceStorage
+					.exportResources(document, resources, file);
 		} catch (Exception e) {
 			throw new DDIFtpException("Error exporting resource: " + document);
 		}
 	}
+
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	// utils
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
