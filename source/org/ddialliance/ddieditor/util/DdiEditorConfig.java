@@ -18,20 +18,21 @@ public class DdiEditorConfig extends Config {
 	public static final String DDI_LANGUAGE = "ddi.lang";
 	public static final String DDI_INSTRUMENT_PROGRAM_LANG = "ddi.inst.programlang";
 	public static final String DDA_DDI_INSTRUMENT_PROGRAM_LANG = "dda.ddi.inst.programlang";
-    public static final String CHARSET_ISO = "charset.iso";
-    public static final String CHARSET_OEM = "charset.oem";
-    public static final String CHARSET_UNICODE = "charset.unicode";
-    public static final String CODEBOOKSTYLESHEETNAME = "ddi.codebookstylesheetname";
+	public static final String CHARSET_ISO = "charset.iso";
+	public static final String CHARSET_OEM = "charset.oem";
+	public static final String CHARSET_UNICODE = "charset.unicode";
+	public static final String CODEBOOKSTYLESHEETNAME = "ddi.codebookstylesheetname";
 	public static final String DO_HOUSE_KEEPING_COUNT = "dbxml.doHouseKeeping";
 	public static final String DDI_STYLE_SHEET_CODEBOOK_GUIDE_LINK = "ddi.stylesheet.codebookguidelink";
 	public static final String DDI_STYLE_SHEET_CURATION_PROCESS_LINK = "ddi.stylesheet.curationprocesslink";
 	public static final String SPPS_OMS_XML_NAMESPACE = "spss.oms.xml.namespace";
-	public static final String SPSS_IMPORT_CHARSET="spss.import.charset";
-	public static final String SPSS_IMPORT_DECIMAL_SEPERATOR="spss.import.decimalseparator";
-	public static final String UTF8_ADD_BOM="charset_utf8_add_bom";
-	public static final String OSIRIS_TO_DDIL_TITLE_PARTH_SPLIT="osiristoddil.title.pathsplit";
-	public static final String OSIRIS_TO_DDIL_QBANKPREFIX="osiristoddil.dbqbank.prefix";
-		
+	public static final String SPSS_IMPORT_CHARSET = "spss.import.charset";
+	public static final String SPSS_IMPORT_DECIMAL_SEPERATOR = "spss.import.decimalseparator";
+	public static final String UTF8_ADD_BOM = "charset_utf8_add_bom";
+	public static final String OSIRIS_TO_DDIL_TITLE_PARTH_SPLIT = "osiristoddil.title.pathsplit";
+	public static final String OSIRIS_TO_DDIL_QBANKPREFIX = "osiristoddil.dbqbank.prefix";
+	public static final String DDI_EDITOR_VERSION = "ddieditor.app.version";
+
 	public static void init() {
 		LogFactory.getLog(LogType.SYSTEM, DdiEditorConfig.class).info(
 				"DDI editor init config done ;- )");
