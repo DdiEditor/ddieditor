@@ -48,6 +48,7 @@ import org.ddialliance.ddi3.xml.xmlbeans.physicalinstance.StatisticsType;
 import org.ddialliance.ddi3.xml.xmlbeans.physicalinstance.VariableReferenceDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.physicalinstance.VariableStatisticsType;
 import org.ddialliance.ddi3.xml.xmlbeans.reusable.ReferenceType;
+import org.ddialliance.ddi3.xml.xmlbeans.reusable.UserIDDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.reusable.UserIDType;
 import org.ddialliance.ddieditor.logic.urn.ddi.ReferenceResolution;
 import org.ddialliance.ddieditor.model.conceptual.ConceptualElement;
@@ -75,7 +76,6 @@ import org.ddialliance.ddiftp.util.log.LogFactory;
 import org.ddialliance.ddiftp.util.log.LogType;
 import org.ddialliance.ddiftp.util.xml.XmlBeansUtil;
 import org.perf4j.aop.Profiled;
-import org.python.core.exceptions;
 
 /**
  * Defines accessors for the contents of a DDI document with the focus on
@@ -905,6 +905,15 @@ public class DdiManager {
 			return result.get(0);
 		} else
 			return "";
+	}
+
+	protected List<String> queryElements(String id, String version,
+			String elementType, String parentId, String parentVersion,
+			String parentElementType) throws DDIFtpException {
+		List<String> result = PersistenceManager.getInstance().query(
+				getQueryElementString(id, version, elementType, parentId,
+						parentVersion, parentElementType));
+		return result;
 	}
 
 	/**
@@ -1845,9 +1854,11 @@ public class DdiManager {
 			query.append(" and empty($element/@version)");
 		}
 		query.append(" return <dl:LightXmlObjectList xmlns:dl=\"ddieditor-lightobject\"><LightXmlObject agency=\"{$element/@agency}\"/></dl:LightXmlObjectList>");
-		
-		List<String> xml = PersistenceManager.getInstance().query(query.toString());
-		LightXmlObjectListDocument list = LightXmlObjectListDocument.Factory.parse(xml.get(0));
+
+		List<String> xml = PersistenceManager.getInstance().query(
+				query.toString());
+		LightXmlObjectListDocument list = LightXmlObjectListDocument.Factory
+				.parse(xml.get(0));
 		if (!list.getLightXmlObjectList().getLightXmlObjectList().isEmpty()) {
 			return list.getLightXmlObjectList().getLightXmlObjectList().get(0);
 		} else {
@@ -2020,16 +2031,54 @@ public class DdiManager {
 		if (lightXmlObjectListDocument.getLightXmlObjectList()
 				.getLightXmlObjectList().isEmpty()) {
 			lightXmlObjectListDocument = queryLightXmlBeans(id, version,
-					parentId, parentVersion, "DDIInstance", "studyunit__StudyUnit",
-					null, "UserID");
+					parentId, parentVersion, "DDIInstance",
+					"studyunit__StudyUnit", null, "UserID");
 		}
 		return lightXmlObjectListDocument;
 	}
 
-	public UserIDType getStudyUnitUserId(String parentId, String parentVersion) throws Exception {
+	public UserIDType getStudyUnitUserId(String parentId, String parentVersion)
+			throws Exception {
 		String text = queryElement(null, null, "UserID", parentId,
 				parentVersion, "studyunit__StudyUnit");
 		return (text == "" ? null : UserIDType.Factory.parse(text));
+	}
+
+	public List<UserIDDocument> getAllStudyUnitUserIds(String id,
+			String version, String parentId, String parentVersion)
+			throws Exception {
+
+		// for $x in doc("test5.xml")//*[namespace-uri()='ddi:studyunit:3_1' and
+		// local-name()='StudyUnit']
+		//
+		// where $x/@version='1.0.0' and $x/@id='10007'
+		// return $x/*[namespace-uri()='ddi:reusable:3_1' and
+		// local-name()='UserID']
+
+		StringBuilder query = new StringBuilder();
+		query.append("for $element in ");
+		query.append(PersistenceManager.getInstance().getResourcePath());
+		query.append(getDdi3NamespaceHelper()
+				.addFullyQualifiedNamespaceDeclarationToElements(
+						"//studyunit__StudyUnit"));
+		query.append(" where $element/@version");
+		query.append(" ='");
+		query.append(version);
+		query.append("' and $element/@id='");
+		query.append(id);
+		query.append("' return $element");
+		query.append(getDdi3NamespaceHelper()
+				.addFullyQualifiedNamespaceDeclarationToElements("/UserID"));
+
+		List<String> queryResult = PersistenceManager.getInstance().query(
+				query.toString());
+
+		List<UserIDDocument> result = new ArrayList<UserIDDocument>();
+		for (String text : queryResult) {
+			result.add(UserIDDocument.Factory.parse(text));
+		}
+
+		return result;
 	}
 
 	public LightXmlObjectListDocument getStudyUnitsLight(String id,
@@ -3555,7 +3604,7 @@ public class DdiManager {
 				"Organization", null, "OrganizationName");
 		return lightXmlObjectListDocument;
 	}
-	
+
 	//
 	// Statistics Variable Reference
 	//
@@ -3565,24 +3614,29 @@ public class DdiManager {
 		query.append("for $element in ");
 		query.append(PersistenceManager.getInstance().getResourcePath());
 		query.append(getDdi3NamespaceHelper()
-				.addFullyQualifiedNamespaceDeclarationToElements("//PhysicalInstance"));
+				.addFullyQualifiedNamespaceDeclarationToElements(
+						"//PhysicalInstance"));
 		query.append(getDdi3NamespaceHelper()
 				.addFullyQualifiedNamespaceDeclarationToElements("Statistics"));
 		query.append(" return $element");
 		query.append(getDdi3NamespaceHelper()
-				.addFullyQualifiedNamespaceDeclarationToElements("//Statistics__VariableReference"));
-		
+				.addFullyQualifiedNamespaceDeclarationToElements(
+						"//Statistics__VariableReference"));
+
 		List<String> result = PersistenceManager.getInstance().query(
 				query.toString());
 
-		StatisticsDocument staticticsDoc = StatisticsDocument.Factory.newInstance();
+		StatisticsDocument staticticsDoc = StatisticsDocument.Factory
+				.newInstance();
 		StatisticsType statistics = staticticsDoc.addNewStatistics();
 		for (String string : result) {
-			VariableStatisticsType varStatistics = statistics.addNewVariableStatistics();
-			VariableReferenceDocument refdoc = VariableReferenceDocument.Factory.parse(string);
+			VariableStatisticsType varStatistics = statistics
+					.addNewVariableStatistics();
+			VariableReferenceDocument refdoc = VariableReferenceDocument.Factory
+					.parse(string);
 			ReferenceType ref = refdoc.getVariableReference();
 			varStatistics.addNewVariableReference().set(ref);
 		}
-		return staticticsDoc;		
-	}	
+		return staticticsDoc;
+	}
 }
