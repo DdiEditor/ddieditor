@@ -10,7 +10,6 @@ import java.util.TreeSet;
 
 import org.apache.xmlbeans.XmlOptions;
 import org.ddialliance.ddi3.xml.xmlbeans.reusable.UserIDDocument;
-import org.ddialliance.ddi3.xml.xmlbeans.reusable.UserIDType;
 import org.ddialliance.ddieditor.model.DdiManager;
 import org.ddialliance.ddieditor.model.XQuery;
 import org.ddialliance.ddieditor.model.lightxmlobject.LightXmlObjectType;
@@ -969,36 +968,22 @@ public class PersistenceManager {
 
 	private void cleanUpDdiEditorVersionUserIds(String id, String version,
 			String parentId, String parentVersion) throws Exception {
-		List<LightXmlObjectType> studyUnitUserIds = DdiManager.getInstance()
-				.getStudyUnitUserIDLights(id, version, parentId, parentVersion)
-				.getLightXmlObjectList().getLightXmlObjectList();
 		int count = 0;
-		for (LightXmlObjectType studyUnitUserId : studyUnitUserIds) {
+		List<UserIDDocument> studyUnitUserIds = DdiManager.getInstance()
+				.getAllStudyUnitUserIds(id, version, parentId, parentVersion);
+		for (UserIDDocument userId : studyUnitUserIds) {
 			count++;
-			UserIDType userIdType = DdiManager.getInstance()
-					.getStudyUnitUserId(studyUnitUserId.getId(),
-							studyUnitUserId.getVersion());
-			// delete old User IDs
-			if (userIdType != null) {
-				UserIDDocument userIdDoc = UserIDDocument.Factory
-						.parse(userIdType.xmlText(DdiManager.getInstance()
-								.getXmlOptions()));
-				if (userIdDoc.getUserID().getType().equals(DDI_EDITOR_VERSION)) {
-					PersistenceManager
-							.getInstance()
-							.delete(DdiManager.getInstance()
-									.getQueryElementString(id, version,
-											"studyunit__StudyUnit", parentId,
-											parentVersion, "DDIInstance")
-									+ DdiManager
-											.getInstance()
-											.getDdi3NamespaceHelper()
-											.addFullyQualifiedNamespaceDeclarationToElements(
-													"UserID")
-									+ "["
-									+ count
-									+ "]");
-				}
+			if (userId.getUserID().getType().equals(DDI_EDITOR_VERSION)) {
+				PersistenceManager
+						.getInstance()
+						.delete(DdiManager.getInstance().getQueryElementString(
+								id, version, "studyunit__StudyUnit", parentId,
+								parentVersion, "DDIInstance")
+								+ DdiManager
+										.getInstance()
+										.getDdi3NamespaceHelper()
+										.addFullyQualifiedNamespaceDeclarationToElements(
+												"UserID") + "[" + count + "]");
 			}
 		}
 	}
