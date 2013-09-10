@@ -3468,6 +3468,8 @@ public class DdiManager {
 		query.append("declare namespace ddieditor= \"http://dda.dk/ddieditor\";");
 		query.append("declare namespace l=\""
 				+ Ddi3NamespacePrefix.LOGIAL_PRODUCT.getNamespace() + "\";");
+		query.append("declare namespace r=\""
+				+ Ddi3NamespacePrefix.REUSEABLE.getNamespace() + "\";");
 
 		query.append("declare function ddieditor:getVarRepresentationType($rep as element())  as xs:string {");
 		query.append(" let $result := if ($rep/l:CodeRepresentation) then \"Code\" else");
@@ -3477,12 +3479,16 @@ public class DdiManager {
 		query.append(" if ($rep/l:TextRepresentation) then \"Text\" else ()");
 		query.append(" return $result};");
 
+		query.append("declare function ddieditor:getVarRepresentationRef($rep as element())  as xs:string {");
+		query.append(" let $ref := if ($rep/l:CodeRepresentation) then $rep/l:CodeRepresentation/r:CodeSchemeReference/r:ID/text() else (\"\")");
+		query.append(" return $ref};");
+
 		query.append(" let $var := for $x in ");
 		query.append(PersistenceManager.getInstance().getResourcePath());
 		query.append("//l:Variable return $x");
-		query.append(" let $result := for $x in $var return<IdElement repType=\"{ddieditor:getVarRepresentationType($x/l:Representation)}\" name=\"{$x/l:VariableName/text()}\" id=\"{$x/@id}\" version=\"{$x/@version}\" agency=\"{$x/@agency}\"  />");
+		query.append(" let $result := for $x in $var return<IdElement repType=\"{ddieditor:getVarRepresentationType($x/l:Representation)}\" name=\"{$x/l:VariableName/text()}\" id=\"{$x/@id}\" version=\"{$x/@version}\" agency=\"{$x/@agency}\" repRef=\"{ddieditor:getVarRepresentationRef($x/l:Representation)}\" />");
 		query.append(" return <IdElementList>{$result}</IdElementList>");
-
+		
 		List<String> result = PersistenceManager.getInstance().query(
 				query.toString());
 		return result.get(0);
