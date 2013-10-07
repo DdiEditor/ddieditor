@@ -48,6 +48,7 @@ import org.ddialliance.ddi3.xml.xmlbeans.physicalinstance.StatisticsType;
 import org.ddialliance.ddi3.xml.xmlbeans.physicalinstance.VariableReferenceDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.physicalinstance.VariableStatisticsType;
 import org.ddialliance.ddi3.xml.xmlbeans.reusable.ReferenceType;
+import org.ddialliance.ddi3.xml.xmlbeans.reusable.UniverseReferenceDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.reusable.UserIDDocument;
 import org.ddialliance.ddi3.xml.xmlbeans.reusable.UserIDType;
 import org.ddialliance.ddieditor.logic.urn.ddi.ReferenceResolution;
@@ -3028,6 +3029,18 @@ public class DdiManager {
 		String text = queryElement(id, version, "Universe", parentId,
 				parentVersion, "UniverseScheme");
 		return (text == "" ? null : UniverseDocument.Factory.parse(text));
+	}
+
+	public List<UniverseReferenceDocument> getUniverseReference(String id,
+			String version, String parentId, String parentVersion)
+			throws Exception {
+		List<String> queryResult = queryElements(id, version, "UniverseReference",
+				parentId, parentVersion, "studyunit__StudyUnit");
+		List<UniverseReferenceDocument> result = new ArrayList<UniverseReferenceDocument>();
+		for (String text : queryResult) {
+			result.add(UniverseReferenceDocument.Factory.parse(text));
+		}
+		return result;
 	}
 
 	public LightXmlObjectListDocument getUniversesLight(String id,
