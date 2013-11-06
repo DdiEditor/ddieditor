@@ -1436,6 +1436,21 @@ public class DdiManager {
 		PersistenceManager.getInstance().updateQuery(query.toString());
 	}
 
+	public void deleteElement(String elementType, String id, String version,
+			String parentId, String parentVersion, String parentElementType)
+			throws DDIFtpException {
+		// position
+		XQuery position = xQueryCrudPosition(id, version, elementType, parentId,
+				parentVersion, parentElementType);
+
+		// query
+		StringBuilder query = new StringBuilder();
+		query.append(position.function.toString());
+		query.append("delete node");
+		query.append(position.query.toString());
+		PersistenceManager.getInstance().updateQuery(query.toString());
+	}
+
 	public void updateAttribute(LightXmlObjectType lightXmlObject,
 			String parentElementType, String attributeName,
 			String attributeValue) throws DDIFtpException {
@@ -3034,8 +3049,9 @@ public class DdiManager {
 	public List<UniverseReferenceDocument> getUniverseReference(String id,
 			String version, String parentId, String parentVersion)
 			throws Exception {
-		List<String> queryResult = queryElements(id, version, "UniverseReference",
-				parentId, parentVersion, "studyunit__StudyUnit");
+		List<String> queryResult = queryElements(id, version,
+				"UniverseReference", parentId, parentVersion,
+				"studyunit__StudyUnit");
 		List<UniverseReferenceDocument> result = new ArrayList<UniverseReferenceDocument>();
 		for (String text : queryResult) {
 			result.add(UniverseReferenceDocument.Factory.parse(text));
@@ -3501,7 +3517,7 @@ public class DdiManager {
 		query.append("//l:Variable return $x");
 		query.append(" let $result := for $x in $var return<IdElement repType=\"{ddieditor:getVarRepresentationType($x/l:Representation)}\" name=\"{$x/l:VariableName/text()}\" id=\"{$x/@id}\" version=\"{$x/@version}\" agency=\"{$x/@agency}\" repRef=\"{ddieditor:getVarRepresentationRef($x/l:Representation)}\" />");
 		query.append(" return <IdElementList>{$result}</IdElementList>");
-		
+
 		List<String> result = PersistenceManager.getInstance().query(
 				query.toString());
 		return result.get(0);
