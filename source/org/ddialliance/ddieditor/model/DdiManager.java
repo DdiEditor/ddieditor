@@ -2116,7 +2116,7 @@ public class DdiManager {
 			String version, String parentId, String parentVersion)
 			throws DDIFtpException {
 		return executeStudyLabelQuery(id, version, parentId, parentVersion,
-				new String[] { "Citation", "studyunit__Abstract",
+				new String[] { "UserID", "Citation", "studyunit__Abstract",
 						"UniverseReference", "SeriesStatement",
 						"FundingInformation", "studyunit__Purpose", "Coverage",
 						"AnalysisUnit",
