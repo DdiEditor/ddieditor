@@ -372,6 +372,7 @@ public class DbXmlManager implements PersistenceStorage {
 		// create checkpoint
 		logSystem.info("Begin Check Point");
 		CheckpointConfig cpc = new CheckpointConfig();
+		cpc.setMinutes(1);
 		getEnvironment().checkpoint(cpc);
 		logSystem.info("End Check Point");
 
@@ -832,7 +833,8 @@ public class DbXmlManager implements PersistenceStorage {
 		String localName = null;
 
 		// continue reading
-		while (reader.hasNext()) {
+		boolean stopElementFound = false;
+		while (reader.hasNext() && !stopElementFound) {
 			int type = reader.next();
 
 			// start element
@@ -855,14 +857,14 @@ public class DbXmlManager implements PersistenceStorage {
 				// look for stop elements
 				for (int i = 0; i < stopElements.length; i++) {
 					// check if localName is part of stop list
-					if (localName.equals(stopElements[i])) {
+					if (localName.equals(Ddi3NamespaceHelper
+							.getCleanedElementName(stopElements[i]))) {
+						stopElementFound = true;
 						break;
 					}
 				}
 			}
 		}
-		// this.jumpName = jumpName; // temp!!!!!!
-		// return locatedCount;
 		return new JumpResult(locatedCount, jumpName);
 	}
 
