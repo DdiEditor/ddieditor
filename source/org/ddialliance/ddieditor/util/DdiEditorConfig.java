@@ -32,6 +32,7 @@ public class DdiEditorConfig extends Config {
 	public static final String OSIRIS_TO_DDIL_TITLE_PARTH_SPLIT = "osiristoddil.title.pathsplit";
 	public static final String OSIRIS_TO_DDIL_QBANKPREFIX = "osiristoddil.dbqbank.prefix";
 	public static final String DDI_EDITOR_VERSION = "ddieditor.app.version";
+	public static final String DDA_CONVERSION_STUDYINFO_DIR = "dda.conversion.studydir";
 
 	public static void init() {
 		LogFactory.getLog(LogType.SYSTEM, DdiEditorConfig.class).info(
