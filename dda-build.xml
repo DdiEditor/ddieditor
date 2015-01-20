@@ -33,7 +33,7 @@
 	<property name="java.heap.init" value="128" />
 	<property name="java.heap.max" value="512" />
 
-	<!-- ant contrib task def -->
+	<!-- ant contrib task def. -->
 	<taskdef resource="net/sf/antcontrib/antcontrib.properties">
 		<classpath>
 			<pathelement location="${lib.dir}/ant-contrib/${version.ant-contrib}/ant-contrib.jar" />
