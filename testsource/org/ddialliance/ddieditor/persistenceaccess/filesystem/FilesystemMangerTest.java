@@ -14,7 +14,7 @@ public class FilesystemMangerTest extends DdieditorTestCase {
 	public void exportResource() throws Exception {
 		File file = new File("test.xml");
 		file.deleteOnExit();
-		PersistenceManager.getInstance().exportResoure(DdieditorTestCase.FULLY_DECLARED_NS_DOC, file);
+		PersistenceManager.getInstance().exportResoure(DdieditorTestCase.FULLY_DECLARED_NS_DOC, file, "1.0.0");
 		Assert.assertTrue(file.exists());
 	}
 	

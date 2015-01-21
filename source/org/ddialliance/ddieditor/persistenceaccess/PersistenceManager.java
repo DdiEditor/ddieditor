@@ -899,13 +899,30 @@ public class PersistenceManager {
 	 *            in persistent storage
 	 * @param file
 	 *            in file system
+	 * @param ddiEditorversion DdiEditor version
 	 * @throws DDIFtpException
 	 */
-	public void exportResoure(String resource, File file)
+	public void exportResoure(String resource, File file, String ddiEditorversion)
 			throws DDIFtpException {
 		setWorkingResource(resource);
-		UserIDDocument appVersion = getEditorVersion();
+		updateDdiEditorVersion(ddiEditorversion);
+		try {
+			// check for resource package
+			List<LightXmlObjectType> rpList = DdiManager.getInstance()
+					.getStudyUnitsLight(null, null, null, null)
+					.getLightXmlObjectList().getLightXmlObjectList();
+			for (LightXmlObjectType lightXmlObjectType : rpList) {
+				// TODO add app version as user id
+			}
 
+			workingPersistenceStorage.exportResource(resource, file);
+		} catch (Exception e) {
+			throw new DDIFtpException("Error exporting resource: " + resource);
+		}
+	}
+
+	private void updateDdiEditorVersion(String version) throws DDIFtpException {
+		UserIDDocument appVersion = getEditorVersion(version);
 		try {
 			// check for study unit
 			List<LightXmlObjectType> studyUnitList = DdiManager.getInstance()
@@ -936,33 +953,19 @@ public class PersistenceManager {
 										lightXmlObjectType.getParentVersion(),
 										"DDIInstance"));
 			}
-
-			// check for resource package
-			List<LightXmlObjectType> rpList = DdiManager.getInstance()
-					.getStudyUnitsLight(null, null, null, null)
-					.getLightXmlObjectList().getLightXmlObjectList();
-			for (LightXmlObjectType lightXmlObjectType : rpList) {
-				// add app version as user id
-			}
-
-			workingPersistenceStorage.exportResource(resource, file);
 		} catch (Exception e) {
-			throw new DDIFtpException("Error exporting resource: " + resource);
+			throw new DDIFtpException(
+					"Error udating DdiEditor version in study unit");
 		}
 	}
 
-	final String DDI_EDITOR_VERSION = "dk.dda.ddieditor.version";
+	final String DDI_EDITOR_VERSION = "ddieditor.app.version";
 
-	private UserIDDocument getEditorVersion() {
+	private UserIDDocument getEditorVersion(String version) {
 		UserIDDocument doc = UserIDDocument.Factory.newInstance();
 		doc.addNewUserID();
 		doc.getUserID().setType(DDI_EDITOR_VERSION);
-
-		// rcp application version not accessible!
-		// hack done load from release-note and put into config properties!
-		// @see org.ddialliance.ddieditor.ui.preference.PreferenceInitializer
-		doc.getUserID().setStringValue(
-				DdiEditorConfig.get(DdiEditorConfig.DDI_EDITOR_VERSION));
+		doc.getUserID().setStringValue(version);
 		return doc;
 	}
 

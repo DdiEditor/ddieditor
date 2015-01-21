@@ -154,7 +154,7 @@ public class DdiManagerTest extends DdieditorTestCase {
 
 		// export
 		PersistenceManager.getInstance().exportResoure(
-				DdieditorTestCase.FULLY_DECLARED_NS_DOC, new File("test.xml"));
+				DdieditorTestCase.FULLY_DECLARED_NS_DOC, new File("test.xml"), "1.0.0");
 	}
 
 	@Test
@@ -384,7 +384,7 @@ public class DdiManagerTest extends DdieditorTestCase {
 				.getLightXmlObjectList().getLightXmlObjectList().size());
 
 		PersistenceManager.getInstance().exportResoure(FULLY_DECLARED_NS_DOC,
-				new File("export-test.xml"));
+				new File("export-test.xml"), "1.0.0");
 	}
 
 	@Test
@@ -429,7 +429,7 @@ public class DdiManagerTest extends DdieditorTestCase {
 
 		PersistenceManager.getInstance().exportResoure(
 				DdieditorTestCase.FULLY_DECLARED_NS_DOC,
-				new File("createDocOut.xml"));
+				new File("createDocOut.xml"), "1.0.0");
 	}
 
 	@Test
@@ -744,7 +744,7 @@ public class DdiManagerTest extends DdieditorTestCase {
 
 		// export
 		PersistenceManager.getInstance().exportResoure(FULLY_DECLARED_NS_DOC,
-				new File("test-citation.xml"));
+				new File("test-citation.xml"), "1.0.0");
 	}
 
 	@Test
