@@ -53,7 +53,7 @@
 			</then>
 			<else>
 				<echo message="Building DDIFtp-util" />
-				<ant inheritall="false" inheritrefs="false" antfile="${basedir}/../util/build.xml" target="jar" />
+				<ant inheritall="false" inheritrefs="false" antfile="${basedir}/../util/dda-build.xml" target="jar" />
 				<echo message="DDIFtp-util build" />
 			</else>
 		</if>
